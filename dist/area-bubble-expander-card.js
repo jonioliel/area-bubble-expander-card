@@ -324,9 +324,9 @@ class AreaBubbleExpanderCard extends HTMLElement {
     const s = this._config?.style || DEFAULT_CONFIG.style;
     return `<style>
       :host{display:block;direction:${isRtl(this._hass, this._config) ? "rtl" : "ltr"};text-align:start;color:var(--primary-text-color)}
-      ha-card{overflow:hidden;border-radius:${s.border_radius}px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);box-shadow:${s.show_shadows ? `0 12px 30px rgba(0,0,0,${s.shadow_intensity})` : "none"};backdrop-filter:blur(${s.blur}px)}
-      .root{padding:14px}.header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:4px 4px 12px}.title{font-size:18px;font-weight:700}.sub,.preview,.secondary{color:var(--secondary-text-color);font-size:12px;line-height:1.35}.sections{display:grid;gap:${s.section_gap}px}.area{overflow:hidden;border-radius:${s.border_radius}px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1)}.area.expanded{background:rgba(255,255,255,.075)}
-      .area-header{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:10px;min-height:66px;padding:10px;cursor:pointer}.icon{display:inline-grid;place-items:center;width:42px;height:42px;border-radius:999px;background:rgba(var(--rgb-primary-color,3,169,244),.16);color:${s.accent_color}}.name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:650}.line{display:flex;gap:8px;align-items:center;min-width:0}.count{color:var(--secondary-text-color);font-size:12px;font-weight:600}.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.chip{display:inline-flex;align-items:center;gap:4px;min-height:22px;padding:0 8px;border-radius:999px;background:rgba(255,255,255,.11);color:var(--secondary-text-color);font-size:11px}.chip ha-icon{--mdc-icon-size:14px}.controls{display:flex;gap:4px}.btn{display:inline-grid;place-items:center;width:40px;height:40px;border:0;border-radius:999px;background:rgba(255,255,255,.08);color:var(--primary-text-color);cursor:pointer}.btn.danger{color:${s.danger_color}}.btn[disabled]{opacity:.45;cursor:not-allowed}.entities{display:grid;gap:8px;padding:0 10px 10px}.entity{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:10px;min-height:${s.row_height}px;padding:7px 8px;border-radius:${Math.max(8, s.border_radius - 10)}px;background:rgba(255,255,255,.08);cursor:pointer}.protected{color:var(--warning-color,#f6a623);font-size:11px}.empty{display:grid;place-items:center;gap:8px;min-height:128px;padding:22px;text-align:center}.debug{margin-top:12px;padding:10px;border-radius:14px;background:rgba(0,0,0,.16);direction:ltr;text-align:left;white-space:pre-wrap;color:var(--secondary-text-color);font-size:12px}
+      ha-card{overflow:hidden;border-radius:${s.border_radius}px;background:linear-gradient(145deg,rgba(255,255,255,.08),rgba(255,255,255,.035)),rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);box-shadow:${s.show_shadows ? `0 12px 30px rgba(0,0,0,${s.shadow_intensity})` : "none"};backdrop-filter:blur(${s.blur}px)}
+      .root{padding:14px}.header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:4px 4px 12px}.title{font-size:18px;font-weight:700}.sub,.preview,.secondary{color:var(--secondary-text-color);font-size:12px;line-height:1.35}.sections{display:grid;gap:${s.section_gap}px}.area{overflow:hidden;border-radius:${s.border_radius}px;background:linear-gradient(145deg,rgba(255,255,255,.07),rgba(255,255,255,.025)),rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);transition:background-color .16s ease,border-color .16s ease,transform .16s ease}.area.expanded{background:rgba(255,255,255,.075);border-color:rgba(var(--rgb-primary-color,3,169,244),.24)}
+      .area-header{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:10px;min-height:66px;padding:10px;cursor:pointer}.area-header:focus-visible,.entity:focus-visible,.btn:focus-visible{outline:2px solid ${s.accent_color};outline-offset:2px}.icon{display:inline-grid;place-items:center;width:42px;height:42px;border-radius:999px;background:radial-gradient(circle at 35% 25%,rgba(255,255,255,.22),transparent 45%),rgba(var(--rgb-primary-color,3,169,244),.16);color:${s.accent_color}}.name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:650}.line{display:flex;gap:8px;align-items:center;min-width:0}.count{color:var(--secondary-text-color);font-size:12px;font-weight:600}.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.chip{display:inline-flex;align-items:center;gap:4px;min-height:22px;padding:0 8px;border-radius:999px;background:rgba(255,255,255,.11);color:var(--secondary-text-color);font-size:11px}.chip ha-icon{--mdc-icon-size:14px}.controls{display:flex;gap:4px}.btn{display:inline-grid;place-items:center;width:40px;height:40px;border:0;border-radius:999px;background:rgba(255,255,255,.08);color:var(--primary-text-color);cursor:pointer;transition:background-color .14s ease,color .14s ease,transform .14s ease}.btn:active,.entity:active{transform:scale(.985)}.btn.danger{color:${s.danger_color}}.btn[disabled]{opacity:.45;cursor:not-allowed}.entities{display:grid;gap:8px;padding:0 10px 10px}.entity{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:10px;min-height:${s.row_height}px;padding:7px 8px;border-radius:${Math.max(8, s.border_radius - 10)}px;background:linear-gradient(145deg,rgba(255,255,255,.075),rgba(255,255,255,.035)),rgba(255,255,255,.08);cursor:pointer}.protected{color:var(--warning-color,#f6a623);font-size:11px}.empty{display:grid;place-items:center;gap:8px;min-height:128px;padding:22px;text-align:center}.debug{margin-top:12px;padding:10px;border-radius:14px;background:rgba(0,0,0,.16);direction:ltr;text-align:left;white-space:pre-wrap;color:var(--secondary-text-color);font-size:12px}
       @media(max-width:420px){.root{padding:10px}.area-header{padding:9px}.btn{width:38px;height:38px}}
     </style>`;
   }
@@ -367,7 +367,9 @@ class AreaBubbleExpanderCard extends HTMLElement {
   }
   toggle(id) {
     if (!this._config.expand_on_header_tap) return;
-    this._expanded = { ...this._expanded, [id]: !this._expanded[id] };
+    const group = discover(this._hass, this._config).groups.find((candidate) => candidate.id === id);
+    const current = group ? this.isExpanded(group) : Boolean(this._expanded[id]);
+    this._expanded = { ...this._expanded, [id]: !current };
     if (this._config.remember_expanded_state) try { localStorage.setItem(storageKey(this._id), JSON.stringify(this._expanded)); } catch {}
     this.render();
   }
@@ -422,18 +424,60 @@ class AreaBubbleExpanderCardEditor extends HTMLElement {
     if (!this.shadowRoot) return;
     const c = mergeConfig(this._config);
     const list = (value) => Array.isArray(value) ? value.join("\n") : "";
-    this.shadowRoot.innerHTML = `<style>:host{display:block}.grid{display:grid;gap:14px}.section{display:grid;gap:10px;padding:14px;border:1px solid var(--divider-color);border-radius:12px}.field{display:grid;gap:5px}label{font-weight:600}input,select,textarea{box-sizing:border-box;width:100%;min-height:40px;padding:8px;border:1px solid var(--divider-color);border-radius:8px;background:var(--card-background-color);color:var(--primary-text-color);font:inherit}textarea{min-height:82px}.row{display:flex;align-items:center;justify-content:space-between;gap:12px}</style><div class="grid">
+    const areaPicker = this.areaPicker(c);
+    const entityPicker = this.entityPicker(c);
+    this.shadowRoot.innerHTML = `<style>:host{display:block}.grid{display:grid;gap:14px}.section{display:grid;gap:10px;padding:14px;border:1px solid var(--divider-color);border-radius:12px}.field{display:grid;gap:5px}label{font-weight:600}input,select,textarea{box-sizing:border-box;width:100%;min-height:40px;padding:8px;border:1px solid var(--divider-color);border-radius:8px;background:var(--card-background-color);color:var(--primary-text-color);font:inherit}textarea{min-height:82px}.row{display:flex;align-items:center;justify-content:space-between;gap:12px}.picker{display:grid;gap:10px;padding:10px;border-radius:12px;background:color-mix(in srgb,var(--secondary-background-color) 82%,transparent);border:1px solid var(--divider-color)}.picker-head{display:grid;grid-template-columns:minmax(0,1fr) minmax(180px,280px);gap:10px;align-items:center}.picker-head span{display:block;color:var(--secondary-text-color);font-size:12px;margin-top:2px}.picker-list{display:grid;gap:8px;max-height:360px;overflow:auto}.picker-item{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:10px;padding:8px;border-radius:10px;background:var(--card-background-color);border:1px solid var(--divider-color)}.picker-item ha-icon{color:var(--primary-color);--mdc-icon-size:22px}.picker-title{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:650}.picker-meta{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--secondary-text-color);font-size:12px}.pill{min-height:32px;border:1px solid var(--divider-color);border-radius:999px;padding:0 10px;background:transparent;color:var(--primary-text-color);cursor:pointer;font:inherit;font-size:12px;font-weight:650}.pill.active{border-color:var(--primary-color);background:color-mix(in srgb,var(--primary-color) 18%,transparent);color:var(--primary-color)}.pill.danger.active{border-color:var(--error-color,#ff5252);background:color-mix(in srgb,var(--error-color,#ff5252) 18%,transparent);color:var(--error-color,#ff5252)}@media(max-width:560px){.picker-head{grid-template-columns:1fr}.picker-item{grid-template-columns:auto minmax(0,1fr)}.pill{width:100%}}</style><div class="grid">
       ${this.bool("show_header", "Show header", c.show_header)}
       ${this.text("title", "Card title", c.title || "")}
       ${this.select("language", "Language", c.language, [["auto","Auto"],["he","Hebrew"],["en","English"]])}
       ${this.select("rtl", "RTL", String(c.rtl), [["auto","Auto"],["true","Enabled"],["false","Disabled"]])}
       <div class="section"><strong>Display</strong>${this.bool("default_expanded","Default expanded",c.default_expanded)}${this.bool("show_domain_chips","Show domain chips",c.show_domain_chips)}${this.bool("show_preview_entities","Show preview entities",c.show_preview_entities)}${this.number("preview_entity_count","Preview entity count",c.preview_entity_count)}</div>
-      <div class="section"><strong>Entities</strong>${this.area("domains","Included domains",list(c.domains))}${this.area("exclude_domains","Excluded domains",list(c.exclude_domains))}${this.area("exclude_entities","Exclude entities",list(c.exclude_entities))}${this.area("exclude_labels","Exclude labels",list(c.exclude_labels))}</div>
+      <div class="section"><strong>Areas</strong>${areaPicker}${this.area("include_areas","Included areas",list(c.include_areas))}${this.area("exclude_areas","Excluded areas",list(c.exclude_areas))}</div>
+      <div class="section"><strong>Entities</strong>${entityPicker}${this.area("domains","Included domains",list(c.domains))}${this.area("exclude_domains","Excluded domains",list(c.exclude_domains))}${this.area("include_entities","Include entities",list(c.include_entities))}${this.area("exclude_entities","Hide entities",list(c.exclude_entities))}${this.area("exclude_labels","Exclude labels",list(c.exclude_labels))}</div>
       <div class="section"><strong>Actions and Safety</strong>${this.bool("show_area_turn_off","Show area turn-off",c.show_area_turn_off)}${this.bool("show_entity_turn_off","Show entity turn-off",c.show_entity_turn_off)}${this.bool("confirm_area_turn_off","Confirm area turn-off",c.confirm_area_turn_off)}${this.area("protected_labels","Protected labels",list(c.protected_labels))}${this.area("protected_entities","Protected entities",list(c.protected_entities))}</div>
       <div class="section"><strong>Advanced JSON</strong>${this.area("active_states","Active states JSON",JSON.stringify(c.active_states,null,2),true)}${this.area("inactive_states","Inactive states JSON",JSON.stringify(c.inactive_states,null,2),true)}${this.area("service_mapping","Service mapping JSON",JSON.stringify(c.service_mapping,null,2),true)}</div>
       <div class="section"><strong>Debug</strong>${this.bool("debug","Debug logging",c.debug)}${this.bool("show_debug","Show diagnostics",c.show_debug)}<textarea readonly>${escapeHtml(JSON.stringify(this._config,null,2))}</textarea></div>
     </div>`;
     this.shadowRoot.querySelectorAll("[data-key]").forEach((el) => el.addEventListener("change", () => this.changed(el)));
+    this.shadowRoot.querySelectorAll("[data-list-key]").forEach((el) => el.addEventListener("click", () => this.toggleListValue(el.dataset.listKey, el.dataset.value)));
+    this.shadowRoot.querySelectorAll("[data-filter]").forEach((input) => input.addEventListener("input", () => this.filterList(input.dataset.filter, input.value)));
+  }
+  areaPicker(c) {
+    const areas = this.areaOptions(c);
+    return `<div class="picker"><div class="picker-head"><div><strong>Areas from Home Assistant</strong><span>${areas.length} areas</span></div><input data-filter="areas" type="search" placeholder="Search area name or ID"></div><div class="picker-list">${areas.map((area) => `<div class="picker-item" data-filter-target="areas" data-search="${escapeHtml(`${area.name} ${area.id}`.toLowerCase())}"><ha-icon icon="${escapeHtml(area.icon)}"></ha-icon><div><div class="picker-title">${escapeHtml(area.name)}</div><div class="picker-meta">${escapeHtml(area.id)}</div></div><button type="button" class="pill ${c.include_areas.includes(area.id) || c.include_areas.includes(area.name) ? "active" : ""}" data-list-key="include_areas" data-value="${escapeHtml(area.id)}">Include</button><button type="button" class="pill danger ${c.exclude_areas.includes(area.id) || c.exclude_areas.includes(area.name) ? "active" : ""}" data-list-key="exclude_areas" data-value="${escapeHtml(area.id)}">Exclude</button></div>`).join("")}</div></div>`;
+  }
+  entityPicker(c) {
+    const entities = this.entityOptions(c);
+    return `<div class="picker"><div class="picker-head"><div><strong>Entities from Home Assistant</strong><span>${entities.length} entities</span></div><input data-filter="entities" type="search" placeholder="Search entity, area, or domain"></div><div class="picker-list">${entities.map((entity) => `<div class="picker-item" data-filter-target="entities" data-search="${escapeHtml(`${entity.name} ${entity.entityId} ${entity.domain} ${entity.areaName}`.toLowerCase())}"><ha-icon icon="${escapeHtml(entity.icon)}"></ha-icon><div><div class="picker-title">${escapeHtml(entity.name)}</div><div class="picker-meta">${escapeHtml(entity.entityId)} · ${escapeHtml(entity.areaName)} · ${escapeHtml(entity.domain)}</div></div><button type="button" class="pill ${c.include_entities.includes(entity.entityId) ? "active" : ""}" data-list-key="include_entities" data-value="${escapeHtml(entity.entityId)}">Include</button><button type="button" class="pill danger ${c.exclude_entities.includes(entity.entityId) ? "active" : ""}" data-list-key="exclude_entities" data-value="${escapeHtml(entity.entityId)}">Hide</button></div>`).join("")}</div></div>`;
+  }
+  areaOptions(c) {
+    const byId = new Map();
+    Object.entries(this._hass?.areas || {}).forEach(([key, area]) => byId.set(area.area_id || area.id || key, { id: area.area_id || area.id || key, name: area.name, icon: area.icon || "mdi:floor-plan" }));
+    Object.keys(this._hass?.states || {}).forEach((entityId) => {
+      const area = resolveArea(this._hass, c, entityId);
+      if (!byId.has(area.id)) byId.set(area.id, { id: area.id, name: area.name, icon: area.icon });
+    });
+    return [...byId.values()].sort((a, b) => a.name.localeCompare(b.name));
+  }
+  entityOptions(c) {
+    return Object.values(this._hass?.states || {}).map((entity) => {
+      const domain = domainOf(entity.entity_id);
+      const area = resolveArea(this._hass, c, entity.entity_id);
+      return { entityId: entity.entity_id, domain, areaName: area.name, name: entity.attributes.friendly_name || entity.entity_id, icon: entity.attributes.icon || c.domain_icons[domain] || "mdi:toggle-switch-outline" };
+    }).sort((a, b) => a.areaName.localeCompare(b.areaName) || String(a.name).localeCompare(String(b.name)));
+  }
+  filterList(name, value) {
+    const needle = String(value || "").trim().toLowerCase();
+    this.shadowRoot.querySelectorAll(`[data-filter-target="${name}"]`).forEach((item) => {
+      item.hidden = Boolean(needle) && !String(item.dataset.search || "").includes(needle);
+    });
+  }
+  toggleListValue(key, value) {
+    const current = Array.isArray(this._config[key]) ? [...this._config[key]] : [];
+    const next = current.includes(value) ? current.filter((item) => item !== value) : [...current, value];
+    this._config = { ...this._config, [key]: next };
+    this.dispatchEvent(new CustomEvent("config-changed", { bubbles: true, composed: true, detail: { config: this._config } }));
+    this.render();
   }
   bool(key, label, value) { return `<div class="row"><label>${label}</label><input type="checkbox" data-key="${key}" ${value ? "checked" : ""}></div>`; }
   text(key, label, value) { return `<div class="field"><label>${label}</label><input data-key="${key}" value="${escapeHtml(value)}"></div>`; }
@@ -454,5 +498,5 @@ class AreaBubbleExpanderCardEditor extends HTMLElement {
 customElements.define(CARD_TAG, AreaBubbleExpanderCard);
 customElements.define(EDITOR_TAG, AreaBubbleExpanderCardEditor);
 window.customCards = window.customCards || [];
-window.customCards.push({ type: "area-bubble-expander-card", name: "Area Bubble Expander Card", description: "Active entities grouped by Area with safe controls and Hebrew/RTL support.", preview: true });
-console.info("%c AREA-BUBBLE-EXPANDER-CARD %c 0.1.0", "color:white;background:#03a9f4;font-weight:700", "color:#03a9f4;font-weight:700");
+window.customCards.push({ type: "area-bubble-expander-card", name: "Area Bubble Expander Card", description: "Active entities grouped by Area with safe controls and Hebrew/RTL support.", preview: true, documentationURL: "https://github.com/jonioliel/area-bubble-expander-card" });
+console.info("%c AREA-BUBBLE-EXPANDER-CARD %c 0.1.1", "color:white;background:#03a9f4;font-weight:700", "color:#03a9f4;font-weight:700");

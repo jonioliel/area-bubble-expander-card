@@ -360,11 +360,11 @@ window.customCards.push({
   name: "Area Bubble Expander Card",
   description: "Active entities grouped by Home Assistant Area with safe controls and RTL support.",
   preview: true,
-  documentationURL: "https://github.com/custom-cards/area-bubble-expander-card",
+  documentationURL: "https://github.com/jonioliel/area-bubble-expander-card",
 });
 
 console.info(
-  `%c AREA-BUBBLE-EXPANDER-CARD %c 0.1.0 ${resolveLanguage(undefined, "auto")}`,
+  `%c AREA-BUBBLE-EXPANDER-CARD %c 0.1.1 ${resolveLanguage(undefined, "auto")}`,
   "color: white; background: #03a9f4; font-weight: 700;",
   "color: #03a9f4; font-weight: 700;",
 );

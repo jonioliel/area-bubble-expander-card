@@ -3,6 +3,7 @@ import { customElement, property, state } from "lit/decorators.js";
 import { EDITOR_TAG } from "./constants";
 import { editorStyles } from "./styles";
 import { listToText, resolveConfig, splitList } from "./helpers/config";
+import { resolveArea } from "./helpers/area";
 import type { AreaBubbleExpanderCardConfig, EditorSchemaItem, HomeAssistant } from "./types";
 
 const sections = [
@@ -205,6 +206,8 @@ export class AreaBubbleExpanderCardEditor extends LitElement {
   @property({ attribute: false }) public hass?: HomeAssistant;
   @state() private config: AreaBubbleExpanderCardConfig = { type: "custom:area-bubble-expander-card" };
   @state() private activeSection = "General";
+  @state() private areaSearch = "";
+  @state() private entitySearch = "";
 
   public setConfig(config: AreaBubbleExpanderCardConfig): void {
     this.config = { ...config };
@@ -225,6 +228,8 @@ export class AreaBubbleExpanderCardEditor extends LitElement {
           )}
         </div>
         <div class="section">
+          ${this.activeSection === "Areas" ? this.renderAreaPicker(resolved) : nothing}
+          ${this.activeSection === "Entities" ? this.renderEntityPicker(resolved) : nothing}
           ${visibleSchema.map((item) => this.renderField(item, resolved))}
           ${this.activeSection === "Debug"
             ? html`<div class="field"><label>Resulting config JSON</label><textarea class="yaml" readonly>${JSON.stringify(this.config, null, 2)}</textarea></div>`
@@ -232,6 +237,135 @@ export class AreaBubbleExpanderCardEditor extends LitElement {
         </div>
       </div>
     `;
+  }
+
+  private renderAreaPicker(resolved: ReturnType<typeof resolveConfig>) {
+    const areas = this.areaOptions(resolved);
+    const filtered = areas.filter((area) => this.matchesSearch(`${area.name} ${area.id}`, this.areaSearch));
+    return html`
+      <div class="picker-panel">
+        <div class="picker-heading">
+          <div>
+            <strong>Areas from Home Assistant</strong>
+            <span>${filtered.length} / ${areas.length}</span>
+          </div>
+          <input
+            class="search"
+            type="search"
+            placeholder="Search area name or ID"
+            .value=${this.areaSearch}
+            @input=${(ev: Event) => (this.areaSearch = (ev.target as HTMLInputElement).value)}
+          />
+        </div>
+        <div class="picker-list">
+          ${filtered.map(
+            (area) => html`
+              <div class="picker-item">
+                <ha-icon icon=${area.icon}></ha-icon>
+                <div class="picker-main">
+                  <div class="picker-title">${area.name}</div>
+                  <div class="picker-meta">${area.id}</div>
+                </div>
+                <button class="pill ${resolved.include_areas.includes(area.id) || resolved.include_areas.includes(area.name) ? "active" : ""}" @click=${() => this.toggleListValue("include_areas", area.id)}>
+                  Include
+                </button>
+                <button class="pill danger ${resolved.exclude_areas.includes(area.id) || resolved.exclude_areas.includes(area.name) ? "active" : ""}" @click=${() => this.toggleListValue("exclude_areas", area.id)}>
+                  Exclude
+                </button>
+              </div>
+            `,
+          )}
+        </div>
+      </div>
+    `;
+  }
+
+  private renderEntityPicker(resolved: ReturnType<typeof resolveConfig>) {
+    const entities = this.entityOptions(resolved);
+    const filtered = entities.filter((entity) =>
+      this.matchesSearch(`${entity.name} ${entity.entityId} ${entity.domain} ${entity.areaName}`, this.entitySearch),
+    );
+    return html`
+      <div class="picker-panel">
+        <div class="picker-heading">
+          <div>
+            <strong>Entities from Home Assistant</strong>
+            <span>${filtered.length} / ${entities.length}</span>
+          </div>
+          <input
+            class="search"
+            type="search"
+            placeholder="Search entity, area, or domain"
+            .value=${this.entitySearch}
+            @input=${(ev: Event) => (this.entitySearch = (ev.target as HTMLInputElement).value)}
+          />
+        </div>
+        <div class="picker-list entities-picker">
+          ${filtered.map(
+            (entity) => html`
+              <div class="picker-item">
+                <ha-icon icon=${entity.icon}></ha-icon>
+                <div class="picker-main">
+                  <div class="picker-title">${entity.name}</div>
+                  <div class="picker-meta">${entity.entityId} · ${entity.areaName} · ${entity.domain}</div>
+                </div>
+                <button class="pill ${resolved.include_entities.includes(entity.entityId) ? "active" : ""}" @click=${() => this.toggleListValue("include_entities", entity.entityId)}>
+                  Include
+                </button>
+                <button class="pill danger ${resolved.exclude_entities.includes(entity.entityId) ? "active" : ""}" @click=${() => this.toggleListValue("exclude_entities", entity.entityId)}>
+                  Hide
+                </button>
+              </div>
+            `,
+          )}
+        </div>
+      </div>
+    `;
+  }
+
+  private areaOptions(resolved: ReturnType<typeof resolveConfig>) {
+    const registryAreas = Object.entries(this.hass?.areas ?? {}).map(([key, area]) => ({
+      id: area.area_id ?? area.id ?? key,
+      name: area.name,
+      icon: area.icon ?? "mdi:floor-plan",
+    }));
+
+    const fromEntities = new Map<string, { id: string; name: string; icon: string }>();
+    for (const entityId of Object.keys(this.hass?.states ?? {})) {
+      const area = resolveArea(this.hass, resolved, entityId);
+      fromEntities.set(area.id, { id: area.id, name: area.name, icon: area.icon });
+    }
+
+    return [...registryAreas, ...fromEntities.values()]
+      .filter((area, index, list) => list.findIndex((item) => item.id === area.id) === index)
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  private entityOptions(resolved: ReturnType<typeof resolveConfig>) {
+    return Object.values(this.hass?.states ?? {})
+      .map((entity) => {
+        const domain = entity.entity_id.split(".")[0] ?? "";
+        const area = resolveArea(this.hass, resolved, entity.entity_id);
+        return {
+          entityId: entity.entity_id,
+          domain,
+          areaName: area.name,
+          name: String(entity.attributes.friendly_name ?? entity.entity_id),
+          icon: String(entity.attributes.icon ?? resolved.domain_icons[domain] ?? "mdi:toggle-switch-outline"),
+        };
+      })
+      .sort((a, b) => a.areaName.localeCompare(b.areaName) || a.name.localeCompare(b.name));
+  }
+
+  private matchesSearch(text: string, search: string): boolean {
+    const needle = search.trim().toLowerCase();
+    return !needle || text.toLowerCase().includes(needle);
+  }
+
+  private toggleListValue(key: string, value: string): void {
+    const current = splitList(this.readPath(key));
+    const next = current.includes(value) ? current.filter((item) => item !== value) : [...current, value];
+    this.updateKey(key, next);
   }
 
   private renderField(item: EditorSchemaItem, resolved: Record<string, unknown>) {
@@ -307,8 +441,12 @@ export class AreaBubbleExpanderCardEditor extends LitElement {
   }
 
   private update(item: EditorSchemaItem, value: unknown): void {
+    this.updateKey(item.key, value);
+  }
+
+  private updateKey(key: string, value: unknown): void {
     const next = structuredClone(this.config) as Record<string, unknown>;
-    this.writePath(next, item.key, value);
+    this.writePath(next, key, value);
     this.config = next as AreaBubbleExpanderCardConfig;
     this.dispatchEvent(
       new CustomEvent("config-changed", {

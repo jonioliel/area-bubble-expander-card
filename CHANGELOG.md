@@ -2,6 +2,14 @@
 
 All notable changes to Area Bubble Expander Card will be documented in this file.
 
+## 0.1.1 - 2026-06-10
+
+- Fixed expand/collapse state so areas toggle with one click even when `default_expanded` is enabled.
+- Added visual Area picker in the editor with real Home Assistant Area names and IDs for include/exclude filtering.
+- Added visual Entity picker in the editor with friendly name, entity ID, Area, and domain for easy include/hide filtering.
+- Polished card and editor styling with clearer focus states, softer section depth, improved row contrast, and better mobile editor layout.
+- Updated published card metadata to point to the project repository.
+
 ## 0.1.0 - 2026-06-10
 
 Initial release.

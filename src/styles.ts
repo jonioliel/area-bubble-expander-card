@@ -25,7 +25,9 @@ export const cardStyles = css`
   ha-card {
     overflow: hidden;
     border-radius: var(--abec-radius);
-    background: var(--abec-bg);
+    background:
+      linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.035)),
+      var(--abec-bg);
     border: 1px solid rgba(255, 255, 255, 0.12);
     box-shadow: var(--abec-shadow);
     backdrop-filter: blur(var(--abec-blur));
@@ -68,12 +70,19 @@ export const cardStyles = css`
   .area-section {
     overflow: hidden;
     border-radius: var(--abec-radius);
-    background: var(--abec-bg);
+    background:
+      linear-gradient(145deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.025)),
+      var(--abec-bg);
     border: 1px solid rgba(255, 255, 255, 0.1);
+    transition:
+      background-color 160ms ease,
+      border-color 160ms ease,
+      transform 160ms ease;
   }
 
   .area-section.expanded {
     background: var(--abec-bg-expanded);
+    border-color: rgba(var(--rgb-primary-color, 3, 169, 244), 0.24);
   }
 
   .area-header {
@@ -103,7 +112,9 @@ export const cardStyles = css`
     height: 42px;
     flex: 0 0 auto;
     border-radius: 999px;
-    background: var(--abec-icon-bg);
+    background:
+      radial-gradient(circle at 35% 25%, rgba(255, 255, 255, 0.22), transparent 45%),
+      var(--abec-icon-bg);
     color: var(--abec-accent);
   }
 
@@ -186,12 +197,28 @@ export const cardStyles = css`
     background: rgba(255, 255, 255, 0.08);
     color: var(--primary-text-color);
     cursor: pointer;
+    transition:
+      background-color 140ms ease,
+      color 140ms ease,
+      transform 140ms ease;
   }
 
   .icon-button:hover,
   .area-header:hover,
   .entity-row:hover {
     background-color: rgba(255, 255, 255, 0.08);
+  }
+
+  .icon-button:active,
+  .entity-row:active {
+    transform: scale(0.985);
+  }
+
+  .area-header:focus-visible,
+  .entity-row:focus-visible,
+  .icon-button:focus-visible {
+    outline: 2px solid var(--abec-accent);
+    outline-offset: 2px;
   }
 
   .icon-button.danger {
@@ -227,7 +254,9 @@ export const cardStyles = css`
     padding: 7px 8px;
     border: 0;
     border-radius: calc(var(--abec-radius) - 10px);
-    background: var(--abec-row-bg);
+    background:
+      linear-gradient(145deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.035)),
+      var(--abec-row-bg);
     color: inherit;
     text-align: start;
     font: inherit;
@@ -338,11 +367,18 @@ export const editorStyles = css`
     background: var(--secondary-background-color);
     color: var(--primary-text-color);
     cursor: pointer;
+    transition:
+      background-color 140ms ease,
+      transform 140ms ease;
   }
 
   .tab.active {
     background: var(--primary-color);
     color: var(--text-primary-color);
+  }
+
+  .tab:active {
+    transform: scale(0.98);
   }
 
   .section {
@@ -392,5 +428,124 @@ export const editorStyles = css`
     direction: ltr;
     font-family: var(--code-font-family, monospace);
     font-size: 12px;
+  }
+
+  .picker-panel {
+    display: grid;
+    gap: 10px;
+    padding: 12px;
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--secondary-background-color) 82%, transparent);
+    border: 1px solid var(--divider-color);
+  }
+
+  .picker-heading {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(180px, 280px);
+    align-items: center;
+    gap: 10px;
+  }
+
+  .picker-heading strong,
+  .picker-heading span {
+    display: block;
+  }
+
+  .picker-heading span {
+    color: var(--secondary-text-color);
+    font-size: 12px;
+    margin-top: 2px;
+  }
+
+  .search {
+    min-height: 38px;
+  }
+
+  .picker-list {
+    display: grid;
+    gap: 8px;
+    max-height: 360px;
+    overflow: auto;
+    padding-inline-end: 2px;
+  }
+
+  .picker-list.entities-picker {
+    max-height: 460px;
+  }
+
+  .picker-item {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 10px;
+    min-height: 50px;
+    padding: 8px;
+    border-radius: 10px;
+    background: var(--card-background-color);
+    border: 1px solid color-mix(in srgb, var(--divider-color) 72%, transparent);
+  }
+
+  .picker-item ha-icon {
+    color: var(--primary-color);
+    --mdc-icon-size: 22px;
+  }
+
+  .picker-main {
+    min-width: 0;
+  }
+
+  .picker-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 650;
+  }
+
+  .picker-meta {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--secondary-text-color);
+    font-size: 12px;
+  }
+
+  .pill {
+    min-height: 32px;
+    border: 1px solid var(--divider-color);
+    border-radius: 999px;
+    padding: 0 10px;
+    background: transparent;
+    color: var(--primary-text-color);
+    cursor: pointer;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 650;
+  }
+
+  .pill.active {
+    border-color: var(--primary-color);
+    background: color-mix(in srgb, var(--primary-color) 18%, transparent);
+    color: var(--primary-color);
+  }
+
+  .pill.danger.active {
+    border-color: var(--error-color, #ff5252);
+    background: color-mix(in srgb, var(--error-color, #ff5252) 18%, transparent);
+    color: var(--error-color, #ff5252);
+  }
+
+  @media (max-width: 560px) {
+    .picker-heading {
+      grid-template-columns: 1fr;
+    }
+
+    .picker-item {
+      grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .pill {
+      grid-column: span 1;
+      width: 100%;
+    }
   }
 `;
