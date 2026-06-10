@@ -2,6 +2,14 @@
 
 All notable changes to Area Bubble Expander Card will be documented in this file.
 
+## 0.1.2 - 2026-06-10
+
+- Fixed editor picker search handling so Area, Entity, and Label searches update reliably while typing.
+- Added Home Assistant Label picker in the editor for easy `exclude_labels` filtering.
+- Added friendly Area display order controls with up/down buttons that set `area_sort: custom` and update `custom_area_order`.
+- Improved custom Area sorting fallback so unordered areas still sort predictably by name.
+- Included entity Labels in entity picker search text for easier discovery.
+
 ## 0.1.1 - 2026-06-10
 
 - Fixed expand/collapse state so areas toggle with one click even when `default_expanded` is enabled.

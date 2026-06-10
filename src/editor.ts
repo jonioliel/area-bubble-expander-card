@@ -208,6 +208,7 @@ export class AreaBubbleExpanderCardEditor extends LitElement {
   @state() private activeSection = "General";
   @state() private areaSearch = "";
   @state() private entitySearch = "";
+  @state() private labelSearch = "";
 
   public setConfig(config: AreaBubbleExpanderCardConfig): void {
     this.config = { ...config };
@@ -229,7 +230,9 @@ export class AreaBubbleExpanderCardEditor extends LitElement {
         </div>
         <div class="section">
           ${this.activeSection === "Areas" ? this.renderAreaPicker(resolved) : nothing}
+          ${this.activeSection === "Areas" ? this.renderAreaOrder(resolved) : nothing}
           ${this.activeSection === "Entities" ? this.renderEntityPicker(resolved) : nothing}
+          ${this.activeSection === "Entities" ? this.renderLabelPicker(resolved) : nothing}
           ${visibleSchema.map((item) => this.renderField(item, resolved))}
           ${this.activeSection === "Debug"
             ? html`<div class="field"><label>Resulting config JSON</label><textarea class="yaml" readonly>${JSON.stringify(this.config, null, 2)}</textarea></div>`
@@ -254,7 +257,7 @@ export class AreaBubbleExpanderCardEditor extends LitElement {
             type="search"
             placeholder="Search area name or ID"
             .value=${this.areaSearch}
-            @input=${(ev: Event) => (this.areaSearch = (ev.target as HTMLInputElement).value)}
+            @input=${(ev: Event) => this.updateSearch(ev, "area")}
           />
         </div>
         <div class="picker-list">
@@ -283,7 +286,7 @@ export class AreaBubbleExpanderCardEditor extends LitElement {
   private renderEntityPicker(resolved: ReturnType<typeof resolveConfig>) {
     const entities = this.entityOptions(resolved);
     const filtered = entities.filter((entity) =>
-      this.matchesSearch(`${entity.name} ${entity.entityId} ${entity.domain} ${entity.areaName}`, this.entitySearch),
+      this.matchesSearch(`${entity.name} ${entity.entityId} ${entity.domain} ${entity.areaName} ${entity.labels}`, this.entitySearch),
     );
     return html`
       <div class="picker-panel">
@@ -297,7 +300,7 @@ export class AreaBubbleExpanderCardEditor extends LitElement {
             type="search"
             placeholder="Search entity, area, or domain"
             .value=${this.entitySearch}
-            @input=${(ev: Event) => (this.entitySearch = (ev.target as HTMLInputElement).value)}
+            @input=${(ev: Event) => this.updateSearch(ev, "entity")}
           />
         </div>
         <div class="picker-list entities-picker">
@@ -307,7 +310,9 @@ export class AreaBubbleExpanderCardEditor extends LitElement {
                 <ha-icon icon=${entity.icon}></ha-icon>
                 <div class="picker-main">
                   <div class="picker-title">${entity.name}</div>
-                  <div class="picker-meta">${entity.entityId} · ${entity.areaName} · ${entity.domain}</div>
+                  <div class="picker-meta">
+                    ${entity.entityId} · ${entity.areaName} · ${entity.domain}${entity.labels ? ` · labels: ${entity.labels}` : ""}
+                  </div>
                 </div>
                 <button class="pill ${resolved.include_entities.includes(entity.entityId) ? "active" : ""}" @click=${() => this.toggleListValue("include_entities", entity.entityId)}>
                   Include
@@ -315,6 +320,76 @@ export class AreaBubbleExpanderCardEditor extends LitElement {
                 <button class="pill danger ${resolved.exclude_entities.includes(entity.entityId) ? "active" : ""}" @click=${() => this.toggleListValue("exclude_entities", entity.entityId)}>
                   Hide
                 </button>
+              </div>
+            `,
+          )}
+        </div>
+      </div>
+    `;
+  }
+
+  private renderLabelPicker(resolved: ReturnType<typeof resolveConfig>) {
+    const labels = this.labelOptions();
+    const filtered = labels.filter((label) => this.matchesSearch(`${label.id} ${label.name}`, this.labelSearch));
+    return html`
+      <div class="picker-panel">
+        <div class="picker-heading">
+          <div>
+            <strong>Labels from Home Assistant</strong>
+            <span>${filtered.length} / ${labels.length}</span>
+          </div>
+          <input
+            class="search"
+            type="search"
+            placeholder="Search label name or ID"
+            .value=${this.labelSearch}
+            @input=${(ev: Event) => this.updateSearch(ev, "label")}
+          />
+        </div>
+        <div class="picker-list compact-picker">
+          ${filtered.map(
+            (label) => html`
+              <div class="picker-item">
+                <ha-icon icon=${label.icon}></ha-icon>
+                <div class="picker-main">
+                  <div class="picker-title">${label.name}</div>
+                  <div class="picker-meta">${label.id}</div>
+                </div>
+                <button class="pill danger ${resolved.exclude_labels.includes(label.id) ? "active" : ""}" @click=${() => this.toggleListValue("exclude_labels", label.id)}>
+                  Exclude
+                </button>
+              </div>
+            `,
+          )}
+        </div>
+      </div>
+    `;
+  }
+
+  private renderAreaOrder(resolved: ReturnType<typeof resolveConfig>) {
+    const areas = this.orderedAreaOptions(resolved);
+    return html`
+      <div class="picker-panel">
+        <div class="picker-heading single">
+          <div>
+            <strong>Active area display order</strong>
+            <span>Use arrows to set a custom order for active areas.</span>
+          </div>
+          <button class="pill ${resolved.area_sort === "custom" ? "active" : ""}" @click=${() => this.updateKey("area_sort", "custom")}>
+            Use custom order
+          </button>
+        </div>
+        <div class="picker-list compact-picker">
+          ${areas.map(
+            (area, index) => html`
+              <div class="picker-item order-item">
+                <ha-icon icon=${area.icon}></ha-icon>
+                <div class="picker-main">
+                  <div class="picker-title">${area.name}</div>
+                  <div class="picker-meta">${area.id}</div>
+                </div>
+                <button class="pill" ?disabled=${index === 0} @click=${() => this.moveArea(area.id, -1)}>Up</button>
+                <button class="pill" ?disabled=${index === areas.length - 1} @click=${() => this.moveArea(area.id, 1)}>Down</button>
               </div>
             `,
           )}
@@ -341,6 +416,16 @@ export class AreaBubbleExpanderCardEditor extends LitElement {
       .sort((a, b) => a.name.localeCompare(b.name));
   }
 
+  private orderedAreaOptions(resolved: ReturnType<typeof resolveConfig>) {
+    const areas = this.areaOptions(resolved);
+    const order = resolved.custom_area_order;
+    return areas.sort((a, b) => {
+      const aIndex = this.orderIndex(order, a.id, a.name);
+      const bIndex = this.orderIndex(order, b.id, b.name);
+      return aIndex - bIndex || a.name.localeCompare(b.name);
+    });
+  }
+
   private entityOptions(resolved: ReturnType<typeof resolveConfig>) {
     return Object.values(this.hass?.states ?? {})
       .map((entity) => {
@@ -352,14 +437,72 @@ export class AreaBubbleExpanderCardEditor extends LitElement {
           areaName: area.name,
           name: String(entity.attributes.friendly_name ?? entity.entity_id),
           icon: String(entity.attributes.icon ?? resolved.domain_icons[domain] ?? "mdi:toggle-switch-outline"),
+          labels: this.labelsForEntity(entity.entity_id).join(" "),
         };
       })
       .sort((a, b) => a.areaName.localeCompare(b.areaName) || a.name.localeCompare(b.name));
   }
 
+  private labelOptions() {
+    const byId = new Map<string, { id: string; name: string; icon: string }>();
+
+    for (const [key, label] of Object.entries(this.hass?.labels ?? {})) {
+      const id = label.label_id ?? key;
+      byId.set(id, {
+        id,
+        name: label.name ?? id,
+        icon: label.icon ?? "mdi:label-outline",
+      });
+    }
+
+    for (const entityId of Object.keys(this.hass?.states ?? {})) {
+      for (const label of this.labelsForEntity(entityId)) {
+        if (!byId.has(label)) byId.set(label, { id: label, name: label, icon: "mdi:label-outline" });
+      }
+    }
+
+    return [...byId.values()].sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  private labelsForEntity(entityId: string): string[] {
+    const entity = this.hass?.entities?.[entityId];
+    const device = entity?.device_id ? this.hass?.devices?.[entity.device_id] : undefined;
+    return [...(entity?.labels ?? []), ...(device?.labels ?? [])];
+  }
+
   private matchesSearch(text: string, search: string): boolean {
     const needle = search.trim().toLowerCase();
     return !needle || text.toLowerCase().includes(needle);
+  }
+
+  private updateSearch(ev: Event, type: "area" | "entity" | "label"): void {
+    ev.stopPropagation();
+    const value = (ev.target as HTMLInputElement).value;
+    if (type === "area") this.areaSearch = value;
+    if (type === "entity") this.entitySearch = value;
+    if (type === "label") this.labelSearch = value;
+  }
+
+  private moveArea(areaId: string, direction: -1 | 1): void {
+    const resolved = resolveConfig(this.config);
+    const order = this.orderedAreaOptions(resolved).map((area) => area.id);
+    const currentIndex = order.indexOf(areaId);
+    const nextIndex = currentIndex + direction;
+    if (currentIndex < 0 || nextIndex < 0 || nextIndex >= order.length) return;
+    const next = [...order];
+    [next[currentIndex], next[nextIndex]] = [next[nextIndex], next[currentIndex]];
+    this.updateKey("area_sort", "custom");
+    this.updateKey("custom_area_order", next);
+  }
+
+  private orderIndex(order: string[], id: string, name?: string): number {
+    const byId = order.indexOf(id);
+    if (byId >= 0) return byId;
+    if (name) {
+      const byName = order.indexOf(name);
+      if (byName >= 0) return byName;
+    }
+    return Number.MAX_SAFE_INTEGER;
   }
 
   private toggleListValue(key: string, value: string): void {

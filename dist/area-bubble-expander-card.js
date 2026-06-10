@@ -289,7 +289,11 @@ const discover = (hass, config) => {
   groups = groups.sort((a, b) => {
     if (config.area_sort === "name") return a.name.localeCompare(b.name);
     if (config.area_sort === "count_asc") return a.entities.length - b.entities.length || a.name.localeCompare(b.name);
-    if (config.area_sort === "custom") return (config.custom_area_order.indexOf(a.id) + 1 || config.custom_area_order.indexOf(a.name) + 1 || 999999) - (config.custom_area_order.indexOf(b.id) + 1 || config.custom_area_order.indexOf(b.name) + 1 || 999999);
+    if (config.area_sort === "custom") {
+      const ai = config.custom_area_order.includes(a.id) ? config.custom_area_order.indexOf(a.id) : config.custom_area_order.includes(a.name) ? config.custom_area_order.indexOf(a.name) : 999999;
+      const bi = config.custom_area_order.includes(b.id) ? config.custom_area_order.indexOf(b.id) : config.custom_area_order.includes(b.name) ? config.custom_area_order.indexOf(b.name) : 999999;
+      return ai - bi || a.name.localeCompare(b.name);
+    }
     if (config.area_sort === "original") return 0;
     return b.entities.length - a.entities.length || a.name.localeCompare(b.name);
   });
@@ -425,22 +429,26 @@ class AreaBubbleExpanderCardEditor extends HTMLElement {
     const c = mergeConfig(this._config);
     const list = (value) => Array.isArray(value) ? value.join("\n") : "";
     const areaPicker = this.areaPicker(c);
+    const areaOrder = this.areaOrder(c);
     const entityPicker = this.entityPicker(c);
-    this.shadowRoot.innerHTML = `<style>:host{display:block}.grid{display:grid;gap:14px}.section{display:grid;gap:10px;padding:14px;border:1px solid var(--divider-color);border-radius:12px}.field{display:grid;gap:5px}label{font-weight:600}input,select,textarea{box-sizing:border-box;width:100%;min-height:40px;padding:8px;border:1px solid var(--divider-color);border-radius:8px;background:var(--card-background-color);color:var(--primary-text-color);font:inherit}textarea{min-height:82px}.row{display:flex;align-items:center;justify-content:space-between;gap:12px}.picker{display:grid;gap:10px;padding:10px;border-radius:12px;background:color-mix(in srgb,var(--secondary-background-color) 82%,transparent);border:1px solid var(--divider-color)}.picker-head{display:grid;grid-template-columns:minmax(0,1fr) minmax(180px,280px);gap:10px;align-items:center}.picker-head span{display:block;color:var(--secondary-text-color);font-size:12px;margin-top:2px}.picker-list{display:grid;gap:8px;max-height:360px;overflow:auto}.picker-item{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:10px;padding:8px;border-radius:10px;background:var(--card-background-color);border:1px solid var(--divider-color)}.picker-item ha-icon{color:var(--primary-color);--mdc-icon-size:22px}.picker-title{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:650}.picker-meta{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--secondary-text-color);font-size:12px}.pill{min-height:32px;border:1px solid var(--divider-color);border-radius:999px;padding:0 10px;background:transparent;color:var(--primary-text-color);cursor:pointer;font:inherit;font-size:12px;font-weight:650}.pill.active{border-color:var(--primary-color);background:color-mix(in srgb,var(--primary-color) 18%,transparent);color:var(--primary-color)}.pill.danger.active{border-color:var(--error-color,#ff5252);background:color-mix(in srgb,var(--error-color,#ff5252) 18%,transparent);color:var(--error-color,#ff5252)}@media(max-width:560px){.picker-head{grid-template-columns:1fr}.picker-item{grid-template-columns:auto minmax(0,1fr)}.pill{width:100%}}</style><div class="grid">
+    const labelPicker = this.labelPicker(c);
+    this.shadowRoot.innerHTML = `<style>:host{display:block}.grid{display:grid;gap:14px}.section{display:grid;gap:10px;padding:14px;border:1px solid var(--divider-color);border-radius:12px}.field{display:grid;gap:5px}label{font-weight:600}input,select,textarea{box-sizing:border-box;width:100%;min-height:40px;padding:8px;border:1px solid var(--divider-color);border-radius:8px;background:var(--card-background-color);color:var(--primary-text-color);font:inherit}textarea{min-height:82px}.row{display:flex;align-items:center;justify-content:space-between;gap:12px}.picker{display:grid;gap:10px;padding:10px;border-radius:12px;background:color-mix(in srgb,var(--secondary-background-color) 82%,transparent);border:1px solid var(--divider-color)}.picker-head{display:grid;grid-template-columns:minmax(0,1fr) minmax(180px,280px);gap:10px;align-items:center}.picker-head.single{grid-template-columns:minmax(0,1fr) auto}.picker-head span{display:block;color:var(--secondary-text-color);font-size:12px;margin-top:2px}.picker-list{display:grid;gap:8px;max-height:360px;overflow:auto}.picker-list.compact{max-height:280px}.picker-item{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:10px;padding:8px;border-radius:10px;background:var(--card-background-color);border:1px solid var(--divider-color)}.picker-item.is-hidden{display:none!important}.picker-item.order-item{grid-template-columns:auto minmax(0,1fr) auto auto}.picker-item ha-icon{color:var(--primary-color);--mdc-icon-size:22px}.picker-title{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:650}.picker-meta{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--secondary-text-color);font-size:12px}.pill{min-height:32px;border:1px solid var(--divider-color);border-radius:999px;padding:0 10px;background:transparent;color:var(--primary-text-color);cursor:pointer;font:inherit;font-size:12px;font-weight:650}.pill[disabled]{cursor:not-allowed;opacity:.45}.pill.active{border-color:var(--primary-color);background:color-mix(in srgb,var(--primary-color) 18%,transparent);color:var(--primary-color)}.pill.danger.active{border-color:var(--error-color,#ff5252);background:color-mix(in srgb,var(--error-color,#ff5252) 18%,transparent);color:var(--error-color,#ff5252)}@media(max-width:560px){.picker-head,.picker-head.single{grid-template-columns:1fr}.picker-item,.picker-item.order-item{grid-template-columns:auto minmax(0,1fr)}.pill{width:100%}}</style><div class="grid">
       ${this.bool("show_header", "Show header", c.show_header)}
       ${this.text("title", "Card title", c.title || "")}
       ${this.select("language", "Language", c.language, [["auto","Auto"],["he","Hebrew"],["en","English"]])}
       ${this.select("rtl", "RTL", String(c.rtl), [["auto","Auto"],["true","Enabled"],["false","Disabled"]])}
       <div class="section"><strong>Display</strong>${this.bool("default_expanded","Default expanded",c.default_expanded)}${this.bool("show_domain_chips","Show domain chips",c.show_domain_chips)}${this.bool("show_preview_entities","Show preview entities",c.show_preview_entities)}${this.number("preview_entity_count","Preview entity count",c.preview_entity_count)}</div>
-      <div class="section"><strong>Areas</strong>${areaPicker}${this.area("include_areas","Included areas",list(c.include_areas))}${this.area("exclude_areas","Excluded areas",list(c.exclude_areas))}</div>
-      <div class="section"><strong>Entities</strong>${entityPicker}${this.area("domains","Included domains",list(c.domains))}${this.area("exclude_domains","Excluded domains",list(c.exclude_domains))}${this.area("include_entities","Include entities",list(c.include_entities))}${this.area("exclude_entities","Hide entities",list(c.exclude_entities))}${this.area("exclude_labels","Exclude labels",list(c.exclude_labels))}</div>
+      <div class="section"><strong>Areas</strong>${areaPicker}${areaOrder}${this.area("include_areas","Included areas",list(c.include_areas))}${this.area("exclude_areas","Excluded areas",list(c.exclude_areas))}${this.area("custom_area_order","Custom area order",list(c.custom_area_order))}</div>
+      <div class="section"><strong>Entities</strong>${entityPicker}${labelPicker}${this.area("domains","Included domains",list(c.domains))}${this.area("exclude_domains","Excluded domains",list(c.exclude_domains))}${this.area("include_entities","Include entities",list(c.include_entities))}${this.area("exclude_entities","Hide entities",list(c.exclude_entities))}${this.area("exclude_labels","Exclude labels",list(c.exclude_labels))}</div>
       <div class="section"><strong>Actions and Safety</strong>${this.bool("show_area_turn_off","Show area turn-off",c.show_area_turn_off)}${this.bool("show_entity_turn_off","Show entity turn-off",c.show_entity_turn_off)}${this.bool("confirm_area_turn_off","Confirm area turn-off",c.confirm_area_turn_off)}${this.area("protected_labels","Protected labels",list(c.protected_labels))}${this.area("protected_entities","Protected entities",list(c.protected_entities))}</div>
       <div class="section"><strong>Advanced JSON</strong>${this.area("active_states","Active states JSON",JSON.stringify(c.active_states,null,2),true)}${this.area("inactive_states","Inactive states JSON",JSON.stringify(c.inactive_states,null,2),true)}${this.area("service_mapping","Service mapping JSON",JSON.stringify(c.service_mapping,null,2),true)}</div>
       <div class="section"><strong>Debug</strong>${this.bool("debug","Debug logging",c.debug)}${this.bool("show_debug","Show diagnostics",c.show_debug)}<textarea readonly>${escapeHtml(JSON.stringify(this._config,null,2))}</textarea></div>
     </div>`;
     this.shadowRoot.querySelectorAll("[data-key]").forEach((el) => el.addEventListener("change", () => this.changed(el)));
     this.shadowRoot.querySelectorAll("[data-list-key]").forEach((el) => el.addEventListener("click", () => this.toggleListValue(el.dataset.listKey, el.dataset.value)));
-    this.shadowRoot.querySelectorAll("[data-filter]").forEach((input) => input.addEventListener("input", () => this.filterList(input.dataset.filter, input.value)));
+    this.shadowRoot.querySelectorAll("[data-filter]").forEach((input) => input.addEventListener("input", (ev) => { ev.stopPropagation(); this.filterList(input.dataset.filter, input.value); }));
+    this.shadowRoot.querySelectorAll("[data-area-sort-custom]").forEach((button) => button.addEventListener("click", () => this.setAreaSortCustom()));
+    this.shadowRoot.querySelectorAll("[data-move-area]").forEach((button) => button.addEventListener("click", () => this.moveArea(button.dataset.moveArea, Number(button.dataset.direction))));
   }
   areaPicker(c) {
     const areas = this.areaOptions(c);
@@ -448,7 +456,15 @@ class AreaBubbleExpanderCardEditor extends HTMLElement {
   }
   entityPicker(c) {
     const entities = this.entityOptions(c);
-    return `<div class="picker"><div class="picker-head"><div><strong>Entities from Home Assistant</strong><span>${entities.length} entities</span></div><input data-filter="entities" type="search" placeholder="Search entity, area, or domain"></div><div class="picker-list">${entities.map((entity) => `<div class="picker-item" data-filter-target="entities" data-search="${escapeHtml(`${entity.name} ${entity.entityId} ${entity.domain} ${entity.areaName}`.toLowerCase())}"><ha-icon icon="${escapeHtml(entity.icon)}"></ha-icon><div><div class="picker-title">${escapeHtml(entity.name)}</div><div class="picker-meta">${escapeHtml(entity.entityId)} · ${escapeHtml(entity.areaName)} · ${escapeHtml(entity.domain)}</div></div><button type="button" class="pill ${c.include_entities.includes(entity.entityId) ? "active" : ""}" data-list-key="include_entities" data-value="${escapeHtml(entity.entityId)}">Include</button><button type="button" class="pill danger ${c.exclude_entities.includes(entity.entityId) ? "active" : ""}" data-list-key="exclude_entities" data-value="${escapeHtml(entity.entityId)}">Hide</button></div>`).join("")}</div></div>`;
+    return `<div class="picker"><div class="picker-head"><div><strong>Entities from Home Assistant</strong><span>${entities.length} entities</span></div><input data-filter="entities" type="search" placeholder="Search entity, area, domain, or label"></div><div class="picker-list">${entities.map((entity) => `<div class="picker-item" data-filter-target="entities" data-search="${escapeHtml(`${entity.name} ${entity.entityId} ${entity.domain} ${entity.areaName} ${entity.labels}`.toLowerCase())}"><ha-icon icon="${escapeHtml(entity.icon)}"></ha-icon><div><div class="picker-title">${escapeHtml(entity.name)}</div><div class="picker-meta">${escapeHtml(entity.entityId)} · ${escapeHtml(entity.areaName)} · ${escapeHtml(entity.domain)}${entity.labels ? ` · labels: ${escapeHtml(entity.labels)}` : ""}</div></div><button type="button" class="pill ${c.include_entities.includes(entity.entityId) ? "active" : ""}" data-list-key="include_entities" data-value="${escapeHtml(entity.entityId)}">Include</button><button type="button" class="pill danger ${c.exclude_entities.includes(entity.entityId) ? "active" : ""}" data-list-key="exclude_entities" data-value="${escapeHtml(entity.entityId)}">Hide</button></div>`).join("")}</div></div>`;
+  }
+  labelPicker(c) {
+    const labels = this.labelOptions();
+    return `<div class="picker"><div class="picker-head"><div><strong>Labels from Home Assistant</strong><span>${labels.length} labels</span></div><input data-filter="labels" type="search" placeholder="Search label name or ID"></div><div class="picker-list compact">${labels.map((label) => `<div class="picker-item" data-filter-target="labels" data-search="${escapeHtml(`${label.name} ${label.id}`.toLowerCase())}"><ha-icon icon="${escapeHtml(label.icon)}"></ha-icon><div><div class="picker-title">${escapeHtml(label.name)}</div><div class="picker-meta">${escapeHtml(label.id)}</div></div><button type="button" class="pill danger ${c.exclude_labels.includes(label.id) ? "active" : ""}" data-list-key="exclude_labels" data-value="${escapeHtml(label.id)}">Exclude</button></div>`).join("")}</div></div>`;
+  }
+  areaOrder(c) {
+    const areas = this.orderedAreaOptions(c);
+    return `<div class="picker"><div class="picker-head single"><div><strong>Active area display order</strong><span>Use arrows to set a custom order for active areas.</span></div><button type="button" class="pill ${c.area_sort === "custom" ? "active" : ""}" data-area-sort-custom>Use custom order</button></div><div class="picker-list compact">${areas.map((area, index) => `<div class="picker-item order-item"><ha-icon icon="${escapeHtml(area.icon)}"></ha-icon><div><div class="picker-title">${escapeHtml(area.name)}</div><div class="picker-meta">${escapeHtml(area.id)}</div></div><button type="button" class="pill" ${index === 0 ? "disabled" : ""} data-move-area="${escapeHtml(area.id)}" data-direction="-1">Up</button><button type="button" class="pill" ${index === areas.length - 1 ? "disabled" : ""} data-move-area="${escapeHtml(area.id)}" data-direction="1">Down</button></div>`).join("")}</div></div>`;
   }
   areaOptions(c) {
     const byId = new Map();
@@ -459,18 +475,58 @@ class AreaBubbleExpanderCardEditor extends HTMLElement {
     });
     return [...byId.values()].sort((a, b) => a.name.localeCompare(b.name));
   }
+  orderedAreaOptions(c) {
+    const order = c.custom_area_order || [];
+    return this.areaOptions(c).sort((a, b) => this.orderIndex(order, a.id, a.name) - this.orderIndex(order, b.id, b.name) || a.name.localeCompare(b.name));
+  }
   entityOptions(c) {
     return Object.values(this._hass?.states || {}).map((entity) => {
       const domain = domainOf(entity.entity_id);
       const area = resolveArea(this._hass, c, entity.entity_id);
-      return { entityId: entity.entity_id, domain, areaName: area.name, name: entity.attributes.friendly_name || entity.entity_id, icon: entity.attributes.icon || c.domain_icons[domain] || "mdi:toggle-switch-outline" };
+      return { entityId: entity.entity_id, domain, areaName: area.name, name: entity.attributes.friendly_name || entity.entity_id, icon: entity.attributes.icon || c.domain_icons[domain] || "mdi:toggle-switch-outline", labels: labelsFor(this._hass, entity.entity_id).join(" ") };
     }).sort((a, b) => a.areaName.localeCompare(b.areaName) || String(a.name).localeCompare(String(b.name)));
+  }
+  labelOptions() {
+    const byId = new Map();
+    Object.entries(this._hass?.labels || {}).forEach(([key, label]) => {
+      const id = label.label_id || key;
+      byId.set(id, { id, name: label.name || id, icon: label.icon || "mdi:label-outline" });
+    });
+    Object.keys(this._hass?.states || {}).forEach((entityId) => {
+      labelsFor(this._hass, entityId).forEach((label) => {
+        if (!byId.has(label)) byId.set(label, { id: label, name: label, icon: "mdi:label-outline" });
+      });
+    });
+    return [...byId.values()].sort((a, b) => a.name.localeCompare(b.name));
   }
   filterList(name, value) {
     const needle = String(value || "").trim().toLowerCase();
     this.shadowRoot.querySelectorAll(`[data-filter-target="${name}"]`).forEach((item) => {
-      item.hidden = Boolean(needle) && !String(item.dataset.search || "").includes(needle);
+      item.classList.toggle("is-hidden", Boolean(needle) && !String(item.dataset.search || "").includes(needle));
     });
+  }
+  moveArea(areaId, direction) {
+    const c = mergeConfig(this._config);
+    const order = this.orderedAreaOptions(c).map((area) => area.id);
+    const current = order.indexOf(areaId);
+    const nextIndex = current + direction;
+    if (current < 0 || nextIndex < 0 || nextIndex >= order.length) return;
+    const next = [...order];
+    [next[current], next[nextIndex]] = [next[nextIndex], next[current]];
+    this._config = { ...this._config, area_sort: "custom", custom_area_order: next };
+    this.dispatchEvent(new CustomEvent("config-changed", { bubbles: true, composed: true, detail: { config: this._config } }));
+    this.render();
+  }
+  setAreaSortCustom() {
+    const c = mergeConfig(this._config);
+    this._config = { ...this._config, area_sort: "custom", custom_area_order: c.custom_area_order?.length ? c.custom_area_order : this.orderedAreaOptions(c).map((area) => area.id) };
+    this.dispatchEvent(new CustomEvent("config-changed", { bubbles: true, composed: true, detail: { config: this._config } }));
+    this.render();
+  }
+  orderIndex(order, id, name) {
+    if (order.includes(id)) return order.indexOf(id);
+    if (name && order.includes(name)) return order.indexOf(name);
+    return 999999;
   }
   toggleListValue(key, value) {
     const current = Array.isArray(this._config[key]) ? [...this._config[key]] : [];
@@ -499,4 +555,4 @@ customElements.define(CARD_TAG, AreaBubbleExpanderCard);
 customElements.define(EDITOR_TAG, AreaBubbleExpanderCardEditor);
 window.customCards = window.customCards || [];
 window.customCards.push({ type: "area-bubble-expander-card", name: "Area Bubble Expander Card", description: "Active entities grouped by Area with safe controls and Hebrew/RTL support.", preview: true, documentationURL: "https://github.com/jonioliel/area-bubble-expander-card" });
-console.info("%c AREA-BUBBLE-EXPANDER-CARD %c 0.1.1", "color:white;background:#03a9f4;font-weight:700", "color:#03a9f4;font-weight:700");
+console.info("%c AREA-BUBBLE-EXPANDER-CARD %c 0.1.2", "color:white;background:#03a9f4;font-weight:700", "color:#03a9f4;font-weight:700");

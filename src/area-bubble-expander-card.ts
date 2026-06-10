@@ -364,7 +364,7 @@ window.customCards.push({
 });
 
 console.info(
-  `%c AREA-BUBBLE-EXPANDER-CARD %c 0.1.1 ${resolveLanguage(undefined, "auto")}`,
+  `%c AREA-BUBBLE-EXPANDER-CARD %c 0.1.2 ${resolveLanguage(undefined, "auto")}`,
   "color: white; background: #03a9f4; font-weight: 700;",
   "color: #03a9f4; font-weight: 700;",
 );

@@ -446,6 +446,10 @@ export const editorStyles = css`
     gap: 10px;
   }
 
+  .picker-heading.single {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
   .picker-heading strong,
   .picker-heading span {
     display: block;
@@ -473,6 +477,10 @@ export const editorStyles = css`
     max-height: 460px;
   }
 
+  .picker-list.compact-picker {
+    max-height: 280px;
+  }
+
   .picker-item {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto auto;
@@ -483,6 +491,10 @@ export const editorStyles = css`
     border-radius: 10px;
     background: var(--card-background-color);
     border: 1px solid color-mix(in srgb, var(--divider-color) 72%, transparent);
+  }
+
+  .picker-item.order-item {
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
   }
 
   .picker-item ha-icon {
@@ -520,6 +532,11 @@ export const editorStyles = css`
     font: inherit;
     font-size: 12px;
     font-weight: 650;
+  }
+
+  .pill[disabled] {
+    cursor: not-allowed;
+    opacity: 0.45;
   }
 
   .pill.active {

@@ -16,7 +16,9 @@ export const sortAreas = (groups: AreaGroup[], config: ResolvedConfig): AreaGrou
   if (config.area_sort === "name") return sorted.sort((a, b) => a.name.localeCompare(b.name));
   if (config.area_sort === "count_asc") return sorted.sort((a, b) => a.entities.length - b.entities.length || a.name.localeCompare(b.name));
   if (config.area_sort === "custom") {
-    return sorted.sort((a, b) => orderIndex(config.custom_area_order, a.id, a.name) - orderIndex(config.custom_area_order, b.id, b.name));
+    return sorted.sort(
+      (a, b) => orderIndex(config.custom_area_order, a.id, a.name) - orderIndex(config.custom_area_order, b.id, b.name) || a.name.localeCompare(b.name),
+    );
   }
   return sorted.sort((a, b) => b.entities.length - a.entities.length || a.name.localeCompare(b.name));
 };
