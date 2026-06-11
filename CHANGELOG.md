@@ -2,6 +2,12 @@
 
 All notable changes to Area Bubble Expander Card will be documented in this file.
 
+## 0.1.4 - 2026-06-11
+
+- Fixed mobile header/grid layout so Area titles no longer compete with action buttons in narrow RTL views.
+- Long card, Area, and entity titles now wrap on mobile instead of being clipped with ellipsis.
+- Reduced mobile icon/button sizes slightly and aligned controls to the top for cleaner stacked titles.
+
 ## 0.1.3 - 2026-06-11
 
 - Improved Label display in the editor by loading Home Assistant Label Registry names through WebSocket when available.

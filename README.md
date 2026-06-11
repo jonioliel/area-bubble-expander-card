@@ -20,6 +20,7 @@ Screenshot placeholders: collapsed area view, expanded area view, Hebrew RTL das
 - Complete Lovelace visual editor
 - HACS-ready package metadata
 - Mobile-first glass/Bubble-inspired styling
+- Mobile title wrapping for long Hebrew Area/entity names
 
 ## Installation
 

@@ -40,7 +40,7 @@ export const cardStyles = css`
 
   .header {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     gap: 12px;
     padding: 4px 4px 12px;
@@ -51,6 +51,7 @@ export const cardStyles = css`
     font-size: 18px;
     font-weight: 700;
     line-height: 1.25;
+    overflow-wrap: anywhere;
   }
 
   .subtitle,
@@ -87,7 +88,7 @@ export const cardStyles = css`
 
   .area-header {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
     gap: 10px;
     width: 100%;
@@ -102,7 +103,7 @@ export const cardStyles = css`
   }
 
   :host([dir="rtl"]) .area-header {
-    grid-template-columns: auto auto minmax(0, 1fr) auto;
+    grid-template-columns: auto minmax(0, 1fr) auto;
   }
 
   .icon-bubble {
@@ -328,14 +329,60 @@ export const cardStyles = css`
       padding: 10px;
     }
 
+    .header {
+      gap: 8px;
+      padding-bottom: 10px;
+    }
+
+    .title {
+      font-size: 17px;
+      line-height: 1.3;
+    }
+
     .area-header {
+      align-items: start;
       gap: 8px;
       padding: 9px;
     }
 
-    .icon-button {
+    .area-line,
+    .entity-line {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .area-name,
+    .entity-name {
+      overflow: visible;
+      text-overflow: clip;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      line-height: 1.28;
+    }
+
+    .count {
+      line-height: 1.25;
+    }
+
+    .controls {
+      align-self: start;
+      flex-shrink: 0;
+    }
+
+    .icon-bubble {
       width: 38px;
       height: 38px;
+    }
+
+    .icon-button {
+      width: 36px;
+      height: 36px;
+    }
+
+    .entity-row {
+      align-items: start;
+      min-height: 48px;
     }
 
     .chip {
