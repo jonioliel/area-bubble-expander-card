@@ -232,7 +232,7 @@ Useful CSS variables:
 Default active states:
 
 - `light`, `switch`, `fan`: `on`
-- `climate`: any state except `off`, `unavailable`, `unknown`
+- `climate`: any state except `off`, `unavailable`, `unknown`; `hvac_action` values such as `cooling` or `heating` also count as active
 - `media_player`: `playing`, `buffering`, `paused`
 - `cover`: `open`, `opening`
 - `lock`: `unlocked`

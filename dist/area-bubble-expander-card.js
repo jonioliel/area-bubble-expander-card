@@ -195,12 +195,15 @@ const labelsFor = (hass, entityId) => {
   const device = entity?.device_id ? hass?.devices?.[entity.device_id] : undefined;
   return [...(entity?.labels || []), ...(device?.labels || [])];
 };
+const ACTIVE_CLIMATE_ACTIONS = new Set(["cooling", "heating", "drying", "fan"]);
 const isActive = (stateObj, domain, config) => {
   const state = String(stateObj.state || "").toLowerCase();
   if (["unavailable", "unknown", "none", ""].includes(state)) return false;
   if (domain === "media_player" && !config.paused_media_players_active && state === "paused") return false;
+  if (domain === "climate" && ACTIVE_CLIMATE_ACTIONS.has(String(stateObj.attributes.hvac_action || "").toLowerCase())) return true;
   if ((config.inactive_states[domain] || []).map((x) => x.toLowerCase()).includes(state)) return false;
   const active = (config.active_states[domain] || []).map((x) => x.toLowerCase());
+  if (!active.length && (config.inactive_states[domain] || []).length) return true;
   return active.length ? active.includes(state) : state === "on";
 };
 const secondary = (entity, domain, config, hass) => {
@@ -669,4 +672,4 @@ customElements.define(CARD_TAG, AreaBubbleExpanderCard);
 customElements.define(EDITOR_TAG, AreaBubbleExpanderCardEditor);
 window.customCards = window.customCards || [];
 window.customCards.push({ type: "area-bubble-expander-card", name: "Area Bubble Expander Card", description: "Active entities grouped by Area with safe controls and Hebrew/RTL support.", preview: true, documentationURL: "https://github.com/jonioliel/area-bubble-expander-card" });
-console.info("%c AREA-BUBBLE-EXPANDER-CARD %c 0.1.4", "color:white;background:#03a9f4;font-weight:700", "color:#03a9f4;font-weight:700");
+console.info("%c AREA-BUBBLE-EXPANDER-CARD %c 0.1.5", "color:white;background:#03a9f4;font-weight:700", "color:#03a9f4;font-weight:700");

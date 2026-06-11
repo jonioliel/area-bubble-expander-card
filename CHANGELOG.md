@@ -2,6 +2,12 @@
 
 All notable changes to Area Bubble Expander Card will be documented in this file.
 
+## 0.1.5 - 2026-06-11
+
+- Fixed climate / air conditioner active detection so HVAC modes like `cool`, `heat`, `dry`, `fan_only`, and other non-inactive states are shown as active.
+- Climate entities with `hvac_action` values like `cooling`, `heating`, `drying`, or `fan` are now treated as active even when the main state is ambiguous.
+- Corrected generic `inactive_states` handling so domains configured only with inactive states work as intended.
+
 ## 0.1.4 - 2026-06-11
 
 - Fixed mobile header/grid layout so Area titles no longer compete with action buttons in narrow RTL views.

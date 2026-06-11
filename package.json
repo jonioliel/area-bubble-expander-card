@@ -1,6 +1,6 @@
 {
   "name": "area-bubble-expander-card",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "A polished Home Assistant Lovelace card that groups active entities by area with safe turn-off actions, Hebrew/RTL support, and a visual editor.",
   "type": "module",
   "main": "dist/area-bubble-expander-card.js",
