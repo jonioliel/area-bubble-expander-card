@@ -4,6 +4,7 @@ import { EDITOR_TAG } from "./constants";
 import { editorStyles } from "./styles";
 import { listToText, resolveConfig, splitList } from "./helpers/config";
 import { resolveArea } from "./helpers/area";
+import { discoverActiveEntities } from "./helpers/entity";
 import type { AreaBubbleExpanderCardConfig, EditorSchemaItem, HomeAssistant } from "./types";
 
 const sections = [
@@ -19,6 +20,7 @@ const sections = [
   "Hebrew / RTL",
   "Advanced",
   "Debug",
+  "Badge",
 ];
 
 const schema: EditorSchemaItem[] = [
@@ -209,9 +211,15 @@ export class AreaBubbleExpanderCardEditor extends LitElement {
   @state() private areaSearch = "";
   @state() private entitySearch = "";
   @state() private labelSearch = "";
+  @state() private registryLabels: Array<{ label_id?: string; id?: string; name?: string; icon?: string }> = [];
+  private labelRegistryLoaded = false;
 
   public setConfig(config: AreaBubbleExpanderCardConfig): void {
     this.config = { ...config };
+  }
+
+  protected override updated(changedProperties: Map<PropertyKey, unknown>): void {
+    if (changedProperties.has("hass")) void this.loadLabelRegistry();
   }
 
   protected override render() {
@@ -233,6 +241,7 @@ export class AreaBubbleExpanderCardEditor extends LitElement {
           ${this.activeSection === "Areas" ? this.renderAreaOrder(resolved) : nothing}
           ${this.activeSection === "Entities" ? this.renderEntityPicker(resolved) : nothing}
           ${this.activeSection === "Entities" ? this.renderLabelPicker(resolved) : nothing}
+          ${this.activeSection === "Badge" ? this.renderBadgeTemplates(resolved) : nothing}
           ${visibleSchema.map((item) => this.renderField(item, resolved))}
           ${this.activeSection === "Debug"
             ? html`<div class="field"><label>Resulting config JSON</label><textarea class="yaml" readonly>${JSON.stringify(this.config, null, 2)}</textarea></div>`
@@ -240,6 +249,18 @@ export class AreaBubbleExpanderCardEditor extends LitElement {
         </div>
       </div>
     `;
+  }
+
+  private async loadLabelRegistry(): Promise<void> {
+    if (this.labelRegistryLoaded || !this.hass?.callWS) return;
+    try {
+      this.registryLabels = await this.hass.callWS<Array<{ label_id?: string; id?: string; name?: string; icon?: string }>>({
+        type: "config/label_registry/list",
+      });
+      this.labelRegistryLoaded = true;
+    } catch {
+      this.registryLabels = [];
+    }
   }
 
   private renderAreaPicker(resolved: ReturnType<typeof resolveConfig>) {
@@ -398,6 +419,30 @@ export class AreaBubbleExpanderCardEditor extends LitElement {
     `;
   }
 
+  private renderBadgeTemplates(resolved: ReturnType<typeof resolveConfig>) {
+    const { groups } = discoverActiveEntities(this.hass, resolved);
+    const activeCount = groups.reduce((sum, group) => sum + group.entities.length, 0);
+    const activeAreaCount = groups.length;
+    return html`
+      <div class="picker-panel">
+        <div class="picker-heading single">
+          <div>
+            <strong>Badge / Template helper</strong>
+            <span>${activeCount} active entities · ${activeAreaCount} active areas right now</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Template sensors YAML</label>
+          <textarea class="yaml template-output" readonly .value=${this.templateSensorYaml(resolved)}></textarea>
+        </div>
+        <div class="field">
+          <label>Dashboard badge YAML</label>
+          <textarea class="yaml template-output small" readonly .value=${this.badgeYaml()}></textarea>
+        </div>
+      </div>
+    `;
+  }
+
   private areaOptions(resolved: ReturnType<typeof resolveConfig>) {
     const registryAreas = Object.entries(this.hass?.areas ?? {}).map(([key, area]) => ({
       id: area.area_id ?? area.id ?? key,
@@ -446,8 +491,19 @@ export class AreaBubbleExpanderCardEditor extends LitElement {
   private labelOptions() {
     const byId = new Map<string, { id: string; name: string; icon: string }>();
 
+    for (const label of this.registryLabels) {
+      const id = label.label_id ?? label.id;
+      if (!id) continue;
+      byId.set(id, {
+        id,
+        name: label.name ?? id,
+        icon: label.icon ?? "mdi:label-outline",
+      });
+    }
+
     for (const [key, label] of Object.entries(this.hass?.labels ?? {})) {
       const id = label.label_id ?? key;
+      if (byId.has(id)) continue;
       byId.set(id, {
         id,
         name: label.name ?? id,
@@ -462,6 +518,99 @@ export class AreaBubbleExpanderCardEditor extends LitElement {
     }
 
     return [...byId.values()].sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  private templateSensorYaml(resolved: ReturnType<typeof resolveConfig>): string {
+    const domains = JSON.stringify(resolved.domains);
+    const excludeDomains = JSON.stringify(resolved.exclude_domains);
+    const excludeEntities = JSON.stringify(resolved.exclude_entities);
+    const excludeAreas = JSON.stringify(resolved.exclude_areas);
+    const excludeLabels = JSON.stringify(resolved.exclude_labels);
+    const activeStates = JSON.stringify(resolved.active_states);
+    const inactiveStates = JSON.stringify(resolved.inactive_states);
+    return `template:
+  - sensor:
+      - name: Area Bubble Active Entities
+        unique_id: area_bubble_active_entities
+        icon: mdi:power-plug
+        state: >
+          {% set domains = ${domains} %}
+          {% set exclude_domains = ${excludeDomains} %}
+          {% set exclude_entities = ${excludeEntities} %}
+          {% set exclude_areas = ${excludeAreas} %}
+          {% set exclude_labels = ${excludeLabels} %}
+          {% set active_states = ${activeStates} %}
+          {% set inactive_states = ${inactiveStates} %}
+          {% set blocked = namespace(entities=[]) %}
+          {% for label in exclude_labels %}
+            {% set blocked.entities = blocked.entities + label_entities(label) %}
+          {% endfor %}
+          {% set ns = namespace(count=0) %}
+          {% for s in states %}
+            {% set domain = s.entity_id.split('.')[0] %}
+            {% set state = s.state | lower %}
+            {% set area = area_name(s.entity_id) or 'No Area' %}
+            {% set area_identifier = area_id(s.entity_id) or '' %}
+            {% set allowed = domain in domains and domain not in exclude_domains and s.entity_id not in exclude_entities and s.entity_id not in blocked.entities and area not in exclude_areas and area_identifier not in exclude_areas and state not in ['unavailable', 'unknown', 'none', ''] %}
+            {% set is_active = false %}
+            {% if active_states.get(domain) is not none %}
+              {% set is_active = state in active_states.get(domain) %}
+            {% elif inactive_states.get(domain) is not none %}
+              {% set is_active = state not in inactive_states.get(domain) %}
+            {% else %}
+              {% set is_active = state == 'on' %}
+            {% endif %}
+            {% if allowed and is_active %}
+              {% set ns.count = ns.count + 1 %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.count }}
+      - name: Area Bubble Active Areas
+        unique_id: area_bubble_active_areas
+        icon: mdi:floor-plan
+        state: >
+          {% set domains = ${domains} %}
+          {% set exclude_domains = ${excludeDomains} %}
+          {% set exclude_entities = ${excludeEntities} %}
+          {% set exclude_areas = ${excludeAreas} %}
+          {% set exclude_labels = ${excludeLabels} %}
+          {% set active_states = ${activeStates} %}
+          {% set inactive_states = ${inactiveStates} %}
+          {% set blocked = namespace(entities=[]) %}
+          {% for label in exclude_labels %}
+            {% set blocked.entities = blocked.entities + label_entities(label) %}
+          {% endfor %}
+          {% set ns = namespace(areas=[]) %}
+          {% for s in states %}
+            {% set domain = s.entity_id.split('.')[0] %}
+            {% set state = s.state | lower %}
+            {% set area = area_name(s.entity_id) or 'No Area' %}
+            {% set area_identifier = area_id(s.entity_id) or '' %}
+            {% set allowed = domain in domains and domain not in exclude_domains and s.entity_id not in exclude_entities and s.entity_id not in blocked.entities and area not in exclude_areas and area_identifier not in exclude_areas and state not in ['unavailable', 'unknown', 'none', ''] %}
+            {% set is_active = false %}
+            {% if active_states.get(domain) is not none %}
+              {% set is_active = state in active_states.get(domain) %}
+            {% elif inactive_states.get(domain) is not none %}
+              {% set is_active = state not in inactive_states.get(domain) %}
+            {% else %}
+              {% set is_active = state == 'on' %}
+            {% endif %}
+            {% if allowed and is_active and area not in ns.areas %}
+              {% set ns.areas = ns.areas + [area] %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.areas | count }}`;
+  }
+
+  private badgeYaml(): string {
+    return `type: entity
+entity: sensor.area_bubble_active_entities
+name: דלוקים
+show_name: true
+show_state: true
+tap_action:
+  action: navigate
+  navigation_path: /lovelace/0`;
   }
 
   private labelsForEntity(entityId: string): string[] {

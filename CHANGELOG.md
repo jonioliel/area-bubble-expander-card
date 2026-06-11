@@ -2,6 +2,13 @@
 
 All notable changes to Area Bubble Expander Card will be documented in this file.
 
+## 0.1.3 - 2026-06-11
+
+- Improved Label display in the editor by loading Home Assistant Label Registry names through WebSocket when available.
+- Label picker now prefers the real Label name, including Hebrew names, while still storing the stable Label ID in config.
+- Added Badge / Template helper output with template sensor YAML for active entity count and active area count.
+- Added example dashboard badge YAML that can navigate to the dashboard view containing the card.
+
 ## 0.1.2 - 2026-06-10
 
 - Fixed editor picker search handling so Area, Entity, and Label searches update reliably while typing.

@@ -197,7 +197,7 @@ The visual editor is available from the Lovelace card editor and includes these 
 
 Most common settings use simple inputs, toggles, and selects. Advanced maps such as `areas`, `entity_overrides`, `active_states`, `inactive_states`, and `service_mapping` are edited as JSON for reliability across Home Assistant frontend versions.
 
-The Areas and Entities sections include searchable pickers from your live Home Assistant data. You can include/exclude Areas, hide specific entities, exclude entities by Label, and set the active Area display order with up/down controls.
+The Areas and Entities sections include searchable pickers from your live Home Assistant data. You can include/exclude Areas, hide specific entities, exclude entities by Label, and set the active Area display order with up/down controls. The Badge section generates template sensor YAML for active entity and active area counts, plus a dashboard badge example.
 
 ## Styling
 

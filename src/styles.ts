@@ -430,6 +430,15 @@ export const editorStyles = css`
     font-size: 12px;
   }
 
+  .template-output {
+    min-height: 420px;
+    white-space: pre;
+  }
+
+  .template-output.small {
+    min-height: 150px;
+  }
+
   .picker-panel {
     display: grid;
     gap: 10px;

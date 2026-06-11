@@ -420,10 +420,22 @@ class AreaBubbleExpanderCardEditor extends HTMLElement {
     super();
     this.attachShadow({ mode: "open" });
     this._config = { type: CARD_TYPE };
+    this._registryLabels = [];
+    this._labelsLoaded = false;
   }
   setConfig(config) { this._config = { ...config }; this.render(); }
-  set hass(value) { this._hass = value; this.render(); }
+  set hass(value) { this._hass = value; this.loadLabels(); this.render(); }
   get hass() { return this._hass; }
+  async loadLabels() {
+    if (this._labelsLoaded || !this._hass?.callWS) return;
+    try {
+      this._registryLabels = await this._hass.callWS({ type: "config/label_registry/list" });
+      this._labelsLoaded = true;
+      this.render();
+    } catch {
+      this._registryLabels = [];
+    }
+  }
   render() {
     if (!this.shadowRoot) return;
     const c = mergeConfig(this._config);
@@ -432,7 +444,8 @@ class AreaBubbleExpanderCardEditor extends HTMLElement {
     const areaOrder = this.areaOrder(c);
     const entityPicker = this.entityPicker(c);
     const labelPicker = this.labelPicker(c);
-    this.shadowRoot.innerHTML = `<style>:host{display:block}.grid{display:grid;gap:14px}.section{display:grid;gap:10px;padding:14px;border:1px solid var(--divider-color);border-radius:12px}.field{display:grid;gap:5px}label{font-weight:600}input,select,textarea{box-sizing:border-box;width:100%;min-height:40px;padding:8px;border:1px solid var(--divider-color);border-radius:8px;background:var(--card-background-color);color:var(--primary-text-color);font:inherit}textarea{min-height:82px}.row{display:flex;align-items:center;justify-content:space-between;gap:12px}.picker{display:grid;gap:10px;padding:10px;border-radius:12px;background:color-mix(in srgb,var(--secondary-background-color) 82%,transparent);border:1px solid var(--divider-color)}.picker-head{display:grid;grid-template-columns:minmax(0,1fr) minmax(180px,280px);gap:10px;align-items:center}.picker-head.single{grid-template-columns:minmax(0,1fr) auto}.picker-head span{display:block;color:var(--secondary-text-color);font-size:12px;margin-top:2px}.picker-list{display:grid;gap:8px;max-height:360px;overflow:auto}.picker-list.compact{max-height:280px}.picker-item{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:10px;padding:8px;border-radius:10px;background:var(--card-background-color);border:1px solid var(--divider-color)}.picker-item.is-hidden{display:none!important}.picker-item.order-item{grid-template-columns:auto minmax(0,1fr) auto auto}.picker-item ha-icon{color:var(--primary-color);--mdc-icon-size:22px}.picker-title{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:650}.picker-meta{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--secondary-text-color);font-size:12px}.pill{min-height:32px;border:1px solid var(--divider-color);border-radius:999px;padding:0 10px;background:transparent;color:var(--primary-text-color);cursor:pointer;font:inherit;font-size:12px;font-weight:650}.pill[disabled]{cursor:not-allowed;opacity:.45}.pill.active{border-color:var(--primary-color);background:color-mix(in srgb,var(--primary-color) 18%,transparent);color:var(--primary-color)}.pill.danger.active{border-color:var(--error-color,#ff5252);background:color-mix(in srgb,var(--error-color,#ff5252) 18%,transparent);color:var(--error-color,#ff5252)}@media(max-width:560px){.picker-head,.picker-head.single{grid-template-columns:1fr}.picker-item,.picker-item.order-item{grid-template-columns:auto minmax(0,1fr)}.pill{width:100%}}</style><div class="grid">
+    const badgeTemplates = this.badgeTemplates(c);
+    this.shadowRoot.innerHTML = `<style>:host{display:block}.grid{display:grid;gap:14px}.section{display:grid;gap:10px;padding:14px;border:1px solid var(--divider-color);border-radius:12px}.field{display:grid;gap:5px}label{font-weight:600}input,select,textarea{box-sizing:border-box;width:100%;min-height:40px;padding:8px;border:1px solid var(--divider-color);border-radius:8px;background:var(--card-background-color);color:var(--primary-text-color);font:inherit}textarea{min-height:82px}.yaml{direction:ltr;font-family:var(--code-font-family,monospace);font-size:12px}.template-output{min-height:420px;white-space:pre}.template-output.small{min-height:150px}.row{display:flex;align-items:center;justify-content:space-between;gap:12px}.picker{display:grid;gap:10px;padding:10px;border-radius:12px;background:color-mix(in srgb,var(--secondary-background-color) 82%,transparent);border:1px solid var(--divider-color)}.picker-head{display:grid;grid-template-columns:minmax(0,1fr) minmax(180px,280px);gap:10px;align-items:center}.picker-head.single{grid-template-columns:minmax(0,1fr) auto}.picker-head span{display:block;color:var(--secondary-text-color);font-size:12px;margin-top:2px}.picker-list{display:grid;gap:8px;max-height:360px;overflow:auto}.picker-list.compact{max-height:280px}.picker-item{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:10px;padding:8px;border-radius:10px;background:var(--card-background-color);border:1px solid var(--divider-color)}.picker-item.is-hidden{display:none!important}.picker-item.order-item{grid-template-columns:auto minmax(0,1fr) auto auto}.picker-item ha-icon{color:var(--primary-color);--mdc-icon-size:22px}.picker-title{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:650}.picker-meta{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--secondary-text-color);font-size:12px}.pill{min-height:32px;border:1px solid var(--divider-color);border-radius:999px;padding:0 10px;background:transparent;color:var(--primary-text-color);cursor:pointer;font:inherit;font-size:12px;font-weight:650}.pill[disabled]{cursor:not-allowed;opacity:.45}.pill.active{border-color:var(--primary-color);background:color-mix(in srgb,var(--primary-color) 18%,transparent);color:var(--primary-color)}.pill.danger.active{border-color:var(--error-color,#ff5252);background:color-mix(in srgb,var(--error-color,#ff5252) 18%,transparent);color:var(--error-color,#ff5252)}@media(max-width:560px){.picker-head,.picker-head.single{grid-template-columns:1fr}.picker-item,.picker-item.order-item{grid-template-columns:auto minmax(0,1fr)}.pill{width:100%}}</style><div class="grid">
       ${this.bool("show_header", "Show header", c.show_header)}
       ${this.text("title", "Card title", c.title || "")}
       ${this.select("language", "Language", c.language, [["auto","Auto"],["he","Hebrew"],["en","English"]])}
@@ -443,6 +456,7 @@ class AreaBubbleExpanderCardEditor extends HTMLElement {
       <div class="section"><strong>Actions and Safety</strong>${this.bool("show_area_turn_off","Show area turn-off",c.show_area_turn_off)}${this.bool("show_entity_turn_off","Show entity turn-off",c.show_entity_turn_off)}${this.bool("confirm_area_turn_off","Confirm area turn-off",c.confirm_area_turn_off)}${this.area("protected_labels","Protected labels",list(c.protected_labels))}${this.area("protected_entities","Protected entities",list(c.protected_entities))}</div>
       <div class="section"><strong>Advanced JSON</strong>${this.area("active_states","Active states JSON",JSON.stringify(c.active_states,null,2),true)}${this.area("inactive_states","Inactive states JSON",JSON.stringify(c.inactive_states,null,2),true)}${this.area("service_mapping","Service mapping JSON",JSON.stringify(c.service_mapping,null,2),true)}</div>
       <div class="section"><strong>Debug</strong>${this.bool("debug","Debug logging",c.debug)}${this.bool("show_debug","Show diagnostics",c.show_debug)}<textarea readonly>${escapeHtml(JSON.stringify(this._config,null,2))}</textarea></div>
+      <div class="section"><strong>Badge / Template helper</strong><div class="picker"><div class="picker-head single"><div><strong>${badgeTemplates.activeCount} active entities · ${badgeTemplates.activeAreaCount} active areas</strong><span>Copy these into Home Assistant if you want a badge with active counts.</span></div></div><div class="field"><label>Template sensors YAML</label><textarea class="yaml template-output" readonly>${escapeHtml(badgeTemplates.templateYaml)}</textarea></div><div class="field"><label>Dashboard badge YAML</label><textarea class="yaml template-output small" readonly>${escapeHtml(badgeTemplates.badgeYaml)}</textarea></div></div></div>
     </div>`;
     this.shadowRoot.querySelectorAll("[data-key]").forEach((el) => el.addEventListener("change", () => this.changed(el)));
     this.shadowRoot.querySelectorAll("[data-list-key]").forEach((el) => el.addEventListener("click", () => this.toggleListValue(el.dataset.listKey, el.dataset.value)));
@@ -488,9 +502,13 @@ class AreaBubbleExpanderCardEditor extends HTMLElement {
   }
   labelOptions() {
     const byId = new Map();
+    (this._registryLabels || []).forEach((label) => {
+      const id = label.label_id || label.id;
+      if (id) byId.set(id, { id, name: label.name || id, icon: label.icon || "mdi:label-outline" });
+    });
     Object.entries(this._hass?.labels || {}).forEach(([key, label]) => {
       const id = label.label_id || key;
-      byId.set(id, { id, name: label.name || id, icon: label.icon || "mdi:label-outline" });
+      if (!byId.has(id)) byId.set(id, { id, name: label.name || id, icon: label.icon || "mdi:label-outline" });
     });
     Object.keys(this._hass?.states || {}).forEach((entityId) => {
       labelsFor(this._hass, entityId).forEach((label) => {
@@ -498,6 +516,102 @@ class AreaBubbleExpanderCardEditor extends HTMLElement {
       });
     });
     return [...byId.values()].sort((a, b) => a.name.localeCompare(b.name));
+  }
+  badgeTemplates(c) {
+    const { groups } = discover(this._hass, c);
+    const activeCount = groups.reduce((sum, group) => sum + group.entities.length, 0);
+    const activeAreaCount = groups.length;
+    const templateYaml = this.templateSensorYaml(c);
+    const badgeYaml = `type: entity
+entity: sensor.area_bubble_active_entities
+name: דלוקים
+show_name: true
+show_state: true
+tap_action:
+  action: navigate
+  navigation_path: /lovelace/0`;
+    return { activeCount, activeAreaCount, templateYaml, badgeYaml };
+  }
+  templateSensorYaml(c) {
+    const domains = JSON.stringify(c.domains);
+    const excludeDomains = JSON.stringify(c.exclude_domains);
+    const excludeEntities = JSON.stringify(c.exclude_entities);
+    const excludeAreas = JSON.stringify(c.exclude_areas);
+    const excludeLabels = JSON.stringify(c.exclude_labels);
+    const activeStates = JSON.stringify(c.active_states);
+    const inactiveStates = JSON.stringify(c.inactive_states);
+    return `template:
+  - sensor:
+      - name: Area Bubble Active Entities
+        unique_id: area_bubble_active_entities
+        icon: mdi:power-plug
+        state: >
+          {% set domains = ${domains} %}
+          {% set exclude_domains = ${excludeDomains} %}
+          {% set exclude_entities = ${excludeEntities} %}
+          {% set exclude_areas = ${excludeAreas} %}
+          {% set exclude_labels = ${excludeLabels} %}
+          {% set active_states = ${activeStates} %}
+          {% set inactive_states = ${inactiveStates} %}
+          {% set blocked = namespace(entities=[]) %}
+          {% for label in exclude_labels %}
+            {% set blocked.entities = blocked.entities + label_entities(label) %}
+          {% endfor %}
+          {% set ns = namespace(count=0) %}
+          {% for s in states %}
+            {% set domain = s.entity_id.split('.')[0] %}
+            {% set state = s.state | lower %}
+            {% set area = area_name(s.entity_id) or 'No Area' %}
+            {% set area_identifier = area_id(s.entity_id) or '' %}
+            {% set allowed = domain in domains and domain not in exclude_domains and s.entity_id not in exclude_entities and s.entity_id not in blocked.entities and area not in exclude_areas and area_identifier not in exclude_areas and state not in ['unavailable', 'unknown', 'none', ''] %}
+            {% set is_active = false %}
+            {% if active_states.get(domain) is not none %}
+              {% set is_active = state in active_states.get(domain) %}
+            {% elif inactive_states.get(domain) is not none %}
+              {% set is_active = state not in inactive_states.get(domain) %}
+            {% else %}
+              {% set is_active = state == 'on' %}
+            {% endif %}
+            {% if allowed and is_active %}
+              {% set ns.count = ns.count + 1 %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.count }}
+      - name: Area Bubble Active Areas
+        unique_id: area_bubble_active_areas
+        icon: mdi:floor-plan
+        state: >
+          {% set domains = ${domains} %}
+          {% set exclude_domains = ${excludeDomains} %}
+          {% set exclude_entities = ${excludeEntities} %}
+          {% set exclude_areas = ${excludeAreas} %}
+          {% set exclude_labels = ${excludeLabels} %}
+          {% set active_states = ${activeStates} %}
+          {% set inactive_states = ${inactiveStates} %}
+          {% set blocked = namespace(entities=[]) %}
+          {% for label in exclude_labels %}
+            {% set blocked.entities = blocked.entities + label_entities(label) %}
+          {% endfor %}
+          {% set ns = namespace(areas=[]) %}
+          {% for s in states %}
+            {% set domain = s.entity_id.split('.')[0] %}
+            {% set state = s.state | lower %}
+            {% set area = area_name(s.entity_id) or 'No Area' %}
+            {% set area_identifier = area_id(s.entity_id) or '' %}
+            {% set allowed = domain in domains and domain not in exclude_domains and s.entity_id not in exclude_entities and s.entity_id not in blocked.entities and area not in exclude_areas and area_identifier not in exclude_areas and state not in ['unavailable', 'unknown', 'none', ''] %}
+            {% set is_active = false %}
+            {% if active_states.get(domain) is not none %}
+              {% set is_active = state in active_states.get(domain) %}
+            {% elif inactive_states.get(domain) is not none %}
+              {% set is_active = state not in inactive_states.get(domain) %}
+            {% else %}
+              {% set is_active = state == 'on' %}
+            {% endif %}
+            {% if allowed and is_active and area not in ns.areas %}
+              {% set ns.areas = ns.areas + [area] %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.areas | count }}`;
   }
   filterList(name, value) {
     const needle = String(value || "").trim().toLowerCase();
@@ -555,4 +669,4 @@ customElements.define(CARD_TAG, AreaBubbleExpanderCard);
 customElements.define(EDITOR_TAG, AreaBubbleExpanderCardEditor);
 window.customCards = window.customCards || [];
 window.customCards.push({ type: "area-bubble-expander-card", name: "Area Bubble Expander Card", description: "Active entities grouped by Area with safe controls and Hebrew/RTL support.", preview: true, documentationURL: "https://github.com/jonioliel/area-bubble-expander-card" });
-console.info("%c AREA-BUBBLE-EXPANDER-CARD %c 0.1.2", "color:white;background:#03a9f4;font-weight:700", "color:#03a9f4;font-weight:700");
+console.info("%c AREA-BUBBLE-EXPANDER-CARD %c 0.1.3", "color:white;background:#03a9f4;font-weight:700", "color:#03a9f4;font-weight:700");

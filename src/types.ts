@@ -46,6 +46,7 @@ export type HomeAssistant = {
   locale?: { language?: string };
   themes?: { darkMode?: boolean };
   callService(domain: string, service: string, data?: Record<string, unknown>, target?: Record<string, unknown>): Promise<unknown>;
+  callWS?<T = unknown>(message: Record<string, unknown>): Promise<T>;
   localize?(key: string, ...args: unknown[]): string;
 };
 
