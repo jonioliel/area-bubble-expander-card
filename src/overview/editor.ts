@@ -3,7 +3,7 @@ import { customElement, property, state } from "lit/decorators.js";
 import type { HassAreaRegistryEntry, HassEntity, HomeAssistant } from "../types";
 import { resolveOverviewConfig } from "./config";
 import { OVERVIEW_CARD_TYPE, OVERVIEW_EDITOR_TAG, OVERVIEW_QUICK_ACTIONS, OVERVIEW_SECTIONS, QUICK_ACTION_ICONS, SECTION_ICONS } from "./constants";
-import { discoverOverview, overviewEntityAreaId } from "./discovery";
+import { discoverOverview, isOverviewEntityPowered, overviewEntityAreaId } from "./discovery";
 import { overviewLanguage } from "./translations";
 import type {
   AreaBubbleOverviewCardConfig,
@@ -417,6 +417,9 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
             ${this.numberField(this.l("מרווח סעיפים", "Section gap", language), resolved.style.section_gap, 4, 30, (value) => this.setStyle("section_gap", value))}
             <div class="field"><label>${this.l("צבע הדגשה", "Accent color", language)}</label><input type="text" .value=${resolved.style.accent_color} @change=${(event: Event) => this.setStyle("accent_color", (event.target as HTMLInputElement).value)} /></div>
             <div class="field"><label>${this.l("צבע פעיל", "Active color", language)}</label><input type="text" .value=${resolved.style.active_color} @change=${(event: Event) => this.setStyle("active_color", (event.target as HTMLInputElement).value)} /></div>
+            <div class="field"><label>${this.l("רקע אריח פעיל", "Active tile surface", language)}</label><input type="text" .value=${resolved.style.active_surface} @change=${(event: Event) => this.setStyle("active_surface", (event.target as HTMLInputElement).value)} /></div>
+            <div class="field"><label>${this.l("רקע מזגן פעיל", "Active climate surface", language)}</label><input type="text" .value=${resolved.style.climate_surface} @change=${(event: Event) => this.setStyle("climate_surface", (event.target as HTMLInputElement).value)} /></div>
+            <div class="field"><label>${this.l("רקע פקדי גלולה", "Pill control surface", language)}</label><input type="text" .value=${resolved.style.control_surface} @change=${(event: Event) => this.setStyle("control_surface", (event.target as HTMLInputElement).value)} /></div>
           </div>
           <div class="inline-fields">
             <div class="field"><label>${this.l("שפה", "Language", language)}</label><select .value=${resolved.language} @change=${(event: Event) => this.commitKey("language", (event.target as HTMLSelectElement).value)}><option value="auto">Auto</option><option value="he">עברית</option><option value="en">English</option></select></div>
@@ -531,6 +534,7 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
         labels: [],
         available: !["unavailable", "unknown"].includes(entity.state),
         active: !["off", "closed", "idle", "standby", "unavailable", "unknown"].includes(entity.state),
+        powered: isOverviewEntityPowered(entity, domain),
         protected: override.protected === true,
       });
     }

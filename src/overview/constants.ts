@@ -10,6 +10,27 @@ export const OVERVIEW_CARD_TAG = "area-bubble-overview-card";
 export const OVERVIEW_EDITOR_TAG = "area-bubble-overview-card-editor";
 export const OVERVIEW_STORAGE_PREFIX = "area-bubble-overview-card";
 
+export const CLIMATE_FEATURES = {
+  TARGET_TEMPERATURE: 1,
+  TARGET_TEMPERATURE_RANGE: 2,
+  FAN_MODE: 8,
+  TURN_OFF: 128,
+  TURN_ON: 256,
+} as const;
+
+export const MEDIA_FEATURES = {
+  PAUSE: 1,
+  VOLUME_SET: 4,
+  TURN_ON: 128,
+  TURN_OFF: 256,
+  PLAY: 16_384,
+} as const;
+
+export const WATER_HEATER_FEATURES = {
+  TARGET_TEMPERATURE: 1,
+  ON_OFF: 8,
+} as const;
+
 export const OVERVIEW_SECTIONS: OverviewSectionId[] = ["climate", "floor_heating", "covers", "lights_switches", "media"];
 export const OVERVIEW_QUICK_ACTIONS: OverviewQuickActionId[] = ["lights", "climate", "floor_heating", "switches", "covers", "media"];
 
@@ -38,8 +59,11 @@ export const OVERVIEW_DEFAULT_STYLE: Required<OverviewStyleConfig> = {
   show_shadows: true,
   shadow_intensity: 0.2,
   accent_color: "var(--primary-color)",
-  row_background: "rgba(255,255,255,0.075)",
-  active_color: "var(--state-active-color, #ffc107)",
+  row_background: "rgba(74,74,74,0.88)",
+  active_color: "var(--state-active-color, #ffd54f)",
+  active_surface: "rgba(174, 215, 219, 0.94)",
+  climate_surface: "rgba(139, 181, 255, 0.94)",
+  control_surface: "rgba(11, 28, 58, 0.94)",
   climate_color: "var(--state-climate-cool-color, #2196f3)",
   cover_color: "var(--state-cover-active-color, #00bcd4)",
   media_color: "var(--state-media-player-active-color, #9c27b0)",

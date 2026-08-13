@@ -92,6 +92,8 @@ Choose exactly one of `area` or `floor`. The visual editor exposes Home Assistan
 
 Empty sections are hidden by default. Every discovered device remains visible inside an expanded Area even when it is off; activity is used for highlights, counts, and quick actions.
 
+The expanded layout is intentionally compact: climate uses a dedicated two-row controller, covers and media keep full-width controls, and lights/switches use a two-column tile grid whenever the card is wide enough. Responsiveness follows the card's own width, so the same layout also works inside narrow desktop dashboard columns.
+
 ### Temperature
 
 The displayed temperature is selected in this order:
@@ -239,6 +241,9 @@ style:
   row_height: 56
   section_gap: 12
   accent_color: var(--primary-color)
+  active_surface: rgba(174, 215, 219, 0.94)
+  climate_surface: rgba(139, 181, 255, 0.94)
+  control_surface: rgba(11, 28, 58, 0.94)
 ```
 
 ### Overview configuration reference
@@ -266,6 +271,9 @@ style:
 | `protected_labels` / `protected_entities` | safe defaults / `[]` | Excluded from quick group actions. |
 | `area_overrides` | `{}` | Area-specific name, icon, sensors, headings, inclusion, exclusion, and order. |
 | `entity_overrides` | `{}` | Entity name, icon, section, visibility, and group-action protection. |
+| `style.active_surface` | pale cyan | Active light/switch tile background. |
+| `style.climate_surface` | soft blue | Active climate-controller background. |
+| `style.control_surface` | dark navy | Temperature, mode, fan, and thermostat control pills. |
 
 Entity and Area order lists are priority lists, not frozen inventories. New Home Assistant entities that are not yet listed are appended automatically.
 

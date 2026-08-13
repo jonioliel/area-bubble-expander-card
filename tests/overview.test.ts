@@ -1,8 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { quickActionEntities, runQuickAction } from "../src/overview/actions";
+import { entityPowerService, supportsEntityFeature } from "../src/overview/features";
 import { resolveOverviewConfig, validateOverviewConfig } from "../src/overview/config";
-import { discoverOverview, overviewEntityAreaId } from "../src/overview/discovery";
+import { discoverOverview, isOverviewEntityPowered, overviewEntityAreaId } from "../src/overview/discovery";
 import type { HassEntity, HomeAssistant } from "../src/types";
 import type {
   AreaBubbleOverviewCardConfig,
@@ -90,7 +91,11 @@ describe("overview configuration", () => {
     expect(config.style).toMatchObject({
       border_radius: 26,
       row_height: 56,
-      active_color: "var(--state-active-color, #ffc107)",
+      active_color: "var(--state-active-color, #ffd54f)",
+      row_background: "rgba(74,74,74,0.88)",
+      active_surface: "rgba(174, 215, 219, 0.94)",
+      climate_surface: "rgba(139, 181, 255, 0.94)",
+      control_surface: "rgba(11, 28, 58, 0.94)",
     });
   });
 
@@ -251,6 +256,13 @@ describe("area and floor discovery", () => {
 });
 
 describe("entity classification and filtering", () => {
+  it("distinguishes visual activity from powered-on media and water-heater states", () => {
+    expect(isOverviewEntityPowered(entity("media_player.speaker", "idle"))).toBe(true);
+    expect(isOverviewEntityPowered(entity("media_player.speaker", "standby"))).toBe(false);
+    expect(isOverviewEntityPowered(entity("water_heater.boiler", "eco"))).toBe(true);
+    expect(isOverviewEntityPowered(entity("water_heater.boiler", "off"))).toBe(false);
+  });
+
   it("classifies supported domains and floor heating by entity/device label, list, and override", () => {
     const states = Object.fromEntries(
       [
@@ -637,14 +649,15 @@ describe("area, section, and entity ordering", () => {
 const actionEntity = (
   entityId: string,
   section: OverviewSectionId,
-  options: Partial<Pick<OverviewEntity, "available" | "active" | "protected">> & { supportedFeatures?: number } = {},
+  options: Partial<Pick<OverviewEntity, "available" | "active" | "powered" | "protected">> & { supportedFeatures?: number } = {},
 ): OverviewEntity => {
   const domain = entityId.split(".")[0];
   const { supportedFeatures, ...entityOptions } = options;
+  const powered = options.powered ?? options.active !== false;
   return {
     entity: entity(
       entityId,
-      options.active === false ? "off" : "on",
+      powered ? "on" : "off",
       supportedFeatures === undefined ? {} : { supported_features: supportedFeatures },
     ),
     entityId,
@@ -656,6 +669,7 @@ const actionEntity = (
     labels: [],
     available: true,
     active: true,
+    powered,
     protected: false,
     ...entityOptions,
   };
@@ -706,7 +720,7 @@ describe("quick area actions", () => {
       actionEntity("climate.floor_one", "floor_heating"),
       actionEntity("climate.floor_two", "floor_heating"),
       actionEntity("fan.floor", "floor_heating"),
-      actionEntity("water_heater.boiler", "floor_heating"),
+      actionEntity("water_heater.boiler", "floor_heating", { supportedFeatures: 8 }),
       actionEntity("switch.protected", "floor_heating", { protected: true }),
     ]);
 
@@ -725,6 +739,29 @@ describe("quick area actions", () => {
     expect(callService).toHaveBeenNthCalledWith(4, "water_heater", "turn_off", undefined, {
       entity_id: ["water_heater.boiler"],
     });
+  });
+
+  it("uses supported-feature-aware climate and media power actions", () => {
+    const climate = actionEntity("climate.ac", "climate", { supportedFeatures: 1 });
+    climate.entity.attributes.hvac_modes = ["off", "cool"];
+    climate.entity.state = "cool";
+    expect(entityPowerService(climate, false)).toEqual({ service: "set_hvac_mode", data: { hvac_mode: "off" } });
+
+    const media = actionEntity("media_player.speaker", "media", { supportedFeatures: 4 });
+    expect(entityPowerService(media, false)).toBeUndefined();
+    expect(supportsEntityFeature(media.entity, 4)).toBe(true);
+    expect(supportsEntityFeature(media.entity, 256)).toBe(false);
+  });
+
+  it("includes idle media and active water heaters only when they can be turned off", () => {
+    const media = actionEntity("media_player.idle", "media", { active: false, powered: true, supportedFeatures: 256 });
+    media.entity.state = "idle";
+    const unsupportedMedia = actionEntity("media_player.readonly", "media", { powered: true, supportedFeatures: 4 });
+    const boiler = actionEntity("water_heater.boiler", "floor_heating", { active: true, powered: true, supportedFeatures: 8 });
+
+    const targetArea = actionArea([media, unsupportedMedia, boiler]);
+    expect(quickActionEntities(targetArea, "media").map((item) => item.entityId)).toEqual(["media_player.idle"]);
+    expect(quickActionEntities(targetArea, "floor_heating").map((item) => item.entityId)).toEqual(["water_heater.boiler"]);
   });
 
   it("reports an unsupported section override instead of succeeding silently", async () => {

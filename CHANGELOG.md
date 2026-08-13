@@ -2,6 +2,16 @@
 
 All notable changes to Area Bubble Expander Card will be documented in this file.
 
+## 0.2.1 - 2026-08-14
+
+- Redesigned Overview around the compact Bubble-style composition: a capsule Area summary, dedicated climate controller, full-width cover/media controls, and two-column light/switch tiles.
+- Added a two-level climate controller with temperature stepping, HVAC mode, and fan-mode controls, plus a dedicated floor-heating thermostat layout.
+- Added 33 Overview unit tests covering discovery, ordering, temperature, occupancy, safe actions, powered-state handling, and capability-aware services.
+- Replaced viewport-only mobile rules with card-width container queries so narrow dashboard columns stay responsive on both phones and desktop layouts.
+- Improved direct-control accessibility with 44 px targets, localized labels, busy/disabled states, keyboard focus, and no nested interactive controls.
+- Made climate, water-heater, cover, and media controls capability-aware, including range targets, safe HVAC mode fallback, and state-aware cover buttons.
+- Added configurable active-tile, climate, and control-pill surfaces to the Overview visual editor.
+
 ## 0.2.0 - 2026-08-14
 
 - Added a second card, `custom:area-bubble-overview-card`, to the existing HACS bundle.

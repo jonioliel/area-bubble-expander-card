@@ -75,8 +75,18 @@ export const isOverviewEntityActive = (entity: HassEntity, domain = domainOf(ent
   const state = String(entity.state ?? "").toLowerCase();
   if (["", "unknown", "unavailable", "off", "closed", "idle", "standby"].includes(state)) return false;
   if (domain === "climate") return state !== "off";
+  if (domain === "water_heater") return state !== "off";
   if (domain === "cover") return ["open", "opening", "closing"].includes(state);
   if (domain === "media_player") return ["on", "playing", "paused", "buffering"].includes(state);
+  return state === "on";
+};
+
+export const isOverviewEntityPowered = (entity: HassEntity, domain = domainOf(entity.entity_id)): boolean => {
+  const state = String(entity.state ?? "").toLowerCase();
+  if (["", "unknown", "unavailable"].includes(state)) return false;
+  if (domain === "media_player") return !["off", "standby"].includes(state);
+  if (domain === "climate" || domain === "water_heater") return state !== "off";
+  if (domain === "cover") return ["open", "opening", "closing"].includes(state);
   return state === "on";
 };
 
@@ -205,6 +215,7 @@ const createArea = (
       labels,
       available: !["unavailable", "unknown"].includes(entity.state),
       active: isOverviewEntityActive(entity, domain),
+      powered: isOverviewEntityPowered(entity, domain),
       protected:
         entityOverride?.protected === true ||
         config.protected_entities.includes(entityId) ||
@@ -227,7 +238,7 @@ const createArea = (
         title: overviewSectionTitle(hass, config, sectionId, override?.section_titles?.[sectionId]),
         icon: SECTION_ICONS[sectionId],
         entities: sectionEntities,
-        activeCount: sectionEntities.filter((item) => item.active).length,
+        activeCount: sectionEntities.filter((item) => item.powered).length,
       };
     })
     .filter((section) => config.show_empty_sections || section.entities.length > 0);
