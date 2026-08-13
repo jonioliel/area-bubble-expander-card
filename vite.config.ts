@@ -3,13 +3,13 @@ import { defineConfig } from "vite";
 export default defineConfig({
   build: {
     lib: {
-      entry: "src/area-bubble-expander-card.ts",
+      entry: "src/index.ts",
       formats: ["es"],
       fileName: () => "area-bubble-expander-card.js",
     },
     outDir: "dist",
     emptyOutDir: true,
-    sourcemap: true,
+    sourcemap: false,
     rollupOptions: {
       external: [],
     },

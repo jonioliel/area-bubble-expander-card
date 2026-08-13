@@ -1,0 +1,3 @@
+* text=auto eol=lf
+dist/*.js -whitespace linguist-generated=true
+pnpm-lock.yaml linguist-generated=true

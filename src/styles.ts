@@ -20,6 +20,8 @@ export const cardStyles = css`
     --abec-secondary-size: var(--area-bubble-expander-card-secondary-font-size, 12px);
     --abec-chip-bg: var(--area-bubble-expander-card-chip-background, rgba(255, 255, 255, 0.11));
     --abec-row-bg: var(--area-bubble-expander-card-row-background, rgba(255, 255, 255, 0.08));
+    --abec-header-bg: var(--area-bubble-expander-card-header-background, transparent);
+    --abec-border: var(--area-bubble-expander-card-border-color, rgba(255, 255, 255, 0.12));
   }
 
   ha-card {
@@ -28,7 +30,7 @@ export const cardStyles = css`
     background:
       linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.035)),
       var(--abec-bg);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid var(--abec-border);
     box-shadow: var(--abec-shadow);
     backdrop-filter: blur(var(--abec-blur));
     -webkit-backdrop-filter: blur(var(--abec-blur));
@@ -44,6 +46,8 @@ export const cardStyles = css`
     justify-content: space-between;
     gap: 12px;
     padding: 4px 4px 12px;
+    border-radius: calc(var(--abec-radius) - 8px);
+    background: var(--abec-header-bg);
   }
 
   .title {
@@ -74,7 +78,7 @@ export const cardStyles = css`
     background:
       linear-gradient(145deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.025)),
       var(--abec-bg);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--abec-border);
     transition:
       background-color 160ms ease,
       border-color 160ms ease,
@@ -88,12 +92,26 @@ export const cardStyles = css`
 
   .area-header {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
     gap: 10px;
     width: 100%;
     min-height: 66px;
     padding: 10px;
+  }
+
+  :host([dir="rtl"]) .area-header {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .area-toggle,
+  .entity-lead {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    padding: 0;
     border: 0;
     color: inherit;
     background: transparent;
@@ -102,8 +120,8 @@ export const cardStyles = css`
     font: inherit;
   }
 
-  :host([dir="rtl"]) .area-header {
-    grid-template-columns: auto minmax(0, 1fr) auto;
+  .area-toggle[disabled] {
+    cursor: default;
   }
 
   .icon-bubble {
@@ -120,11 +138,15 @@ export const cardStyles = css`
   }
 
   .area-icon ha-icon {
-    --mdc-icon-size: 26px;
+    --mdc-icon-size: var(--area-bubble-expander-card-area-icon-size, 26px);
   }
 
   .entity-icon ha-icon {
-    --mdc-icon-size: 22px;
+    --mdc-icon-size: var(--area-bubble-expander-card-entity-icon-size, 22px);
+  }
+
+  .icon-button ha-icon {
+    --mdc-icon-size: var(--area-bubble-expander-card-icon-size, 22px);
   }
 
   .area-main,
@@ -205,18 +227,19 @@ export const cardStyles = css`
   }
 
   .icon-button:hover,
-  .area-header:hover,
+  .area-toggle:hover:not([disabled]),
   .entity-row:hover {
     background-color: rgba(255, 255, 255, 0.08);
   }
 
   .icon-button:active,
-  .entity-row:active {
+  .area-toggle:active:not([disabled]),
+  .entity-lead:active {
     transform: scale(0.985);
   }
 
-  .area-header:focus-visible,
-  .entity-row:focus-visible,
+  .area-toggle:focus-visible,
+  .entity-lead:focus-visible,
   .icon-button:focus-visible {
     outline: 2px solid var(--abec-accent);
     outline-offset: 2px;
@@ -248,7 +271,7 @@ export const cardStyles = css`
 
   .entity-row {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
     gap: 10px;
     min-height: var(--abec-row-height);
@@ -261,7 +284,10 @@ export const cardStyles = css`
     color: inherit;
     text-align: start;
     font: inherit;
-    cursor: pointer;
+  }
+
+  .entity-lead {
+    width: 100%;
   }
 
   .protected-badge {
@@ -316,9 +342,33 @@ export const cardStyles = css`
     }
   }
 
+  :host([animations-disabled]) .entities {
+    animation: none;
+  }
+
+  :host([animations-disabled]) .chevron,
+  :host([animations-disabled]) .area-section,
+  :host([animations-disabled]) .icon-button {
+    transition: none;
+  }
+
+  :host([compact]) .root {
+    padding: 10px;
+  }
+
+  :host([compact]) .area-header {
+    min-height: 54px;
+    padding: 7px;
+  }
+
+  :host([compact]) .icon-bubble {
+    width: 36px;
+    height: 36px;
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .entities,
-    .chevron {
+    :host([respect-reduced-motion]) .entities,
+    :host([respect-reduced-motion]) .chevron {
       animation: none;
       transition: none;
     }

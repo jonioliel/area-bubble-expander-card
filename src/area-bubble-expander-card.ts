@@ -27,15 +27,15 @@ export class AreaBubbleExpanderCard extends LitElement {
     return document.createElement(EDITOR_TAG);
   }
 
-  public static getStubConfig(): AreaBubbleExpanderCardConfig {
-    return { type: "custom:area-bubble-expander-card", language: "auto", rtl: "auto" };
+  public static getStubConfig(): Partial<AreaBubbleExpanderCardConfig> {
+    return { language: "auto", rtl: "auto" };
   }
 
   public setConfig(config: AreaBubbleExpanderCardConfig): void {
     try {
       validateConfig(config);
       this.config = resolveConfig(config);
-      this.cardId = config.title || this.cardId;
+      this.cardId = config.id || this.stableCardId(config);
       this.expanded = this.config.remember_expanded_state ? readExpandedState(this.cardId) : {};
       this.error = undefined;
     } catch (err) {
@@ -49,6 +49,10 @@ export class AreaBubbleExpanderCard extends LitElement {
     return Math.max(2, 1 + groups.reduce((size, group) => size + (this.isExpanded(group) ? group.entities.length : 1), 0));
   }
 
+  public getGridOptions(): Record<string, number> {
+    return { columns: 12, min_columns: 6 };
+  }
+
   protected override render() {
     if (this.error) return html`<ha-card><div class="root">${this.error}</div></ha-card>`;
     if (!this.config) return nothing;
@@ -56,6 +60,9 @@ export class AreaBubbleExpanderCard extends LitElement {
     const rtl = resolveRtl(this.hass, this.config);
     this.style.setProperty("--abec-direction", rtl ? "rtl" : "ltr");
     this.setAttribute("dir", rtl ? "rtl" : "ltr");
+    this.toggleAttribute("animations-disabled", !this.config.enable_animations);
+    this.toggleAttribute("respect-reduced-motion", this.config.respect_reduced_motion);
+    this.toggleAttribute("compact", this.config.style.compact);
     this.applyStyleVars();
 
     const { groups, skipped } = discoverActiveEntities(this.hass, this.config);
@@ -120,24 +127,27 @@ export class AreaBubbleExpanderCard extends LitElement {
     const hiddenCount = group.entities.length - shownEntities.length;
 
     return html`
-      <section class="area-section ${expanded ? "expanded" : ""}">
-        <div
-          class="area-header"
-          role="button"
-          tabindex="0"
-          @click=${() => this.toggleArea(group)}
-          @keydown=${(ev: KeyboardEvent) => this.toggleAreaFromKeyboard(ev, group)}
-        >
-          ${this.config.show_area_icons ? html`<span class="icon-bubble area-icon"><ha-icon icon=${group.icon}></ha-icon></span>` : nothing}
-          <span class="area-main">
-            <span class="area-line">
-              <span class="area-name">${group.name}</span>
-              <span class="count">${group.entities.length} ${t(this.config, this.hass, "active_entities")}</span>
+      <section class="area-section ${expanded ? "expanded" : ""}" style=${areaOverride?.accent_color ? `--abec-accent:${areaOverride.accent_color}` : ""}>
+        <div class="area-header">
+          <button
+            class="area-toggle"
+            type="button"
+            aria-expanded=${expanded}
+            aria-label=${`${t(this.config, this.hass, expanded ? "collapse_area" : "expand_area")}: ${group.name}`}
+            ?disabled=${!this.config.expand_on_header_tap}
+            @click=${() => this.toggleArea(group)}
+          >
+            ${this.config.show_area_icons ? html`<span class="icon-bubble area-icon"><ha-icon icon=${group.icon}></ha-icon></span>` : nothing}
+            <span class="area-main">
+              <span class="area-line">
+                <span class="area-name">${group.name}</span>
+                <span class="count">${group.entities.length} ${t(this.config, this.hass, "active_entities")}</span>
+              </span>
+              ${this.config.show_preview_entities && !expanded && preview ? html`<span class="preview">${preview}</span>` : nothing}
+              ${this.config.show_domain_chips ? this.renderDomainChips(group) : nothing}
+              ${this.config.show_area_ids ? html`<span class="preview">${group.id}</span>` : nothing}
             </span>
-            ${this.config.show_preview_entities && !expanded && preview ? html`<div class="preview">${preview}</div>` : nothing}
-            ${this.config.show_domain_chips ? this.renderDomainChips(group) : nothing}
-            ${this.config.show_area_ids ? html`<div class="preview">${group.id}</div>` : nothing}
-          </span>
+          </button>
           <span class="controls">
             ${this.config.show_area_turn_off
               ? html`
@@ -190,23 +200,25 @@ export class AreaBubbleExpanderCard extends LitElement {
     return html`
       <div
         class="entity-row"
-        role="button"
-        tabindex="0"
-        @click=${() => this.handleAction(item, this.config?.tap_action ?? { action: "more-info" })}
-        @keydown=${(ev: KeyboardEvent) => this.entityActionFromKeyboard(ev, item)}
-        @contextmenu=${(ev: Event) => this.handleHoldAction(ev, item)}
-        @dblclick=${() => this.handleAction(item, this.config?.double_tap_action ?? { action: "none" })}
       >
-        ${this.config.show_entity_icons ? html`<span class="icon-bubble entity-icon"><ha-icon icon=${item.icon}></ha-icon></span>` : nothing}
-        <span class="entity-main">
-          <span class="entity-line">
-            <span class="entity-name">${item.name}</span>
-            ${item.protected
-              ? html`<span class="protected-badge"><ha-icon icon="mdi:lock"></ha-icon>${t(this.config, this.hass, "protected")}</span>`
-              : nothing}
+        <button
+          class="entity-lead"
+          type="button"
+          @click=${() => this.handleAction(item, this.config?.tap_action ?? { action: "more-info" })}
+          @contextmenu=${(ev: Event) => this.handleHoldAction(ev, item)}
+          @dblclick=${() => this.handleAction(item, this.config?.double_tap_action ?? { action: "none" })}
+        >
+          ${this.config.show_entity_icons ? html`<span class="icon-bubble entity-icon"><ha-icon icon=${item.icon}></ha-icon></span>` : nothing}
+          <span class="entity-main">
+            <span class="entity-line">
+              <span class="entity-name">${item.name}</span>
+              ${item.protected
+                ? html`<span class="protected-badge"><ha-icon icon="mdi:lock"></ha-icon>${t(this.config, this.hass, "protected")}</span>`
+                : nothing}
+            </span>
+            ${secondary ? html`<span class="secondary">${secondary}</span>` : nothing}
           </span>
-          ${secondary ? html`<span class="secondary">${secondary}</span>` : nothing}
-        </span>
+        </button>
         ${this.config.show_entity_turn_off
           ? html`
               <button
@@ -247,18 +259,6 @@ export class AreaBubbleExpanderCard extends LitElement {
     if (this.config.remember_expanded_state) writeExpandedState(this.cardId, this.expanded);
   }
 
-  private toggleAreaFromKeyboard(ev: KeyboardEvent, group: AreaGroup): void {
-    if (ev.key !== "Enter" && ev.key !== " ") return;
-    ev.preventDefault();
-    this.toggleArea(group);
-  }
-
-  private entityActionFromKeyboard(ev: KeyboardEvent, item: DiscoveredEntity): void {
-    if (ev.key !== "Enter" && ev.key !== " ") return;
-    ev.preventDefault();
-    this.handleAction(item, this.config?.tap_action ?? { action: "more-info" });
-  }
-
   private handleHoldAction(ev: Event, item: DiscoveredEntity): void {
     ev.preventDefault();
     this.handleAction(item, this.config?.hold_action ?? { action: "none" });
@@ -267,7 +267,8 @@ export class AreaBubbleExpanderCard extends LitElement {
   private async turnOffEntity(ev: Event, item: DiscoveredEntity): Promise<void> {
     ev.stopPropagation();
     if (!this.hass || !this.config || !item.controllable) return;
-    if (this.config.confirm_entity_turn_off && !window.confirm(t(this.config, this.hass, "confirm_entity_turn_off", { entity: item.name }))) return;
+    const requireConfirm = this.config.confirm_entity_turn_off || this.config.dangerous_domains.includes(item.domain);
+    if (requireConfirm && !window.confirm(t(this.config, this.hass, "confirm_entity_turn_off", { entity: item.name }))) return;
     try {
       await turnOffEntity(this.hass, item, this.config);
     } catch (err) {
@@ -280,7 +281,12 @@ export class AreaBubbleExpanderCard extends LitElement {
     if (!this.hass || !this.config) return;
     const candidates = safeTurnOffCandidates(group.entities, this.config);
     if (!candidates.length) return;
-    const requireConfirm = this.config.confirm_area_turn_off || this.config.area_turn_off_mode === "homeassistant_area";
+    const areaOverride = this.config.areas[group.id] ?? this.config.areas[group.name];
+    const defaultConfirm =
+      this.config.confirm_area_turn_off ||
+      this.config.area_turn_off_mode === "homeassistant_area" ||
+      candidates.some((item) => this.config!.dangerous_domains.includes(item.domain));
+    const requireConfirm = areaOverride?.confirm_turn_off ?? defaultConfirm;
     const message = `${t(this.config, this.hass, "confirm_area_turn_off", { area: group.name, count: candidates.length })}\n${t(
       this.config,
       this.hass,
@@ -300,7 +306,8 @@ export class AreaBubbleExpanderCard extends LitElement {
     if (!this.hass || !this.config) return;
     const candidates = safeTurnOffCandidates(groups.flatMap((group) => group.entities), this.config);
     if (!candidates.length) return;
-    if (this.config.confirm_global_turn_off && !window.confirm(t(this.config, this.hass, "confirm_global_turn_off"))) return;
+    const requireConfirm = this.config.confirm_global_turn_off || candidates.some((item) => this.config!.dangerous_domains.includes(item.domain));
+    if (requireConfirm && !window.confirm(t(this.config, this.hass, "confirm_global_turn_off"))) return;
     try {
       await turnOffEntitiesByDomain(this.hass, candidates, this.config);
     } catch (err) {
@@ -341,7 +348,7 @@ export class AreaBubbleExpanderCard extends LitElement {
     if (!this.config) return;
     const style = this.config.style;
     this.style.setProperty("--area-bubble-expander-card-border-radius", `${style.border_radius}px`);
-    this.style.setProperty("--area-bubble-expander-card-glass-blur", `${style.blur}px`);
+    this.style.setProperty("--area-bubble-expander-card-glass-blur", `${style.glass ? style.blur : 0}px`);
     this.style.setProperty("--area-bubble-expander-card-accent-color", style.accent_color);
     this.style.setProperty("--area-bubble-expander-card-danger-color", style.danger_color);
     this.style.setProperty("--area-bubble-expander-card-section-gap", `${style.section_gap}px`);
@@ -350,21 +357,45 @@ export class AreaBubbleExpanderCard extends LitElement {
     this.style.setProperty("--area-bubble-expander-card-secondary-font-size", `${style.secondary_text_size}px`);
     this.style.setProperty("--area-bubble-expander-card-chip-background", style.chip_background);
     this.style.setProperty("--area-bubble-expander-card-row-background", style.row_background);
+    this.style.setProperty("--area-bubble-expander-card-header-background", style.header_background);
+    this.style.setProperty("--area-bubble-expander-card-background", style.collapsed_background);
+    this.style.setProperty("--area-bubble-expander-card-background-expanded", style.expanded_background);
+    this.style.setProperty("--area-bubble-expander-card-border-color", `rgba(255,255,255,${style.border_opacity})`);
+    this.style.setProperty("--area-bubble-expander-card-area-icon-size", `${style.area_icon_size}px`);
+    this.style.setProperty("--area-bubble-expander-card-entity-icon-size", `${style.entity_icon_size}px`);
+    this.style.setProperty("--area-bubble-expander-card-icon-size", `${style.icon_size}px`);
     this.style.setProperty("--area-bubble-expander-card-shadow", style.show_shadows ? `0 12px 30px rgba(0,0,0,${style.shadow_intensity})` : "none");
+  }
+
+  private stableCardId(config: AreaBubbleExpanderCardConfig): string {
+    const seed = JSON.stringify({
+      title: config.title ?? "",
+      include_areas: config.include_areas ?? [],
+      exclude_areas: config.exclude_areas ?? [],
+      custom_area_order: config.custom_area_order ?? [],
+    });
+    let hash = 2166136261;
+    for (let index = 0; index < seed.length; index += 1) {
+      hash ^= seed.charCodeAt(index);
+      hash = Math.imul(hash, 16777619);
+    }
+    return `card-${(hash >>> 0).toString(36)}`;
   }
 }
 
 window.customCards = window.customCards ?? [];
-window.customCards.push({
-  type: "area-bubble-expander-card",
-  name: "Area Bubble Expander Card",
-  description: "Active entities grouped by Home Assistant Area with safe controls and RTL support.",
-  preview: true,
-  documentationURL: "https://github.com/jonioliel/area-bubble-expander-card",
-});
+if (!window.customCards.some((card) => card.type === "area-bubble-expander-card")) {
+  window.customCards.push({
+    type: "area-bubble-expander-card",
+    name: "Area Bubble Expander Card",
+    description: "Active entities grouped by Home Assistant Area with safe controls and RTL support.",
+    preview: true,
+    documentationURL: "https://github.com/jonioliel/area-bubble-expander-card",
+  });
+}
 
 console.info(
-  `%c AREA-BUBBLE-EXPANDER-CARD %c 0.1.5 ${resolveLanguage(undefined, "auto")}`,
+  `%c AREA-BUBBLE-CARDS %c 0.2.0 ${resolveLanguage(undefined, "auto")}`,
   "color: white; background: #03a9f4; font-weight: 700;",
   "color: #03a9f4; font-weight: 700;",
 );

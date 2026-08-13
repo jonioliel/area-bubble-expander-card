@@ -1,16 +1,19 @@
-import { DEFAULT_CONFIG, DEFAULT_STYLE } from "../constants";
+import { DEFAULT_CONFIG, DEFAULT_STYLE, STYLE_PRESETS } from "../constants";
 import type { AreaBubbleExpanderCardConfig, ResolvedConfig } from "../types";
 
 const arrayValue = <T>(value: T[] | undefined): T[] => (Array.isArray(value) ? [...value] : []);
+const objectValue = <T extends Record<string, unknown>>(value: unknown): Partial<T> =>
+  value && typeof value === "object" && !Array.isArray(value) ? (value as Partial<T>) : {};
 
 export const resolveConfig = (config: AreaBubbleExpanderCardConfig): ResolvedConfig => {
+  const configuredStyle = objectValue(config.style);
+  const presetName = typeof configuredStyle.preset === "string" ? configuredStyle.preset : DEFAULT_STYLE.preset;
+  const presetStyle = STYLE_PRESETS[presetName as keyof typeof STYLE_PRESETS] ?? {};
+  const resolvedStyle = { ...DEFAULT_STYLE, ...presetStyle, ...configuredStyle };
   const merged = {
     ...DEFAULT_CONFIG,
     ...config,
-    style: {
-      ...DEFAULT_STYLE,
-      ...(config.style ?? {}),
-    },
+    style: resolvedStyle,
   };
 
   return {
@@ -26,20 +29,20 @@ export const resolveConfig = (config: AreaBubbleExpanderCardConfig): ResolvedCon
     exclude_labels: arrayValue(merged.exclude_labels),
     exclude_entity_category: arrayValue(merged.exclude_entity_category),
     exclude_by_regex: arrayValue(merged.exclude_by_regex),
-    active_states: { ...(DEFAULT_CONFIG.active_states ?? {}), ...(config.active_states ?? {}) },
-    inactive_states: { ...(DEFAULT_CONFIG.inactive_states ?? {}), ...(config.inactive_states ?? {}) },
+    active_states: { ...(DEFAULT_CONFIG.active_states ?? {}), ...objectValue<Record<string, string[]>>(config.active_states) },
+    inactive_states: { ...(DEFAULT_CONFIG.inactive_states ?? {}), ...objectValue<Record<string, string[]>>(config.inactive_states) },
     protected_entities: arrayValue(merged.protected_entities),
     disable_turn_off_for_domains: arrayValue(merged.disable_turn_off_for_domains),
     dangerous_domains: arrayValue(merged.dangerous_domains),
-    service_mapping: { ...(DEFAULT_CONFIG.service_mapping ?? {}), ...(config.service_mapping ?? {}) },
+    service_mapping: { ...(DEFAULT_CONFIG.service_mapping ?? {}), ...objectValue<Record<string, string>>(config.service_mapping) },
     custom_area_order: arrayValue(merged.custom_area_order),
     custom_entity_order: arrayValue(merged.custom_entity_order),
-    areas: { ...(merged.areas ?? {}) },
-    entity_overrides: { ...(merged.entity_overrides ?? {}) },
-    labels: { ...(merged.labels ?? {}) },
-    domain_labels: { ...(merged.domain_labels ?? {}) },
-    domain_icons: { ...(DEFAULT_CONFIG.domain_icons ?? {}), ...(merged.domain_icons ?? {}) },
-    style: { ...DEFAULT_STYLE, ...(merged.style ?? {}) },
+    areas: { ...objectValue(merged.areas) },
+    entity_overrides: { ...objectValue(merged.entity_overrides) },
+    labels: { ...objectValue(merged.labels) },
+    domain_labels: { ...objectValue(merged.domain_labels) },
+    domain_icons: { ...(DEFAULT_CONFIG.domain_icons ?? {}), ...objectValue<Record<string, string>>(merged.domain_icons) },
+    style: resolvedStyle,
   } as ResolvedConfig;
 };
 

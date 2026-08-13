@@ -26,6 +26,7 @@ export const isTurnOffDisabled = (item: DiscoveredEntity, config: ResolvedConfig
 
 export const visibleByProtection = (item: DiscoveredEntity, config: ResolvedConfig): boolean => {
   if (!item.protected) return true;
+  if (config.entity_overrides[item.entityId]?.show_disabled) return true;
   return config.protected_entity_behavior !== "hide";
 };
 

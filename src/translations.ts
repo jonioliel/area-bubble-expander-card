@@ -7,6 +7,8 @@ export type TranslationKey =
   | "turn_off_area"
   | "turn_off_entity"
   | "turn_off_all"
+  | "expand_area"
+  | "collapse_area"
   | "active_entities"
   | "active_areas"
   | "no_area"
@@ -33,6 +35,8 @@ export const TRANSLATIONS: Record<"he" | "en", Record<TranslationKey, string>> =
     turn_off_area: "כבה אזור",
     turn_off_entity: "כבה",
     turn_off_all: "כבה הכל",
+    expand_area: "פתח אזור",
+    collapse_area: "סגור אזור",
     active_entities: "דלוקים",
     active_areas: "אזורים פעילים",
     no_area: "ללא אזור",
@@ -58,6 +62,8 @@ export const TRANSLATIONS: Record<"he" | "en", Record<TranslationKey, string>> =
     turn_off_area: "Turn off area",
     turn_off_entity: "Turn off",
     turn_off_all: "Turn off all",
+    expand_area: "Expand area",
+    collapse_area: "Collapse area",
     active_entities: "active",
     active_areas: "active areas",
     no_area: "No Area",

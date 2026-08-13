@@ -1,4 +1,4 @@
-import type { AreaBubbleExpanderCardConfig, CardStyleConfig } from "./types";
+import type { AreaBubbleExpanderCardConfig, CardStyleConfig, StylePreset } from "./types";
 
 export const CARD_TYPE = "custom:area-bubble-expander-card";
 export const CARD_TAG = "area-bubble-expander-card";
@@ -97,6 +97,67 @@ export const DEFAULT_STYLE: Required<CardStyleConfig> = {
   chip_background: "rgba(255,255,255,0.11)",
   text_size: 15,
   secondary_text_size: 12,
+};
+
+export const STYLE_PRESETS: Record<StylePreset, Partial<CardStyleConfig>> = {
+  bubble_glass: {},
+  bubble_solid: {
+    glass: false,
+    blur: 0,
+    background_opacity: 1,
+    row_background: "var(--secondary-background-color)",
+    chip_background: "color-mix(in srgb, var(--primary-text-color) 9%, transparent)",
+  },
+  expander_minimal: {
+    glass: false,
+    blur: 0,
+    border_radius: 16,
+    section_gap: 8,
+    show_shadows: false,
+    header_background: "transparent",
+    expanded_background: "transparent",
+    collapsed_background: "transparent",
+    row_background: "var(--secondary-background-color)",
+  },
+  home_assistant_native: {
+    glass: false,
+    blur: 0,
+    border_radius: 12,
+    section_gap: 8,
+    show_shadows: false,
+    header_background: "var(--card-background-color)",
+    expanded_background: "var(--card-background-color)",
+    collapsed_background: "var(--card-background-color)",
+    row_background: "var(--secondary-background-color)",
+    chip_background: "var(--secondary-background-color)",
+  },
+  dark_glass: {
+    glass: true,
+    header_background: "rgba(8, 12, 20, 0.6)",
+    expanded_background: "rgba(8, 12, 20, 0.54)",
+    collapsed_background: "rgba(8, 12, 20, 0.48)",
+    row_background: "rgba(10, 15, 24, 0.58)",
+    chip_background: "rgba(255,255,255,0.1)",
+  },
+  light_glass: {
+    glass: true,
+    header_background: "rgba(255,255,255,0.52)",
+    expanded_background: "rgba(255,255,255,0.46)",
+    collapsed_background: "rgba(255,255,255,0.38)",
+    row_background: "rgba(255,255,255,0.5)",
+    chip_background: "rgba(255,255,255,0.62)",
+  },
+  compact_mobile: {
+    compact: true,
+    border_radius: 18,
+    section_gap: 7,
+    row_height: 44,
+    icon_size: 19,
+    area_icon_size: 22,
+    entity_icon_size: 19,
+    text_size: 14,
+    secondary_text_size: 11,
+  },
 };
 
 export const DEFAULT_CONFIG: AreaBubbleExpanderCardConfig = {

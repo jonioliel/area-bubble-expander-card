@@ -13,6 +13,8 @@ export type HassEntityRegistryEntry = {
   area_id?: string | null;
   device_id?: string | null;
   hidden_by?: string | null;
+  hidden?: boolean;
+  disabled_by?: string | null;
   entity_category?: "config" | "diagnostic" | string | null;
   labels?: string[];
   platform?: string;
@@ -26,6 +28,7 @@ export type HassDeviceRegistryEntry = {
   labels?: string[];
   name?: string | null;
   name_by_user?: string | null;
+  disabled_by?: string | null;
 };
 
 export type HassAreaRegistryEntry = {
@@ -34,6 +37,19 @@ export type HassAreaRegistryEntry = {
   name: string;
   icon?: string | null;
   labels?: string[];
+  floor_id?: string | null;
+  picture?: string | null;
+  temperature_entity_id?: string | null;
+  humidity_entity_id?: string | null;
+};
+
+export type HassFloorRegistryEntry = {
+  floor_id?: string;
+  id?: string;
+  name: string;
+  icon?: string | null;
+  level?: number | null;
+  aliases?: string[];
 };
 
 export type HomeAssistant = {
@@ -41,13 +57,19 @@ export type HomeAssistant = {
   entities?: Record<string, HassEntityRegistryEntry>;
   devices?: Record<string, HassDeviceRegistryEntry>;
   areas?: Record<string, HassAreaRegistryEntry>;
+  floors?: Record<string, HassFloorRegistryEntry>;
   labels?: Record<string, { label_id?: string; name?: string; color?: string; icon?: string }>;
   language?: string;
   locale?: { language?: string };
   themes?: { darkMode?: boolean };
+  config?: {
+    unit_system?: { temperature?: string };
+  };
   callService(domain: string, service: string, data?: Record<string, unknown>, target?: Record<string, unknown>): Promise<unknown>;
   callWS?<T = unknown>(message: Record<string, unknown>): Promise<T>;
   localize?(key: string, ...args: unknown[]): string;
+  formatEntityName?(entity: HassEntity): string;
+  formatEntityState?(entity: HassEntity): string;
 };
 
 export type LovelaceCard = HTMLElement & {
@@ -131,6 +153,7 @@ export type CardStyleConfig = {
 
 export type AreaBubbleExpanderCardConfig = {
   type: "custom:area-bubble-expander-card";
+  id?: string;
   title?: string;
   language?: LanguageMode;
   rtl?: RtlMode;

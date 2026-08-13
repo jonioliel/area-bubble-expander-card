@@ -43,7 +43,8 @@ export const discoverActiveEntities = (
     if (override?.hidden) reasons.push("hidden by entity override");
     if (config.exclude_entities.includes(entityId)) reasons.push("excluded entity");
     if (config.exclude_unavailable && entity.state === "unavailable") reasons.push("unavailable");
-    if (config.exclude_hidden_entities && entityEntry?.hidden_by) reasons.push("hidden entity");
+    if (config.exclude_hidden_entities && (entityEntry?.hidden_by || entityEntry?.hidden)) reasons.push("hidden entity");
+    if (entityEntry?.disabled_by) reasons.push("disabled entity");
     if (entityEntry?.entity_category && config.exclude_entity_category.includes(entityEntry.entity_category)) reasons.push("excluded entity category");
     if (excludedDomainSet.has(domain)) reasons.push("excluded domain");
     if (!includedDomainSet.has(domain) && !includeEntitySet.has(entityId)) reasons.push("domain not included");
@@ -71,7 +72,7 @@ export const discoverActiveEntities = (
       areaIcon: area.icon,
       labels,
       category: entityEntry?.entity_category,
-      hidden: Boolean(entityEntry?.hidden_by),
+      hidden: Boolean(entityEntry?.hidden_by || entityEntry?.hidden),
       active: true,
       protected: protectedEntity,
       controllable: true,
