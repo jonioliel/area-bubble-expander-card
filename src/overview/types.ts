@@ -2,11 +2,26 @@ import type { CardStyleConfig, HassEntity, LanguageMode, RtlMode } from "../type
 
 export type OverviewSectionId = "climate" | "floor_heating" | "covers" | "lights_switches" | "media";
 export type OverviewQuickActionId = "lights" | "climate" | "floor_heating" | "switches" | "covers" | "media";
+export type OverviewSectionActionMode = "toggle" | "dual";
+
+export type OverviewSectionStyle = {
+  background?: string;
+  border_color?: string;
+  show_border?: boolean;
+};
+
+export type OverviewSectionActionIcons = {
+  on?: string;
+  off?: string;
+  open?: string;
+  close?: string;
+};
 
 export type OverviewEntityOverride = {
   name?: string;
   icon?: string;
   section?: OverviewSectionId;
+  group?: string;
   hidden?: boolean;
   protected?: boolean;
 };
@@ -23,6 +38,7 @@ export type OverviewAreaOverride = {
   occupancy_entities?: string[];
   section_order?: OverviewSectionId[];
   section_titles?: Partial<Record<OverviewSectionId, string>>;
+  section_styles?: Partial<Record<OverviewSectionId, OverviewSectionStyle>>;
   entity_order?: Partial<Record<OverviewSectionId, string[]>>;
   include_entities?: Partial<Record<OverviewSectionId, string[]>>;
   exclude_entities?: string[];
@@ -46,6 +62,11 @@ export type OverviewStyleConfig = Pick<
   temperature_cool_surface?: string;
   temperature_heat_surface?: string;
   temperature_active_surface?: string;
+  quick_action_size?: number;
+  quick_action_icon_size?: number;
+  section_action_size?: number;
+  section_action_icon_size?: number;
+  category_gap?: number;
 };
 
 export type AreaBubbleOverviewCardConfig = {
@@ -69,6 +90,9 @@ export type AreaBubbleOverviewCardConfig = {
   remember_expanded_state?: boolean;
   section_order?: OverviewSectionId[];
   section_titles?: Partial<Record<OverviewSectionId, string>>;
+  section_styles?: Partial<Record<OverviewSectionId, OverviewSectionStyle>>;
+  section_action_mode?: OverviewSectionActionMode;
+  section_action_icons?: OverviewSectionActionIcons;
   quick_actions?: OverviewQuickActionId[];
   quick_action_icons?: Partial<Record<OverviewQuickActionId, string>>;
   area_order?: string[];
@@ -91,6 +115,8 @@ export type ResolvedOverviewConfig = Required<
     | "area"
     | "floor"
     | "section_titles"
+    | "section_styles"
+    | "section_action_icons"
     | "quick_action_icons"
     | "include_entities"
     | "area_overrides"
@@ -101,6 +127,8 @@ export type ResolvedOverviewConfig = Required<
   area?: string;
   floor?: string;
   section_titles: Record<OverviewSectionId, string>;
+  section_styles: Record<OverviewSectionId, OverviewSectionStyle>;
+  section_action_icons: Required<OverviewSectionActionIcons>;
   quick_action_icons: Record<OverviewQuickActionId, string>;
   include_entities: Partial<Record<OverviewSectionId, string[]>>;
   area_overrides: Record<string, OverviewAreaOverride>;
@@ -121,6 +149,7 @@ export type OverviewEntity = {
   active: boolean;
   powered: boolean;
   protected: boolean;
+  group?: string;
 };
 
 export type OverviewSection = {

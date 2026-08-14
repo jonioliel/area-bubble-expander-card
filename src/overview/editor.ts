@@ -2,7 +2,7 @@ import { LitElement, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type { HassAreaRegistryEntry, HassEntity, HomeAssistant } from "../types";
 import { resolveOverviewConfig } from "./config";
-import { OVERVIEW_CARD_TYPE, OVERVIEW_DEFAULT_STYLE, OVERVIEW_EDITOR_TAG, OVERVIEW_QUICK_ACTIONS, OVERVIEW_SECTIONS, QUICK_ACTION_ICONS, SECTION_ICONS } from "./constants";
+import { OVERVIEW_CARD_TYPE, OVERVIEW_DEFAULT_STYLE, OVERVIEW_EDITOR_TAG, OVERVIEW_QUICK_ACTIONS, OVERVIEW_SECTIONS, QUICK_ACTION_ICONS, SECTION_ACTION_ICONS, SECTION_ICONS } from "./constants";
 import { discoverOverview, isOverviewEntityPowered, overviewEntityAreaId } from "./discovery";
 import { overviewLanguage } from "./translations";
 import type {
@@ -11,6 +11,7 @@ import type {
   OverviewEntityOverride,
   OverviewQuickActionId,
   OverviewSectionId,
+  OverviewSectionStyle,
   OverviewStyleConfig,
   ResolvedOverviewConfig,
 } from "./types";
@@ -115,6 +116,7 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
     .visibility-button.restore { color: var(--success-color, #4caf50); }
     .visibility-button[disabled] { cursor: not-allowed; opacity: .45; }
     .quick-action-icon-field { grid-column: 1 / -1; width: 100%; }
+    .section-style-editor { grid-column: 1 / -1; display: grid; gap: 8px; width: 100%; padding-block-start: 4px; border-block-start: 1px solid color-mix(in srgb, var(--divider-color) 55%, transparent); }
     .entity-fields { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .entity-flags { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 12px; }
     .check-label { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; }
@@ -258,6 +260,22 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
         ${this.summary("mdi:format-list-bulleted-square", this.l("סעיפים ופעולות", "Sections and actions", language), this.l("עריכת כותרות, סדר וכפתורי הכיבוי", "Edit titles, order, and quick controls", language))}
         <div class="panel">
           <div class="hint">${this.l("ישויות חדשות מצטרפות אוטומטית בסוף הסעיף, כך שהסידור הידני נשאר יציב.", "New entities are appended automatically, so your manual order remains stable.", language)}</div>
+          <div class="field">
+            <label>${this.l("כפתורי שליטה בכותרת קטגוריה", "Category header controls", language)}</label>
+            <select .value=${resolved.section_action_mode} @change=${(event: Event) => this.commitKey("section_action_mode", (event.target as HTMLSelectElement).value)}>
+              <option value="toggle">${this.l("כפתור אחד — החלפת מצב", "One smart toggle button", language)}</option>
+              <option value="dual">${this.l("שני כפתורים — הדלקה וכיבוי", "Two buttons — on and off", language)}</option>
+            </select>
+          </div>
+          <div class="inline-fields">
+            ${(["on", "off", "open", "close"] as const).map((key) => this.iconField(
+              this.sectionActionIconName(key, language),
+              typeof this.config.section_action_icons?.[key] === "string" ? this.config.section_action_icons[key]! : "",
+              SECTION_ACTION_ICONS[key],
+              language,
+              (value) => this.setSectionActionIcon(key, value),
+            ))}
+          </div>
           <div class="order-list">
             ${resolved.section_order.map((section, index) => html`
               <div class="order-item">
@@ -267,6 +285,32 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
                   <input type="text" .value=${resolved.section_titles[section]} placeholder=${this.sectionDefaultName(section, language)} @change=${(event: Event) => this.setSectionTitle(section, (event.target as HTMLInputElement).value)} />
                 </div>
                 ${this.orderButtons(index, resolved.section_order.length, () => this.moveSection(section, -1), () => this.moveSection(section, 1))}
+                <div class="section-style-editor">
+                  ${this.booleanRow(
+                    this.l("מסגרת קלה לקטגוריה", "Subtle category frame", language),
+                    this.l("ניתן לדרוס את ההגדרה בכל חדר בנפרד.", "Can be overridden for an individual room.", language),
+                    resolved.section_styles[section].show_border ?? false,
+                    (checked) => this.setGlobalSectionStyle(section, { show_border: checked }),
+                  )}
+                  <div class="inline-fields">
+                    ${this.valueColorField(
+                      this.l("רקע קטגוריה", "Category background", language),
+                      resolved.section_styles[section].background ?? "transparent",
+                      "#ffffff",
+                      Boolean(this.config.section_styles?.[section]?.background),
+                      language,
+                      (value) => this.setGlobalSectionStyle(section, { background: value || undefined }),
+                    )}
+                    ${this.valueColorField(
+                      this.l("צבע מסגרת", "Frame color", language),
+                      resolved.section_styles[section].border_color ?? "var(--divider-color)",
+                      "#888888",
+                      Boolean(this.config.section_styles?.[section]?.border_color),
+                      language,
+                      (value) => this.setGlobalSectionStyle(section, { border_color: value || undefined }),
+                    )}
+                  </div>
+                </div>
               </div>
             `)}
           </div>
@@ -418,6 +462,42 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
               <div class="inline-fields">
                 ${resolved.section_order.map((section) => html`<div class="field"><label>${this.sectionDefaultName(section, language)}</label><input type="text" .value=${override.section_titles?.[section] ?? ""} placeholder=${resolved.section_titles[section] || this.sectionDefaultName(section, language)} @change=${(event: Event) => this.setAreaSectionTitle(area.id, section, (event.target as HTMLInputElement).value)} /></div>`)}
               </div>
+              <div class="setting-title">${this.l("מראה קטגוריות בחדר", "Room category appearance", language)}</div>
+              <div class="order-list">
+                ${resolved.section_order.map((section) => {
+                  const globalStyle = resolved.section_styles[section];
+                  const localStyle = override.section_styles?.[section] ?? {};
+                  return html`
+                    <div class="area-card">
+                      <div class="setting-title">${this.sectionDefaultName(section, language)}</div>
+                      ${this.booleanRow(
+                        this.l("הצג מסגרת בחדר זה", "Show frame in this room", language),
+                        "",
+                        localStyle.show_border ?? globalStyle.show_border ?? false,
+                        (checked) => this.setAreaSectionStyle(area.id, section, { show_border: checked }),
+                      )}
+                      <div class="inline-fields">
+                        ${this.valueColorField(
+                          this.l("רקע בחדר זה", "Background in this room", language),
+                          localStyle.background ?? globalStyle.background ?? "transparent",
+                          "#ffffff",
+                          Boolean(localStyle.background),
+                          language,
+                          (value) => this.setAreaSectionStyle(area.id, section, { background: value || undefined }),
+                        )}
+                        ${this.valueColorField(
+                          this.l("צבע מסגרת בחדר זה", "Frame color in this room", language),
+                          localStyle.border_color ?? globalStyle.border_color ?? "var(--divider-color)",
+                          "#888888",
+                          Boolean(localStyle.border_color),
+                          language,
+                          (value) => this.setAreaSectionStyle(area.id, section, { border_color: value || undefined }),
+                        )}
+                      </div>
+                    </div>
+                  `;
+                })}
+              </div>
             `
           : nothing}
       </div>
@@ -499,6 +579,7 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
                       <div class="entity-fields">
                         <div class="field"><label>${this.l("שם מותאם", "Custom name", language)}</label><input type="text" .value=${override.name ?? ""} placeholder=${item.name} @change=${(event: Event) => this.updateEntityOverride(item.entityId, { name: (event.target as HTMLInputElement).value || undefined })} /></div>
                         <div class="field"><label>${this.l("סעיף", "Section", language)}</label><select .value=${override.section ?? item.section} @change=${(event: Event) => this.updateEntityOverride(item.entityId, { section: (event.target as HTMLSelectElement).value as OverviewSectionId })}>${OVERVIEW_SECTIONS.map((section) => html`<option value=${section}>${this.sectionDefaultName(section, language)}</option>`)}</select></div>
+                        <div class="field"><label>${this.l("תת־קבוצה בתוך החדר", "Sub-group inside room", language)}</label><input type="text" .value=${override.group ?? item.group ?? ""} placeholder=${this.l("לדוגמה: מקלחת", "Example: Shower", language)} @change=${(event: Event) => this.updateEntityOverride(item.entityId, { group: (event.target as HTMLInputElement).value.trim() || undefined })} /><div class="hint">${this.l("רכיבים עם אותו שם קבוצה יוצגו יחד בתוך הקטגוריה.", "Devices with the same group name are shown together inside the category.", language)}</div></div>
                         ${this.iconField(this.l("אייקון הרכיב", "Device icon", language), override.icon ?? "", item.icon, language, (value) => this.updateEntityOverride(item.entityId, { icon: value || undefined }))}
                       </div>
                       <div class="entity-flags">
@@ -525,7 +606,12 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
             ${this.numberField(this.l("טשטוש זכוכית", "Glass blur", language), resolved.style.blur, 0, 40, (value) => this.setStyle("blur", value))}
             ${this.numberField(this.l("גובה שורה", "Row height", language), resolved.style.row_height, 44, 84, (value) => this.setStyle("row_height", value))}
             ${this.numberField(this.l("גודל שם חדר", "Room name size", language), resolved.style.area_name_size, 11, 24, (value) => this.setStyle("area_name_size", value))}
-            ${this.numberField(this.l("מרווח סעיפים", "Section gap", language), resolved.style.section_gap, 4, 30, (value) => this.setStyle("section_gap", value))}
+            ${this.numberField(this.l("מרווח כללי", "General spacing", language), resolved.style.section_gap, 4, 30, (value) => this.setStyle("section_gap", value))}
+            ${this.numberField(this.l("רווח בין קטגוריות", "Gap between categories", language), resolved.style.category_gap, 0, 40, (value) => this.setStyle("category_gap", value))}
+            ${this.numberField(this.l("גודל עיגול פעולה מהירה בחדר", "Room quick-action circle size", language), resolved.style.quick_action_size, 28, 52, (value) => this.setStyle("quick_action_size", value))}
+            ${this.numberField(this.l("גודל אייקון פעולה מהירה בחדר", "Room quick-action icon size", language), resolved.style.quick_action_icon_size, 14, 34, (value) => this.setStyle("quick_action_icon_size", value))}
+            ${this.numberField(this.l("גודל כפתור פעולה בקטגוריה", "Category action button size", language), resolved.style.section_action_size, 36, 56, (value) => this.setStyle("section_action_size", value))}
+            ${this.numberField(this.l("גודל אייקון פעולה בקטגוריה", "Category action icon size", language), resolved.style.section_action_icon_size, 16, 36, (value) => this.setStyle("section_action_icon_size", value))}
           </div>
           ${this.booleanRow(
             this.l("רקע כרטיס שקוף", "Transparent card background", language),
@@ -644,6 +730,26 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
     `;
   }
 
+  private valueColorField(
+    label: string,
+    value: string,
+    pickerFallback: string,
+    customized: boolean,
+    language: "he" | "en",
+    onChange: (value: string) => void,
+  ) {
+    return html`
+      <div class="field">
+        <label>${label}</label>
+        <div class="color-control">
+          <input type="color" .value=${this.pickerColor(value, pickerFallback)} aria-label=${label} @input=${(event: Event) => onChange((event.target as HTMLInputElement).value)} />
+          <input type="text" .value=${value} aria-label=${`${label} CSS`} @change=${(event: Event) => onChange((event.target as HTMLInputElement).value.trim())} />
+          <button class="reset-button" type="button" ?disabled=${!customized} @click=${() => onChange("")}>${this.l("איפוס", "Reset", language)}</button>
+        </div>
+      </div>
+    `;
+  }
+
   private pickerColor(value: string, fallback: string): string {
     const hex = value.trim().match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i)?.[1];
     if (hex) return hex.length === 3 ? `#${[...hex].map((part) => `${part}${part}`).join("")}` : `#${hex}`;
@@ -724,6 +830,7 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
         active: !["off", "closed", "idle", "standby", "unavailable", "unknown"].includes(entity.state),
         powered: isOverviewEntityPowered(entity, domain),
         protected: override.protected === true,
+        group: override.group,
       });
     }
     return result;
@@ -798,6 +905,26 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
     this.commit({ ...this.config, quick_action_icons: icons });
   }
 
+  private setSectionActionIcon(key: "on" | "off" | "open" | "close", value: string): void {
+    const icons = { ...(this.config.section_action_icons ?? {}) };
+    const normalized = value.trim();
+    if (normalized) icons[key] = normalized;
+    else delete icons[key];
+    this.commit({ ...this.config, section_action_icons: icons });
+  }
+
+  private cleanSectionStyle(style: OverviewSectionStyle): OverviewSectionStyle {
+    return Object.fromEntries(Object.entries(style).filter(([, value]) => value !== undefined && value !== "")) as OverviewSectionStyle;
+  }
+
+  private setGlobalSectionStyle(section: OverviewSectionId, patch: Partial<OverviewSectionStyle>): void {
+    const sectionStyles = { ...(this.config.section_styles ?? {}) };
+    const next = this.cleanSectionStyle({ ...(sectionStyles[section] ?? {}), ...patch });
+    if (Object.keys(next).length) sectionStyles[section] = next;
+    else delete sectionStyles[section];
+    this.commit({ ...this.config, section_styles: sectionStyles });
+  }
+
   private normalizedParentId(areaId: string, resolved: ResolvedOverviewConfig): string | undefined {
     const options = this.targetAreas(resolved);
     const area = options.find((candidate) => candidate.id === areaId);
@@ -851,6 +978,15 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
   private setAreaSectionTitle(areaId: string, section: OverviewSectionId, value: string): void {
     const current = this.currentAreaOverride(areaId);
     this.updateAreaOverride(areaId, { section_titles: { ...(current.section_titles ?? {}), [section]: value || undefined } });
+  }
+
+  private setAreaSectionStyle(areaId: string, section: OverviewSectionId, patch: Partial<OverviewSectionStyle>): void {
+    const current = this.currentAreaOverride(areaId);
+    const sectionStyles = { ...(current.section_styles ?? {}) };
+    const next = this.cleanSectionStyle({ ...(sectionStyles[section] ?? {}), ...patch });
+    if (Object.keys(next).length) sectionStyles[section] = next;
+    else delete sectionStyles[section];
+    this.updateAreaOverride(areaId, { section_styles: sectionStyles });
   }
 
   private updateEntityOverride(entityId: string, patch: Partial<OverviewEntityOverride>): void {
@@ -971,6 +1107,14 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
       en: { lights: "Lights", climate: "Climate", floor_heating: "Floor heating", switches: "Switches", covers: "Covers", media: "Music" },
     };
     return names[language][action];
+  }
+
+  private sectionActionIconName(key: "on" | "off" | "open" | "close", language: "he" | "en"): string {
+    const names = {
+      he: { on: "אייקון הדלקה", off: "אייקון כיבוי", open: "אייקון פתיחת תריסים", close: "אייקון סגירת תריסים" },
+      en: { on: "Turn-on icon", off: "Turn-off icon", open: "Open-covers icon", close: "Close-covers icon" },
+    } as const;
+    return names[language][key];
   }
 }
 

@@ -275,6 +275,7 @@ const createArea = (
         entityOverride?.protected === true ||
         config.protected_entities.includes(entityId) ||
         labels.some((label) => config.protected_labels.includes(label)),
+      group: entityOverride?.group,
     });
   }
 

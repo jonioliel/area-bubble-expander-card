@@ -11,8 +11,13 @@ export const overviewCardStyles = css`
     --aboc-radius: var(--area-bubble-overview-border-radius, 26px);
     --aboc-blur: var(--area-bubble-overview-blur, 18px);
     --aboc-gap: var(--area-bubble-overview-gap, 12px);
+    --aboc-section-gap: var(--area-bubble-overview-section-gap, 12px);
     --aboc-row-height: var(--area-bubble-overview-row-height, 56px);
     --aboc-area-name-size: var(--area-bubble-overview-area-name-size, 17px);
+    --aboc-quick-action-size: var(--area-bubble-overview-quick-action-size, 38px);
+    --aboc-quick-action-icon-size: var(--area-bubble-overview-quick-action-icon-size, 20px);
+    --aboc-section-action-size: var(--area-bubble-overview-section-action-size, 44px);
+    --aboc-section-action-icon-size: var(--area-bubble-overview-section-action-icon-size, 22px);
     --aboc-accent: var(--area-bubble-overview-accent, var(--primary-color));
     --aboc-active: var(--area-bubble-overview-active, var(--state-active-color, #ffd54f));
     --aboc-active-surface: var(--area-bubble-overview-active-surface, rgba(174, 215, 219, 0.94));
@@ -73,19 +78,40 @@ export const overviewCardStyles = css`
     padding: 0;
   }
 
+  .floor-summary-pill {
+    direction: var(--aboc-direction, ltr);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding: 5px;
+    border: 2px solid color-mix(in srgb, var(--divider-color) 70%, transparent);
+    border-radius: calc(var(--aboc-radius) - 4px);
+    background: var(--aboc-row-bg);
+    color: var(--primary-text-color);
+  }
+
+  .floor-heading.has-active .floor-summary-pill {
+    border-color: color-mix(in srgb, var(--aboc-control-surface) 72%, var(--divider-color));
+    background: var(--aboc-active-surface);
+    color: var(--aboc-dark-text);
+  }
+
   .floor-toggle {
     direction: var(--aboc-direction, ltr);
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) 44px;
     align-items: center;
     gap: 10px;
-    width: 100%;
+    width: auto;
+    min-width: 0;
+    flex: 1 1 auto;
     min-height: 58px;
-    padding: 6px 7px;
-    border: 1px solid color-mix(in srgb, var(--divider-color) 70%, transparent);
-    border-radius: calc(var(--aboc-radius) - 4px);
-    background: var(--aboc-row-bg);
-    color: var(--primary-text-color);
+    padding: 1px 2px;
+    border: 0;
+    border-radius: calc(var(--aboc-radius) - 8px);
+    background: transparent;
+    color: inherit;
     text-align: start;
     cursor: pointer;
   }
@@ -117,6 +143,27 @@ export const overviewCardStyles = css`
 
   .floor-chevron.expanded {
     transform: rotate(180deg);
+  }
+
+  .floor-active-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    min-width: 44px;
+    height: 44px;
+    padding-inline: 7px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--aboc-control-surface);
+    color: var(--aboc-light-text);
+    font-size: 12px;
+    font-weight: 820;
+    cursor: pointer;
+  }
+
+  .floor-active-badge ha-icon {
+    --mdc-icon-size: 19px;
   }
 
   .overview-heading .heading-main {
@@ -417,6 +464,12 @@ export const overviewCardStyles = css`
     color: var(--aboc-light-text);
   }
 
+  .quick-action {
+    width: var(--aboc-quick-action-size);
+    height: var(--aboc-quick-action-size);
+    flex-basis: var(--aboc-quick-action-size);
+  }
+
   .summary-chip {
     gap: 4px;
     font-size: 11px;
@@ -450,9 +503,12 @@ export const overviewCardStyles = css`
     line-height: 1;
   }
 
-  .summary-chip ha-icon,
-  .quick-action ha-icon {
+  .summary-chip ha-icon {
     --mdc-icon-size: 21px;
+  }
+
+  .quick-action ha-icon {
+    --mdc-icon-size: var(--aboc-quick-action-icon-size);
   }
 
   .occupancy-label {
@@ -491,6 +547,13 @@ export const overviewCardStyles = css`
   .quick-action {
     cursor: pointer;
     transition: transform 120ms ease, filter 120ms ease;
+  }
+
+  .quick-action::before {
+    content: "";
+    position: absolute;
+    inset: calc((var(--aboc-quick-action-size) - 44px) / 2);
+    border-radius: inherit;
   }
 
   .quick-action.inactive {
@@ -658,6 +721,91 @@ export const overviewCardStyles = css`
     overscroll-behavior: contain;
   }
 
+  .floor-all-off {
+    direction: var(--aboc-direction, ltr);
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    min-height: 50px;
+    margin: 10px 14px 0;
+    padding-inline: 14px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--aboc-control-surface);
+    color: var(--aboc-light-text);
+    text-align: start;
+    cursor: pointer;
+  }
+
+  .floor-all-off span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 760;
+  }
+
+  .floor-all-off small {
+    min-width: 24px;
+    padding: 3px 7px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.14);
+    text-align: center;
+  }
+
+  .floor-room-list {
+    display: grid;
+    align-content: start;
+    gap: 8px;
+    min-height: 0;
+    padding: 12px 14px 16px;
+    overflow: auto;
+  }
+
+  .floor-room-row {
+    direction: var(--aboc-direction, ltr);
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) 44px;
+    align-items: center;
+    gap: 9px;
+    min-height: 60px;
+    padding: 7px 9px;
+    border: 1px solid color-mix(in srgb, var(--divider-color) 64%, transparent);
+    border-radius: calc(var(--aboc-radius) - 7px);
+    background: var(--aboc-active-surface);
+    color: var(--aboc-dark-text);
+  }
+
+  .floor-room-main {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+    text-align: start;
+  }
+
+  .floor-room-main strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .floor-room-main small {
+    color: color-mix(in srgb, var(--aboc-dark-text) 70%, transparent);
+  }
+
+  .floor-room-off {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: var(--aboc-control-surface);
+    color: var(--aboc-light-text);
+    cursor: pointer;
+  }
+
   .quick-popup-entity {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 44px;
@@ -791,7 +939,7 @@ export const overviewCardStyles = css`
 
   .expanded-content {
     display: grid;
-    gap: 13px;
+    gap: var(--aboc-section-gap);
     padding: 0 9px 10px;
     animation: overview-expand 170ms ease both;
   }
@@ -804,20 +952,36 @@ export const overviewCardStyles = css`
     display: grid;
     gap: 7px;
     min-width: 0;
+    padding: 7px;
+    border: 1px solid transparent;
+    border-radius: calc(var(--aboc-radius) - 5px);
+    background: var(--aboc-section-background, transparent);
+  }
+
+  .device-section.section-framed {
+    border-color: var(--aboc-section-border-color);
   }
 
   .section-heading {
     direction: var(--aboc-direction, ltr);
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
     gap: 7px;
-    min-height: 30px;
+    min-height: max(44px, var(--aboc-section-action-size));
     margin: 0;
-    padding: 0 7px;
+    padding: 3px 5px;
     color: var(--secondary-text-color);
     font-size: 14px;
     font-weight: 680;
     letter-spacing: 0.01em;
+    min-width: 0;
+  }
+
+  .section-heading-main {
+    display: flex;
+    align-items: center;
+    gap: 7px;
     min-width: 0;
   }
 
@@ -851,12 +1015,13 @@ export const overviewCardStyles = css`
   }
 
   .section-on-button,
-  .section-off-button {
+  .section-off-button,
+  .section-toggle-button {
     display: grid;
     place-items: center;
-    width: 44px;
-    height: 44px;
-    flex: 0 0 44px;
+    width: var(--aboc-section-action-size);
+    height: var(--aboc-section-action-size);
+    flex: 0 0 var(--aboc-section-action-size);
     padding: 0;
     border: 0;
     border-radius: 999px;
@@ -869,9 +1034,14 @@ export const overviewCardStyles = css`
     background: color-mix(in srgb, var(--success-color, #4caf50) 24%, var(--aboc-control-surface));
   }
 
+  .section-toggle-button.turn-on {
+    background: color-mix(in srgb, var(--success-color, #4caf50) 24%, var(--aboc-control-surface));
+  }
+
   .section-on-button ha-icon,
-  .section-off-button ha-icon {
-    --mdc-icon-size: 21px;
+  .section-off-button ha-icon,
+  .section-toggle-button ha-icon {
+    --mdc-icon-size: var(--aboc-section-action-icon-size);
   }
 
   .section-entities {
@@ -884,6 +1054,33 @@ export const overviewCardStyles = css`
   .section-lights_switches .section-entities,
   .section-floor_heating .section-entities {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .entity-subgroup {
+    display: grid;
+    gap: 7px;
+    min-width: 0;
+    padding: 7px;
+    border: 1px dashed color-mix(in srgb, var(--aboc-accent) 28%, var(--divider-color));
+    border-radius: calc(var(--aboc-radius) - 8px);
+    background: color-mix(in srgb, var(--aboc-row-bg) 54%, transparent);
+  }
+
+  .entity-subgroup-heading {
+    direction: var(--aboc-direction, ltr);
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 7px;
+    min-height: 28px;
+    color: var(--secondary-text-color);
+    font-size: 12px;
+    font-weight: 720;
+  }
+
+  .entity-subgroup-heading ha-icon {
+    color: var(--aboc-accent);
+    --mdc-icon-size: 17px;
   }
 
   .full-span,
@@ -1295,6 +1492,10 @@ export const overviewCardStyles = css`
   .quick-popup-entity-toggle:hover:not([disabled]),
   .section-on-button:hover:not([disabled]),
   .section-off-button:hover:not([disabled]),
+  .section-toggle-button:hover:not([disabled]),
+  .floor-active-badge:hover:not([disabled]),
+  .floor-all-off:hover:not([disabled]),
+  .floor-room-off:hover:not([disabled]),
   .control-button:hover:not([disabled]),
   .cover-control:hover:not([disabled]),
   .temperature-stepper button:hover:not([disabled]),
@@ -1312,6 +1513,10 @@ export const overviewCardStyles = css`
   .quick-popup-entity-toggle:active:not([disabled]),
   .section-on-button:active:not([disabled]),
   .section-off-button:active:not([disabled]),
+  .section-toggle-button:active:not([disabled]),
+  .floor-active-badge:active:not([disabled]),
+  .floor-all-off:active:not([disabled]),
+  .floor-room-off:active:not([disabled]),
   .control-button:active:not([disabled]),
   .cover-control:active:not([disabled]),
   .temperature-stepper button:active:not([disabled]),
@@ -1418,20 +1623,17 @@ export const overviewCardStyles = css`
     }
 
     .quick-action {
-      width: 34px;
-      height: 34px;
-      flex-basis: 34px;
+      width: var(--aboc-quick-action-size);
+      height: var(--aboc-quick-action-size);
+      flex-basis: var(--aboc-quick-action-size);
     }
 
     .quick-action::before {
-      content: "";
-      position: absolute;
-      inset: -5px;
-      border-radius: inherit;
+      inset: calc((var(--aboc-quick-action-size) - 44px) / 2);
     }
 
     .quick-action ha-icon {
-      --mdc-icon-size: 19px;
+      --mdc-icon-size: var(--aboc-quick-action-icon-size);
     }
 
     .quick-action .count-badge {
@@ -1654,6 +1856,14 @@ export const overviewCardStyles = css`
     .quick-popup-list {
       padding: 10px 10px max(14px, env(safe-area-inset-bottom));
     }
+
+    .floor-room-list {
+      padding: 10px 10px max(14px, env(safe-area-inset-bottom));
+    }
+
+    .floor-all-off {
+      margin-inline: 10px;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -1666,6 +1876,7 @@ export const overviewCardStyles = css`
     .floor-chevron,
     .section-off-button,
     .section-on-button,
+    .section-toggle-button,
     .quick-action,
     .quick-popup-close,
     .quick-popup-group-button,

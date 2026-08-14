@@ -16,7 +16,10 @@ Both cards are delivered by the same JavaScript resource. Install it once, then 
 - Temperature priority: configured source, HA Area source, median temperature sensors, then climate devices
 - Numeric occupancy from a count entity, with active presence-sensor count as a fallback
 - Active-only quick-action popups on collapsed Areas with live status, individual controls, and safe all-on/all-off actions
-- Safe on/off controls on every expanded section heading; cover sections use open/close
+- Configurable one-button or paired controls on every expanded section heading; cover sections use open/close
+- Per-category spacing, backgrounds, subtle frames, action icons, and responsive control sizing
+- Named device sub-groups inside a room category without changing Home Assistant Area assignments
+- Active Floor summaries with a room-control popup for one-room or whole-Floor shutdown
 - Tap controls directly and long-press an entity for Home Assistant More Info
 - Dedicated climate, cover, light/switch, and media controls inside each expanded Area
 - Floor-heating discovery using Labels, explicit entity lists, or per-entity section overrides
@@ -246,6 +249,13 @@ quick_action_icons:
   floor_heating: mdi:heating-coil
   covers: mdi:window-shutter
   media: mdi:music
+
+section_action_mode: dual
+section_action_icons:
+  on: mdi:toggle-switch
+  off: mdi:toggle-switch-off-outline
+  open: mdi:arrow-up-bold-circle-outline
+  close: mdi:arrow-down-bold-circle-outline
 ```
 
 `quick_action_icons` is optional and may contain only the actions you want to customize. Empty or invalid values fall back to the card's built-in icon. The visual editor provides an icon picker and reset action for every enabled quick action.
@@ -259,11 +269,45 @@ Safety behavior:
 - Buttons are disabled while an action is in flight, and partial failures produce a Home Assistant notification.
 - Group and individual operations share pending locks, preventing conflicting service calls to the same category.
 
-### Section-wide on and off actions
+### Section-wide actions, appearance, and sub-groups
 
-Every expanded section heading has two group controls, so a complete category can be started or stopped without operating each tile. Climate, floor heating, lights/switches, and media use their safe on/off services; covers use open/close. Each direction is disabled when no device needs that state and both controls are locked while a request is running.
+Every expanded section heading can use either two directional controls or one smart state button, so a complete category can be started or stopped without operating each tile. Climate, floor heating, lights/switches, and media use their safe on/off services; covers use open/close. Each direction is disabled when no device needs that state and controls are locked while a request is running.
+
+```yaml
+section_action_mode: dual # dual or toggle
+section_action_icons:
+  on: mdi:toggle-switch
+  off: mdi:toggle-switch-off-outline
+  open: mdi:arrow-up-bold-circle-outline
+  close: mdi:arrow-down-bold-circle-outline
+
+section_styles:
+  climate:
+    show_border: true
+    background: rgba(33, 150, 243, 0.08)
+    border_color: var(--state-climate-cool-color)
+
+area_overrides:
+  kids_room:
+    section_styles:
+      lights_switches:
+        show_border: true
+        background: rgba(255, 193, 7, 0.08)
+
+entity_overrides:
+  light.kids_shower:
+    group: Shower
+  switch.kids_shower_fan:
+    group: Shower
+```
+
+`section_styles` supplies the global category appearance. A matching `area_overrides.<area>.section_styles` value overrides only that room. Entities with the same non-empty `group` value are rendered together under a compact sub-heading while retaining their real Home Assistant Area, state, and safe controls.
 
 Section actions follow the same safety boundary as header quick actions: hidden or Area-excluded entities never participate, and unavailable, protected, or unsupported entities are skipped. Service calls are grouped by Domain and target only the remaining discovered Entity IDs; one unsupported device does not prevent other valid devices in the section from being controlled.
+
+### Floor active-room control
+
+When a Floor contains active rooms, its header uses the same active surface as a room and shows an active-room count badge. Tapping that badge opens a popup containing only active rooms, with a safe action for each room and a separate **Turn off all rooms** action. Open covers never color a room or Floor active and are excluded from these power actions; they remain visible and controllable in the cover quick action and cover section.
 
 ### Excluding an entity from one Area
 
@@ -324,6 +368,13 @@ quick_action_icons:
   switches: mdi:lightbulb
   climate: mdi:air-conditioner
 
+section_action_mode: dual
+section_action_icons:
+  on: mdi:toggle-switch
+  off: mdi:toggle-switch-off-outline
+  open: mdi:arrow-up-bold-circle-outline
+  close: mdi:arrow-down-bold-circle-outline
+
 section_order:
   - climate
   - floor_heating
@@ -337,6 +388,12 @@ section_titles:
   covers: תריסים
   lights_switches: מפסקים ותאורה
   media: מוזיקה
+
+section_styles:
+  climate:
+    show_border: true
+    background: rgba(33, 150, 243, 0.08)
+    border_color: var(--state-climate-cool-color)
 
 area_order:
   - kids_room
@@ -366,6 +423,10 @@ area_overrides:
       - switch.kids_room_always_on
     section_titles:
       lights_switches: תאורה ומפסקים
+    section_styles:
+      lights_switches:
+        show_border: true
+        background: rgba(255, 193, 7, 0.08)
     entity_order:
       climate:
         - climate.kids_ac
@@ -388,12 +449,21 @@ entity_overrides:
     protected: true
   light.decorative:
     hidden: true
+  light.kids_shower:
+    group: Shower
+  switch.kids_shower_fan:
+    group: Shower
 
 style:
   border_radius: 26
   blur: 18
   row_height: 56
   section_gap: 12
+  category_gap: 14
+  quick_action_size: 38
+  quick_action_icon_size: 20
+  section_action_size: 44
+  section_action_icon_size: 22
   accent_color: var(--primary-color)
   row_background: color-mix(in srgb, var(--secondary-background-color) 78%, transparent)
   active_color: var(--state-active-color, #ffd54f)
@@ -425,6 +495,9 @@ style:
 | `remember_expanded_state` | `true` | Stores Floor and Area expansion independently per stable card ID. |
 | `section_order` | standard five sections | Priority order; missing built-in sections are appended safely. |
 | `section_titles` | localized | Global section headings. |
+| `section_styles` | `{}` | Global background, optional subtle frame, and frame color per category. |
+| `section_action_mode` | `dual` | `dual` shows separate directional buttons; `toggle` shows one smart state button. |
+| `section_action_icons` | built-in semantic icons | Optional icons for `on`, `off`, `open`, and `close`. |
 | `quick_actions` | all six | Enabled actions in display order. |
 | `quick_action_icons` | built-in action icons | Optional icon map for `lights`, `switches`, `climate`, `floor_heating`, `covers`, and `media`. |
 | `area_order` | Area name | Priority list; newly discovered Areas append automatically. |
@@ -440,12 +513,17 @@ style:
 | `area_overrides.<area>.occupancy_count_entity` | none | Authoritative numeric people-count entity; zero is vacant. |
 | `area_overrides.<area>.occupancy_entities` | automatic | Presence sensors to count when no numeric count entity is selected. |
 | `area_overrides.<area>.exclude_entities` | `[]` | Removes entities from display and every Area state/summary calculation. |
+| `area_overrides.<area>.section_styles` | inherit global | Per-room category background, frame visibility, and frame color overrides. |
 | `entity_overrides` | `{}` | Entity name, icon, section, visibility, and group-action protection. |
 | `entity_overrides.<entity>.icon` | registry/fallback icon | Overrides one device icon. |
+| `entity_overrides.<entity>.group` | none | Places devices with the same group name under a sub-heading inside their category. |
 | `style.row_background` | theme-aware neutral | Shared Floor-header, powered-off Area, and inactive-entity background. |
 | `style.card_transparent` | `true` | Removes the card surface and border so the dashboard background is visible. |
 | `style.card_background` | HA card background | Card color/CSS value used when transparent mode is disabled. |
 | `style.area_name_size` | `17` | Area-name font size in pixels, clamped to 11–24; also editable in Appearance. |
+| `style.category_gap` | `12` | Vertical space in pixels between expanded categories, clamped to 0–40. |
+| `style.quick_action_size` / `quick_action_icon_size` | `38` / `20` | Collapsed-room quick-action circle and glyph sizes. |
+| `style.section_action_size` / `section_action_icon_size` | `44` / `22` | Expanded category action circle and glyph sizes. |
 | `style.active_color` | HA active color | Active badge and indicator color. |
 | `style.active_surface` | pale cyan | Active light/switch tile background. |
 | `style.climate_surface` | soft blue | Active climate-controller background. |
@@ -504,16 +582,16 @@ The Overview editor provides:
 - Area/Floor target selection
 - Collapsible Floor defaults plus independently remembered Floor/Area expansion
 - Summary, temperature, numeric occupancy, sensor fallback, active quick-action, and Area-chevron settings
-- Section title and order editing
+- Section title/order editing, one-button or paired actions, action icon pickers, spacing, and global category appearance
 - Floor Area order, cycle-safe parent/child nesting, and per-Area overrides
 - Floor/Area/entity icon pickers with registry fallbacks
 - Quick-action icon pickers with built-in fallbacks and one-click reset
 - Preferred temperature, occupancy-count, and occupancy sensor selection
 - Complete per-Area entity hiding/restoration that also excludes hidden devices from state, color, summaries, and group actions
-- Entity section assignment, names, icons, protection, and priority order
+- Entity section/sub-group assignment, names, icons, protection, and priority order
 - Convenient on/off and HVAC temperature-state color pickers with CSS-value inputs, reset actions, and live previews
 - Adjustable Area-name size, native Home Assistant HVAC/fan menus, and automatic brightness sliders for dimmable lights
-- Safe popup and section-heading on/off/open/close controls that honor exclusion, availability, capability, and protection rules
+- Safe Area/category/Floor popups and on/off/open/close controls that honor exclusion, availability, capability, and protection rules
 - Hebrew/English, RTL, responsive appearance, long-press More Info, and advanced safety lists
 
 The What's-on-now editor provides a Home Assistant-style vertical navigation layout with live Area/Entity/Label pickers, accessible reordering, and local JSON drafts. Invalid JSON is never emitted to Home Assistant; it remains an editor draft with an inline error until corrected or reset.

@@ -1,6 +1,7 @@
 import type {
   AreaBubbleOverviewCardConfig,
   OverviewQuickActionId,
+  OverviewSectionActionIcons,
   OverviewSectionId,
   OverviewStyleConfig,
 } from "./types";
@@ -51,6 +52,13 @@ export const QUICK_ACTION_ICONS: Record<OverviewQuickActionId, string> = {
   media: "mdi:music",
 };
 
+export const SECTION_ACTION_ICONS: Required<OverviewSectionActionIcons> = {
+  on: "mdi:toggle-switch",
+  off: "mdi:toggle-switch-off-outline",
+  open: "mdi:arrow-up-bold-circle-outline",
+  close: "mdi:arrow-down-bold-circle-outline",
+};
+
 export const OVERVIEW_DEFAULT_STYLE: Required<OverviewStyleConfig> = {
   border_radius: 26,
   blur: 18,
@@ -74,6 +82,11 @@ export const OVERVIEW_DEFAULT_STYLE: Required<OverviewStyleConfig> = {
   temperature_cool_surface: "rgba(34, 113, 196, 0.96)",
   temperature_heat_surface: "rgba(198, 83, 47, 0.96)",
   temperature_active_surface: "rgba(91, 86, 168, 0.96)",
+  quick_action_size: 38,
+  quick_action_icon_size: 20,
+  section_action_size: 44,
+  section_action_icon_size: 22,
+  category_gap: 12,
 };
 
 export const OVERVIEW_DEFAULT_CONFIG: AreaBubbleOverviewCardConfig = {
@@ -92,6 +105,9 @@ export const OVERVIEW_DEFAULT_CONFIG: AreaBubbleOverviewCardConfig = {
   floor_default_expanded: true,
   remember_expanded_state: true,
   section_order: OVERVIEW_SECTIONS,
+  section_styles: {},
+  section_action_mode: "dual",
+  section_action_icons: SECTION_ACTION_ICONS,
   quick_actions: OVERVIEW_QUICK_ACTIONS,
   quick_action_icons: {},
   area_order: [],

@@ -1,9 +1,11 @@
-import { OVERVIEW_CARD_TYPE, OVERVIEW_DEFAULT_CONFIG, OVERVIEW_DEFAULT_STYLE, OVERVIEW_SECTIONS, QUICK_ACTION_ICONS } from "./constants";
+import { OVERVIEW_CARD_TYPE, OVERVIEW_DEFAULT_CONFIG, OVERVIEW_DEFAULT_STYLE, OVERVIEW_SECTIONS, QUICK_ACTION_ICONS, SECTION_ACTION_ICONS } from "./constants";
 import type {
   AreaBubbleOverviewCardConfig,
   OverviewAreaOverride,
   OverviewEntityOverride,
+  OverviewSectionActionIcons,
   OverviewSectionId,
+  OverviewSectionStyle,
   ResolvedOverviewConfig,
 } from "./types";
 import type { OverviewQuickActionId } from "./types";
@@ -35,6 +37,33 @@ const sectionTitles = (value: unknown): Partial<Record<OverviewSectionId, string
     if (typeof value[section] === "string") result[section] = value[section];
   }
   return result;
+};
+
+const sectionStyles = (value: unknown): Partial<Record<OverviewSectionId, OverviewSectionStyle>> => {
+  if (!isRecord(value)) return {};
+  const result: Partial<Record<OverviewSectionId, OverviewSectionStyle>> = {};
+  for (const section of OVERVIEW_SECTIONS) {
+    const raw = value[section];
+    if (!isRecord(raw)) continue;
+    const background = typeof raw.background === "string" ? raw.background.trim() : "";
+    const borderColor = typeof raw.border_color === "string" ? raw.border_color.trim() : "";
+    result[section] = {
+      ...(background ? { background } : {}),
+      ...(borderColor ? { border_color: borderColor } : {}),
+      ...(typeof raw.show_border === "boolean" ? { show_border: raw.show_border } : {}),
+    };
+  }
+  return result;
+};
+
+const sectionActionIcons = (value: unknown): Required<OverviewSectionActionIcons> => {
+  const raw = isRecord(value) ? value : {};
+  return Object.fromEntries(
+    (Object.keys(SECTION_ACTION_ICONS) as Array<keyof OverviewSectionActionIcons>).map((key) => {
+      const custom = typeof raw[key] === "string" ? raw[key].trim() : "";
+      return [key, custom || SECTION_ACTION_ICONS[key]];
+    }),
+  ) as Required<OverviewSectionActionIcons>;
 };
 
 const quickActionArray = (value: unknown): OverviewQuickActionId[] => {
@@ -73,6 +102,7 @@ const areaOverrides = (value: unknown): Record<string, OverviewAreaOverride> => 
       occupancy_entities: stringArray(raw.occupancy_entities),
       ...(Array.isArray(raw.section_order) ? { section_order: sectionArray(raw.section_order) } : {}),
       section_titles: sectionTitles(raw.section_titles),
+      section_styles: sectionStyles(raw.section_styles),
       entity_order: sectionLists(raw.entity_order),
       include_entities: sectionLists(raw.include_entities),
       exclude_entities: stringArray(raw.exclude_entities),
@@ -91,6 +121,7 @@ const entityOverrides = (value: unknown): Record<string, OverviewEntityOverride>
       ...(typeof raw.name === "string" && raw.name.trim() ? { name: raw.name.trim() } : {}),
       ...(typeof raw.icon === "string" && raw.icon.trim() ? { icon: raw.icon.trim() } : {}),
       ...(typeof raw.section === "string" && allowed.has(raw.section) ? { section: raw.section as OverviewSectionId } : {}),
+      ...(typeof raw.group === "string" && raw.group.trim() ? { group: raw.group.trim() } : {}),
       ...(typeof raw.hidden === "boolean" ? { hidden: raw.hidden } : {}),
       ...(typeof raw.protected === "boolean" ? { protected: raw.protected } : {}),
     };
@@ -112,6 +143,12 @@ export const resolveOverviewConfig = (config: AreaBubbleOverviewCardConfig): Res
   const cardTransparent = typeof customStyle.card_transparent === "boolean"
     ? customStyle.card_transparent
     : OVERVIEW_DEFAULT_STYLE.card_transparent;
+  const numberStyle = (key: "quick_action_size" | "quick_action_icon_size" | "section_action_size" | "section_action_icon_size" | "category_gap", min: number, max: number): number => {
+    const value = customStyle[key];
+    return typeof value === "number" && Number.isFinite(value)
+      ? Math.min(max, Math.max(min, value))
+      : OVERVIEW_DEFAULT_STYLE[key];
+  };
   return {
     ...merged,
     type: OVERVIEW_CARD_TYPE,
@@ -128,6 +165,11 @@ export const resolveOverviewConfig = (config: AreaBubbleOverviewCardConfig): Res
     section_titles: Object.fromEntries(
       OVERVIEW_SECTIONS.map((section) => [section, typeof customTitles[section] === "string" ? customTitles[section] : ""]),
     ) as Record<OverviewSectionId, string>,
+    section_styles: Object.fromEntries(
+      OVERVIEW_SECTIONS.map((section) => [section, sectionStyles(config.section_styles)[section] ?? {}]),
+    ) as Record<OverviewSectionId, OverviewSectionStyle>,
+    section_action_mode: config.section_action_mode === "toggle" ? "toggle" : "dual",
+    section_action_icons: sectionActionIcons(config.section_action_icons),
     quick_actions: quickActionArray(config.quick_actions ?? merged.quick_actions),
     quick_action_icons: quickActionIcons(config.quick_action_icons),
     area_order: stringArray(config.area_order),
@@ -146,6 +188,11 @@ export const resolveOverviewConfig = (config: AreaBubbleOverviewCardConfig): Res
       area_name_size: areaNameSize,
       card_background: cardBackground,
       card_transparent: cardTransparent,
+      quick_action_size: numberStyle("quick_action_size", 28, 52),
+      quick_action_icon_size: numberStyle("quick_action_icon_size", 14, 34),
+      section_action_size: numberStyle("section_action_size", 36, 56),
+      section_action_icon_size: numberStyle("section_action_icon_size", 16, 36),
+      category_gap: numberStyle("category_gap", 0, 40),
     },
   } as ResolvedOverviewConfig;
 };

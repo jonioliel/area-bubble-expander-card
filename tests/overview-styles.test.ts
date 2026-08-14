@@ -32,10 +32,10 @@ const containerCssAt = (maxWidth: number): string => {
   return "";
 };
 
-const expectCircularActionTarget = (selector: string): void => {
+const expectCircularActionTarget = (selector: string, sizePattern = "44px"): void => {
   expect(declarationBodiesFor(selector)).toEqual(
     expect.arrayContaining([
-      expect.stringMatching(/width:\s*44px;[\s\S]*height:\s*44px;/),
+      expect.stringMatching(new RegExp(`width:\\s*${sizePattern};[\\s\\S]*height:\\s*${sizePattern};`)),
     ]),
   );
 };
@@ -45,7 +45,8 @@ describe("overview header presentation contracts", () => {
     expect(regularWidthCss).toMatch(
       /--aboc-row-bg:\s*var\(\s*--area-bubble-overview-row-bg,\s*color-mix\(in srgb,\s*var\(--secondary-background-color\)\s+\d+%,\s*transparent\)\s*\);/s,
     );
-    expect(regularWidthCss).toMatch(/\.floor-toggle\s*\{[^}]*background:\s*var\(--aboc-row-bg\)/s);
+    expect(regularWidthCss).toMatch(/\.floor-summary-pill\s*\{[^}]*background:\s*var\(--aboc-row-bg\)/s);
+    expect(regularWidthCss).toMatch(/\.floor-toggle\s*\{[^}]*background:\s*transparent/s);
     expect(cssText).toMatch(/\.area-summary-pill\s*\{[^}]*background:\s*var\(--aboc-row-bg\)/s);
     expect(cssText).toMatch(
       /\.entity-card:not\(\.active\)\s*\{[^}]*background:\s*var\(--aboc-row-bg\)/s,
@@ -66,15 +67,16 @@ describe("overview header presentation contracts", () => {
     expect(cssText).not.toMatch(/\.quick-actions\s*\{[^}]*flex-wrap:\s*wrap/s);
   });
 
-  it("uses smaller mobile quick-action visuals while preserving a 44px hit target", () => {
+  it("uses configurable quick-action visuals while preserving a 44px hit target", () => {
     const mobileCss = containerCssAt(430);
+    expect(regularWidthCss).toMatch(/--aboc-quick-action-size:\s*var\(--area-bubble-overview-quick-action-size,\s*38px\)/);
     expect(declarationBodiesFor(".quick-action", mobileCss)).toEqual(
       expect.arrayContaining([
-        expect.stringMatching(/width:\s*34px;[\s\S]*height:\s*34px;[\s\S]*flex-basis:\s*34px;/),
+        expect.stringMatching(/width:\s*var\(--aboc-quick-action-size\);[\s\S]*height:\s*var\(--aboc-quick-action-size\);[\s\S]*flex-basis:\s*var\(--aboc-quick-action-size\);/),
       ]),
     );
     expect(declarationBodiesFor(".quick-action::before").join("\n")).toMatch(
-      /content:\s*["']{2};[\s\S]*position:\s*absolute;[\s\S]*inset:\s*-5px;/,
+      /content:\s*["']{2};[\s\S]*position:\s*absolute;[\s\S]*inset:\s*calc\(\(var\(--aboc-quick-action-size\) - 44px\) \/ 2\)/,
     );
     expect(declarationBodiesFor(".quick-actions", regularWidthCss).join("\n")).toMatch(
       /padding-inline:\s*3px;[\s\S]*scroll-padding-inline:\s*3px;/,
@@ -85,8 +87,9 @@ describe("overview header presentation contracts", () => {
     expectCircularActionTarget(".control-button");
     expectCircularActionTarget(".light-power");
     expectCircularActionTarget(".expand-button");
-    expectCircularActionTarget(".section-off-button");
-    expectCircularActionTarget(".section-on-button");
+    expect(regularWidthCss).toMatch(/--aboc-section-action-size:\s*var\(--area-bubble-overview-section-action-size,\s*44px\)/);
+    expectCircularActionTarget(".section-off-button", "var\\(--aboc-section-action-size\\)");
+    expectCircularActionTarget(".section-on-button", "var\\(--aboc-section-action-size\\)");
     expectCircularActionTarget(".quick-popup-close");
     expectCircularActionTarget(".quick-popup-entity-toggle");
     expectCircularActionTarget(".cover-control");
@@ -149,7 +152,8 @@ describe("overview header presentation contracts", () => {
   });
 
   it("styles the floor header as an accessible full-width disclosure target", () => {
-    expect(cssText).toMatch(/\.floor-toggle\s*\{[^}]*width:\s*100%/s);
+    expect(cssText).toMatch(/\.floor-summary-pill\s*\{[^}]*width:\s*100%/s);
+    expect(cssText).toMatch(/\.floor-toggle\s*\{[^}]*min-width:\s*0;[^}]*flex:\s*1 1 auto/s);
     expect(cssText).toMatch(/\.floor-toggle\s*\{[^}]*min-height:\s*(?:4[4-9]|[5-9]\d)px/s);
     expect(cssText).toMatch(/\.floor-chevron[^}]*transition:\s*transform/s);
     expect(cssText).toMatch(/\.floor-chevron\.expanded\s*\{[^}]*transform:\s*rotate\(180deg\)/s);

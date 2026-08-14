@@ -130,6 +130,31 @@ export const runQuickAction = (
   action: OverviewQuickActionId,
 ): Promise<void> => runQuickActionAction(hass, area, action, false);
 
+const planAreaAction = (area: OverviewArea, turnOn: boolean): PlannedEntityService[] => {
+  const planned: PlannedEntityService[] = [];
+  for (const entity of area.allEntities) {
+    // A cover is informational at room/floor level. Open covers are controlled
+    // from their category but never make a room active or join room-wide power.
+    if (entity.domain === "cover" || !entity.available || entity.protected || entity.powered === turnOn) continue;
+    const service = entityPowerService(entity, turnOn);
+    if (service) planned.push({ entity, service: { domain: entity.domain, ...service } });
+  }
+  return planned;
+};
+
+/** Safe entities controlled by a room-wide action; covers are intentionally excluded. */
+export const areaActionEntities = (area: OverviewArea, turnOn = false): OverviewEntity[] =>
+  planAreaAction(area, turnOn).map(({ entity }) => entity);
+
+/** Turns a room on/off without changing covers or protected/unavailable devices. */
+export const runAreaAction = async (
+  hass: HomeAssistant,
+  area: OverviewArea,
+  turnOn: boolean,
+): Promise<void> => {
+  await runGroupedServices(hass, groupServices(planAreaAction(area, turnOn)), "room actions");
+};
+
 const sectionService = (
   section: OverviewSection,
   item: OverviewEntity,

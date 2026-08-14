@@ -2,6 +2,17 @@
 
 All notable changes to Area Bubble Expander Card will be documented in this file.
 
+## 0.8.0 - 2026-08-15
+
+- Added independent category spacing plus global and per-Area category backgrounds, optional subtle frames, and frame colors through YAML and the visual editor.
+- Added configurable category-header controls: either one smart state button or separate on/off buttons, with independent icon pickers for on, off, open, and close.
+- Added adjustable circle and glyph sizes for collapsed-room quick actions and expanded-category actions while preserving accessible touch targets.
+- Added named entity sub-groups inside every room category, allowing lights and switches such as bathroom devices to be presented together without changing their Home Assistant Area.
+- Upgraded Floor headers with active-state coloring and an active-room badge that opens a safe popup for turning off one active room or every active room.
+- Excluded open covers from room and Floor activity colors, active-room counts, and room-wide power actions; cover counts and directional controls remain available in the cover category.
+- Reworked narrow category headings so their title/count column cannot overlap one-button or two-button group controls.
+- Expanded the regression suite to 138 tests before release QA.
+
 ## 0.7.0 - 2026-08-15
 
 - Made the Overview card surface transparent by default and added `style.card_transparent` plus `style.card_background` to YAML and the visual Appearance editor.

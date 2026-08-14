@@ -3,11 +3,13 @@ import { customElement, property, state } from "lit/decorators.js";
 import type { HomeAssistant } from "../types";
 import {
   activeQuickActionSummaries,
+  areaActionEntities,
   callEntityService,
   quickActionActionEntities,
   quickActionEntityService,
   quickActionMembers,
   runQuickActionAction,
+  runAreaAction,
   runSectionAction,
   sectionActionEntities,
 } from "./actions";
@@ -66,6 +68,9 @@ export class AreaBubbleOverviewCard extends LitElement {
   @state() private pendingSections = new Set<string>();
   @state() private pendingEntities = new Set<string>();
   @state() private quickPopup?: QuickPopupState;
+  @state() private floorPopupOpen = false;
+  @state() private pendingFloor = false;
+  @state() private pendingFloorRooms = new Set<string>();
   @state() private error?: string;
   private storageId = "overview";
   private holdTimer?: number;
@@ -78,6 +83,7 @@ export class AreaBubbleOverviewCard extends LitElement {
   private quickPopupTrigger?: HTMLElement;
   private quickPopupMoreInfo?: OverviewEntity;
   private restoreQuickPopupFocus = true;
+  private floorPopupTrigger?: HTMLElement;
 
   public static getConfigElement(): HTMLElement {
     return document.createElement(OVERVIEW_EDITOR_TAG);
@@ -89,6 +95,7 @@ export class AreaBubbleOverviewCard extends LitElement {
 
   public setConfig(config: AreaBubbleOverviewCardConfig): void {
     this.resetQuickPopup();
+    this.resetFloorPopup();
     try {
       validateOverviewConfig(config);
       this.config = resolveOverviewConfig(config);
@@ -125,6 +132,7 @@ export class AreaBubbleOverviewCard extends LitElement {
     super.disconnectedCallback();
     this.cancelHold();
     this.resetQuickPopup();
+    this.resetFloorPopup();
   }
 
   protected override render() {
@@ -158,6 +166,7 @@ export class AreaBubbleOverviewCard extends LitElement {
         </div>
       </ha-card>
       ${this.renderQuickActionPopup(discovery)}
+      ${this.renderFloorPopup(discovery)}
     `;
   }
 
@@ -166,21 +175,33 @@ export class AreaBubbleOverviewCard extends LitElement {
     const show = discovery.targetKind === "floor" ? this.config.show_floor_header : Boolean(this.config.title);
     if (!show || !discovery.targetName) return nothing;
     if (discovery.targetKind === "floor") {
-      const activeAreas = discovery.areas.filter((area) => area.allEntities.some(countsTowardAreaActivity)).length;
+      const activeAreas = discovery.areas.filter((area) => area.allEntities.some(countsTowardAreaActivity));
       const occupiedAreas = discovery.areas.filter((area) => area.occupancy === "occupied").length;
       const summary = [
         `${discovery.areas.length} ${this.localText("אזורים", "areas")}`,
-        activeAreas ? `${activeAreas} ${this.localText("פעילים", "active")}` : "",
+        activeAreas.length ? `${activeAreas.length} ${this.localText("פעילים", "active")}` : "",
         this.config.show_occupancy && occupiedAreas ? `${occupiedAreas} ${this.localText("מאוכלסים", "occupied")}` : "",
       ].filter(Boolean).join(" · ");
       const label = `${this.floorExpanded ? this.localText("כיווץ קומה", "Collapse floor") : this.localText("פתיחת קומה", "Expand floor")}: ${discovery.targetName}`;
       return html`
-        <div class="overview-heading floor-heading">
-          <button class="floor-toggle" type="button" aria-expanded=${this.floorExpanded} aria-controls=${contentId} aria-label=${label} @click=${() => this.toggleFloor()}>
-            <span class="icon-bubble small"><ha-icon icon=${discovery.targetIcon}></ha-icon></span>
-            <span class="heading-main"><span class="floor-title">${discovery.targetName}</span><span class="subtitle">${summary}</span></span>
-            <span class="floor-chevron ${this.floorExpanded ? "expanded" : ""}" aria-hidden="true"><ha-icon icon="mdi:chevron-down"></ha-icon></span>
-          </button>
+        <div class="overview-heading floor-heading ${activeAreas.length ? "has-active" : "all-off"}" data-powered=${activeAreas.length ? "true" : "false"}>
+          <div class="floor-summary-pill">
+            <button class="floor-toggle" type="button" aria-expanded=${this.floorExpanded} aria-controls=${contentId} aria-label=${label} @click=${() => this.toggleFloor()}>
+              <span class="icon-bubble small"><ha-icon icon=${discovery.targetIcon}></ha-icon></span>
+              <span class="heading-main"><span class="floor-title">${discovery.targetName}</span><span class="subtitle">${summary}</span></span>
+              <span class="floor-chevron ${this.floorExpanded ? "expanded" : ""}" aria-hidden="true"><ha-icon icon="mdi:chevron-down"></ha-icon></span>
+            </button>
+            ${activeAreas.length
+              ? html`<button
+                  class="floor-active-badge"
+                  type="button"
+                  aria-haspopup="dialog"
+                  aria-expanded=${this.floorPopupOpen}
+                  aria-label=${`${this.localText("פתיחת חדרים פעילים", "Open active rooms")}: ${activeAreas.length}`}
+                  @click=${(event: Event) => this.openFloorPopup(event)}
+                ><ha-icon icon="mdi:home-lightning-bolt-outline"></ha-icon><span>${activeAreas.length}</span></button>`
+              : nothing}
+          </div>
         </div>
       `;
     }
@@ -295,7 +316,7 @@ export class AreaBubbleOverviewCard extends LitElement {
             : nothing}
         </header>
         <div class="area-disclosure" id=${contentId} ?hidden=${!expanded}>
-          <div class="expanded-content">${area.sections.map((section) => this.renderSection(section, area.id))}</div>
+          <div class="expanded-content">${area.sections.map((section) => this.renderSection(section, area))}</div>
           ${expanded ? nestedContent : nothing}
         </div>
         ${expanded ? nothing : nestedContent}
@@ -357,7 +378,8 @@ export class AreaBubbleOverviewCard extends LitElement {
     `;
   }
 
-  private renderSection(section: OverviewSection, areaId: string) {
+  private renderSection(section: OverviewSection, area: OverviewArea) {
+    const areaId = area.id;
     const headingId = `overview-section-${section.id}-${areaId.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
     const onTargets = sectionActionEntities(section, true);
     const offTargets = sectionActionEntities(section, false);
@@ -368,40 +390,85 @@ export class AreaBubbleOverviewCard extends LitElement {
     const offVerb = section.id === "covers" ? this.localText("סגירת כל התריסים", "Close all covers") : this.localText("כיבוי הכל", "Turn everything off");
     const onLabel = `${onVerb}: ${section.title} (${onTargets.length})`;
     const offLabel = `${offVerb}: ${section.title} (${offTargets.length})`;
+    const areaOverride = this.config?.area_overrides[area.id] ?? this.config?.area_overrides[area.name];
+    const sectionStyle = { ...(this.config?.section_styles[section.id] ?? {}), ...(areaOverride?.section_styles?.[section.id] ?? {}) };
+    const sectionStyleText = [
+      `--aboc-section-background:${sectionStyle.background || "transparent"}`,
+      `--aboc-section-border-color:${sectionStyle.border_color || "color-mix(in srgb, var(--divider-color) 58%, transparent)"}`,
+    ].join(";");
+    const toggleTurnOn = offTargets.length === 0;
+    const toggleTargets = toggleTurnOn ? onTargets : offTargets;
+    const togglePending = toggleTurnOn ? pendingOn : pendingOff;
+    const toggleLabel = toggleTurnOn ? onLabel : offLabel;
     return html`
-      <section class="device-section section-${section.id}" aria-labelledby=${headingId}>
+      <section class="device-section section-${section.id} ${sectionStyle.show_border ? "section-framed" : ""}" style=${sectionStyleText} aria-labelledby=${headingId}>
         <h3 class="section-heading" id=${headingId}>
-          <ha-icon icon=${section.icon}></ha-icon>
-          <span class="section-title" title=${section.title}>${section.title}</span>
-          <span class="section-count">${section.activeCount}/${section.entities.length}</span>
+          <span class="section-heading-main"><ha-icon icon=${section.icon}></ha-icon><span class="section-title" title=${section.title}>${section.title}</span><span class="section-count">${section.activeCount}/${section.entities.length}</span></span>
           <span class="section-actions" role="group" aria-label=${`${this.localText("שליטה כללית", "Group controls")}: ${section.title}`}>
-            <button
-              class="section-on-button"
-              type="button"
-              title=${onLabel}
-              aria-label=${onLabel}
-              aria-busy=${pendingOn}
-              ?disabled=${pending || onTargets.length === 0}
-              @click=${(event: Event) => this.handleSectionAction(event, section, areaId, true)}
-            ><ha-icon icon=${pendingOn ? "mdi:loading" : section.id === "covers" ? "mdi:arrow-up" : "mdi:power-on"}></ha-icon></button>
-            <button
-              class="section-off-button"
-              type="button"
-              title=${offLabel}
-              aria-label=${offLabel}
-              aria-busy=${pendingOff}
-              ?disabled=${pending || offTargets.length === 0}
-              @click=${(event: Event) => this.handleSectionAction(event, section, areaId, false)}
-            ><ha-icon icon=${pendingOff ? "mdi:loading" : section.id === "covers" ? "mdi:arrow-down" : "mdi:power-off"}></ha-icon></button>
+            ${this.config?.section_action_mode === "toggle"
+              ? html`<button
+                  class="section-toggle-button ${toggleTurnOn ? "turn-on" : "turn-off"}"
+                  type="button"
+                  title=${toggleLabel}
+                  aria-label=${toggleLabel}
+                  aria-busy=${togglePending}
+                  ?disabled=${pending || toggleTargets.length === 0}
+                  @click=${(event: Event) => this.handleSectionAction(event, section, areaId, toggleTurnOn)}
+                ><ha-icon icon=${togglePending ? "mdi:loading" : this.sectionActionIcon(section.id, toggleTurnOn)}></ha-icon></button>`
+              : html`
+                  <button
+                    class="section-on-button"
+                    type="button"
+                    title=${onLabel}
+                    aria-label=${onLabel}
+                    aria-busy=${pendingOn}
+                    ?disabled=${pending || onTargets.length === 0}
+                    @click=${(event: Event) => this.handleSectionAction(event, section, areaId, true)}
+                  ><ha-icon icon=${pendingOn ? "mdi:loading" : this.sectionActionIcon(section.id, true)}></ha-icon></button>
+                  <button
+                    class="section-off-button"
+                    type="button"
+                    title=${offLabel}
+                    aria-label=${offLabel}
+                    aria-busy=${pendingOff}
+                    ?disabled=${pending || offTargets.length === 0}
+                    @click=${(event: Event) => this.handleSectionAction(event, section, areaId, false)}
+                  ><ha-icon icon=${pendingOff ? "mdi:loading" : this.sectionActionIcon(section.id, false)}></ha-icon></button>
+                `}
           </span>
         </h3>
-        <div class="section-entities">
-          ${section.entities.length
-            ? section.entities.map((item) => this.renderEntity(item, section.id))
-            : html`<div class="secondary section-empty">${this.config && overviewLanguage(this.hass, this.config) === "he" ? "אין רכיבים בסעיף" : "No devices in this section"}</div>`}
-        </div>
+        ${this.renderSectionEntities(section)}
       </section>
     `;
+  }
+
+  private renderSectionEntities(section: OverviewSection) {
+    if (!section.entities.length) {
+      return html`<div class="section-entities"><div class="secondary section-empty">${this.config && overviewLanguage(this.hass, this.config) === "he" ? "אין רכיבים בסעיף" : "No devices in this section"}</div></div>`;
+    }
+    const ungrouped = section.entities.filter((item) => !item.group);
+    const groups = new Map<string, OverviewEntity[]>();
+    for (const item of section.entities) {
+      if (!item.group) continue;
+      const entries = groups.get(item.group) ?? [];
+      entries.push(item);
+      groups.set(item.group, entries);
+    }
+    return html`
+      ${ungrouped.length ? html`<div class="section-entities">${ungrouped.map((item) => this.renderEntity(item, section.id))}</div>` : nothing}
+      ${[...groups.entries()].map(([group, entities]) => html`
+        <section class="entity-subgroup" aria-label=${group}>
+          <div class="entity-subgroup-heading"><ha-icon icon="mdi:folder-home-outline"></ha-icon><span>${group}</span><small>${entities.filter((item) => item.powered).length}/${entities.length}</small></div>
+          <div class="section-entities">${entities.map((item) => this.renderEntity(item, section.id))}</div>
+        </section>
+      `)}
+    `;
+  }
+
+  private sectionActionIcon(section: OverviewSection["id"], turnOn: boolean): string {
+    if (!this.config) return turnOn ? "mdi:play-circle-outline" : "mdi:stop-circle-outline";
+    if (section === "covers") return turnOn ? this.config.section_action_icons.open : this.config.section_action_icons.close;
+    return turnOn ? this.config.section_action_icons.on : this.config.section_action_icons.off;
   }
 
   private renderQuickActionPopup(discovery: OverviewDiscovery) {
@@ -432,7 +499,7 @@ export class AreaBubbleOverviewCard extends LitElement {
     const offVerb = action === "covers" ? this.localText("סגירת הכל", "Close all") : this.localText("כיבוי הכל", "Turn all off");
     return html`
       <dialog
-        class="quick-action-dialog"
+        class="quick-action-dialog area-quick-action-dialog"
         aria-modal="true"
         aria-labelledby=${titleId}
         @cancel=${(event: Event) => this.handleQuickPopupCancel(event)}
@@ -471,6 +538,66 @@ export class AreaBubbleOverviewCard extends LitElement {
           </div>
           <div class="quick-popup-list" role="list" aria-label=${label}>
             ${entities.map((item) => this.renderQuickPopupEntity(item, action, pending))}
+          </div>
+        </section>
+      </dialog>
+    `;
+  }
+
+  private renderFloorPopup(discovery: OverviewDiscovery) {
+    if (!this.config || !this.floorPopupOpen || discovery.targetKind !== "floor") return nothing;
+    const activeAreas = discovery.areas.filter((area) => area.allEntities.some(countsTowardAreaActivity));
+    if (!activeAreas.length) {
+      queueMicrotask(() => this.resetFloorPopup());
+      return nothing;
+    }
+    const allTargets = activeAreas.flatMap((area) => areaActionEntities(area, false));
+    const titleId = "overview-floor-popup-title";
+    return html`
+      <dialog
+        class="quick-action-dialog floor-action-dialog"
+        aria-modal="true"
+        aria-labelledby=${titleId}
+        @cancel=${(event: Event) => { event.preventDefault(); this.closeFloorPopup(); }}
+        @close=${() => this.handleFloorPopupClosed()}
+        @click=${(event: MouseEvent) => { if (event.target === event.currentTarget) this.closeFloorPopup(); }}
+      >
+        <section class="quick-popup floor-popup" aria-busy=${this.pendingFloor || this.pendingFloorRooms.size > 0}>
+          <header class="quick-popup-header">
+            <span class="icon-bubble popup-icon"><ha-icon icon=${discovery.targetIcon}></ha-icon></span>
+            <span class="quick-popup-heading">
+              <span class="quick-popup-title" id=${titleId}>${this.localText("חדרים פעילים", "Active rooms")} · ${discovery.targetName}</span>
+              <span class="quick-popup-summary">${activeAreas.length} ${this.localText("חדרים דלוקים", "rooms on")}</span>
+            </span>
+            <button class="quick-popup-close" type="button" aria-label=${this.localText("סגירת חלון", "Close dialog")} @click=${() => this.closeFloorPopup()}><ha-icon icon="mdi:close"></ha-icon></button>
+          </header>
+          <button
+            class="floor-all-off"
+            type="button"
+            aria-label=${`${this.localText("כיבוי כל החדרים", "Turn off all rooms")} (${allTargets.length})`}
+            aria-busy=${this.pendingFloor}
+            ?disabled=${this.pendingFloor || this.pendingFloorRooms.size > 0 || allTargets.length === 0}
+            @click=${(event: Event) => this.handleFloorAllOff(event, activeAreas)}
+          ><ha-icon icon=${this.pendingFloor ? "mdi:loading" : this.config.section_action_icons.off}></ha-icon><span>${this.localText("כיבוי כל החדרים", "Turn off all rooms")}</span><small>${allTargets.length}</small></button>
+          <div class="floor-room-list" role="list">
+            ${activeAreas.map((area) => {
+              const targets = areaActionEntities(area, false);
+              const busy = this.pendingFloor || this.pendingFloorRooms.has(area.id) || targets.some((item) => this.pendingEntities.has(item.entityId));
+              return html`
+                <article class="floor-room-row" role="listitem">
+                  <span class="icon-bubble small"><ha-icon icon=${area.icon}></ha-icon></span>
+                  <span class="floor-room-main"><strong>${area.name}</strong><small>${area.allEntities.filter(countsTowardAreaActivity).length} ${this.localText("פעילים", "active")}</small></span>
+                  <button
+                    class="floor-room-off"
+                    type="button"
+                    aria-label=${`${this.localText("כיבוי חדר", "Turn off room")}: ${area.name} (${targets.length})`}
+                    aria-busy=${this.pendingFloorRooms.has(area.id)}
+                    ?disabled=${busy || targets.length === 0}
+                    @click=${(event: Event) => this.handleFloorRoomOff(event, area)}
+                  ><ha-icon icon=${this.pendingFloorRooms.has(area.id) ? "mdi:loading" : this.config!.section_action_icons.off}></ha-icon></button>
+                </article>
+              `;
+            })}
           </div>
         </section>
       </dialog>
@@ -971,14 +1098,88 @@ export class AreaBubbleOverviewCard extends LitElement {
     return this.pendingActions.has(`${areaId}:${action}:on`) || this.pendingActions.has(`${areaId}:${action}:off`);
   }
 
+  private openFloorPopup(event: Event): void {
+    event.stopPropagation();
+    this.resetQuickPopup();
+    this.floorPopupTrigger = event.currentTarget as HTMLElement;
+    this.floorPopupOpen = true;
+    void this.updateComplete.then(() => {
+      const dialog = this.renderRoot.querySelector<HTMLDialogElement>(".floor-action-dialog");
+      if (!dialog || dialog.open || !dialog.isConnected) return;
+      if (typeof dialog.showModal === "function") dialog.showModal();
+      else dialog.setAttribute("open", "");
+    });
+  }
+
+  private closeFloorPopup(): void {
+    const dialog = this.renderRoot.querySelector<HTMLDialogElement>(".floor-action-dialog");
+    if (dialog?.open && typeof dialog.close === "function") dialog.close();
+    else this.handleFloorPopupClosed();
+  }
+
+  private handleFloorPopupClosed(): void {
+    this.floorPopupOpen = false;
+    const trigger = this.floorPopupTrigger;
+    this.floorPopupTrigger = undefined;
+    void this.updateComplete.then(() => {
+      if (trigger?.isConnected) trigger.focus();
+    });
+  }
+
+  private resetFloorPopup(): void {
+    const dialog = this.renderRoot?.querySelector<HTMLDialogElement>(".floor-action-dialog");
+    if (dialog?.open && typeof dialog.close === "function") dialog.close();
+    this.floorPopupOpen = false;
+    this.floorPopupTrigger = undefined;
+  }
+
+  private async handleFloorRoomOff(event: Event, area: OverviewArea): Promise<void> {
+    event.stopPropagation();
+    if (!this.hass || this.pendingFloor || this.pendingFloorRooms.has(area.id)) return;
+    const targets = areaActionEntities(area, false);
+    if (!targets.length || targets.some((item) => this.pendingEntities.has(item.entityId))) return;
+    this.pendingFloorRooms = new Set([...this.pendingFloorRooms, area.id]);
+    this.lockPendingEntities(targets);
+    try {
+      await runAreaAction(this.hass, area, false);
+    } catch (error) {
+      this.reportError(error);
+    } finally {
+      const next = new Set(this.pendingFloorRooms);
+      next.delete(area.id);
+      this.pendingFloorRooms = next;
+      this.unlockPendingEntities(targets);
+    }
+  }
+
+  private async handleFloorAllOff(event: Event, areas: OverviewArea[]): Promise<void> {
+    event.stopPropagation();
+    if (!this.hass || this.pendingFloor || this.pendingFloorRooms.size) return;
+    const targets = areas.flatMap((area) => areaActionEntities(area, false));
+    if (!targets.length || targets.some((item) => this.pendingEntities.has(item.entityId))) return;
+    this.pendingFloor = true;
+    this.lockPendingEntities(targets);
+    try {
+      const results = await Promise.allSettled(areas.map((area) => runAreaAction(this.hass!, area, false)));
+      const failures = results.filter((result) => result.status === "rejected");
+      if (failures.length) throw new Error(`${failures.length} of ${results.length} room actions failed.`);
+    } catch (error) {
+      this.reportError(error);
+    } finally {
+      this.pendingFloor = false;
+      this.unlockPendingEntities(targets);
+    }
+  }
+
   private openQuickActionPopup(event: Event, area: OverviewArea, action: OverviewQuickActionId): void {
     event.stopPropagation();
+    this.resetFloorPopup();
     this.quickPopupTrigger = event.currentTarget as HTMLElement;
     this.quickPopupMoreInfo = undefined;
     this.restoreQuickPopupFocus = true;
     this.quickPopup = { areaId: area.id, action };
     void this.updateComplete.then(() => {
-      const dialog = this.renderRoot.querySelector<HTMLDialogElement>(".quick-action-dialog");
+      const dialog = this.renderRoot.querySelector<HTMLDialogElement>(".area-quick-action-dialog");
       if (!dialog || dialog.open || !dialog.isConnected) return;
       if (typeof dialog.showModal === "function") dialog.showModal();
       else dialog.setAttribute("open", "");
@@ -988,7 +1189,7 @@ export class AreaBubbleOverviewCard extends LitElement {
   private closeQuickActionPopup(restoreFocus = true, moreInfo?: OverviewEntity): void {
     this.restoreQuickPopupFocus = restoreFocus;
     this.quickPopupMoreInfo = moreInfo;
-    const dialog = this.renderRoot.querySelector<HTMLDialogElement>(".quick-action-dialog");
+    const dialog = this.renderRoot.querySelector<HTMLDialogElement>(".area-quick-action-dialog");
     if (dialog?.open && typeof dialog.close === "function") dialog.close();
     else this.handleQuickPopupClosed();
   }
@@ -1008,7 +1209,7 @@ export class AreaBubbleOverviewCard extends LitElement {
   }
 
   private resetQuickPopup(): void {
-    const dialog = this.renderRoot?.querySelector<HTMLDialogElement>(".quick-action-dialog");
+    const dialog = this.renderRoot?.querySelector<HTMLDialogElement>(".area-quick-action-dialog");
     if (dialog?.open && typeof dialog.close === "function") dialog.close();
     this.quickPopup = undefined;
     this.quickPopupTrigger = undefined;
@@ -1250,8 +1451,13 @@ export class AreaBubbleOverviewCard extends LitElement {
     this.style.setProperty("--area-bubble-overview-border-radius", `${style.border_radius}px`);
     this.style.setProperty("--area-bubble-overview-blur", `${style.blur}px`);
     this.style.setProperty("--area-bubble-overview-gap", `${style.section_gap}px`);
+    this.style.setProperty("--area-bubble-overview-section-gap", `${style.category_gap}px`);
     this.style.setProperty("--area-bubble-overview-row-height", `${style.row_height}px`);
     this.style.setProperty("--area-bubble-overview-area-name-size", `${style.area_name_size}px`);
+    this.style.setProperty("--area-bubble-overview-quick-action-size", `${style.quick_action_size}px`);
+    this.style.setProperty("--area-bubble-overview-quick-action-icon-size", `${style.quick_action_icon_size}px`);
+    this.style.setProperty("--area-bubble-overview-section-action-size", `${style.section_action_size}px`);
+    this.style.setProperty("--area-bubble-overview-section-action-icon-size", `${style.section_action_icon_size}px`);
     this.style.setProperty("--area-bubble-overview-accent", style.accent_color);
     this.style.setProperty("--area-bubble-overview-active", style.active_color);
     this.style.setProperty("--area-bubble-overview-row-bg", style.row_background);
