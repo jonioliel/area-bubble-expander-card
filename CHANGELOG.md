@@ -2,6 +2,13 @@
 
 All notable changes to Area Bubble Expander Card will be documented in this file.
 
+## 0.12.0 - 2026-08-15
+
+- Added `show_floor_expand_button` so the top Floor chevron can be hidden while the full Floor header remains an accessible collapse control.
+- Added a global `area_open_mode` and per-room `area_overrides.<area>.open_mode` choice between the existing inline Expander and a native modal Popup.
+- Added a responsive RTL-aware room Popup with a fixed top close button, backdrop/Escape dismissal, focus restoration, internal scrolling, live category controls, and safe More Info handoff.
+- Expanded the regression suite to 172 tests and verified both opening modes at 320 px and 390 px RTL widths without card overflow.
+
 ## 0.11.0 - 2026-08-15
 
 - Added a collapsed-room layout choice that keeps quick actions beside the Area name or moves them to the opposite logical edge, with correct RTL/LTR behavior.

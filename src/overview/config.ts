@@ -112,6 +112,7 @@ const areaOverrides = (value: unknown): Record<string, OverviewAreaOverride> => 
         : {}),
       ...(typeof raw.hidden === "boolean" ? { hidden: raw.hidden } : {}),
       ...(typeof raw.default_expanded === "boolean" ? { default_expanded: raw.default_expanded } : {}),
+      ...(raw.open_mode === "expander" || raw.open_mode === "popup" ? { open_mode: raw.open_mode } : {}),
       ...(typeof raw.temperature_entity === "string" && raw.temperature_entity.trim() ? { temperature_entity: raw.temperature_entity.trim() } : {}),
       ...(typeof raw.occupancy_count_entity === "string" && raw.occupancy_count_entity.trim()
         ? { occupancy_count_entity: raw.occupancy_count_entity.trim() }
@@ -193,6 +194,11 @@ export const resolveOverviewConfig = (config: AreaBubbleOverviewCardConfig): Res
       typeof config.show_area_expand_button === "boolean"
         ? config.show_area_expand_button
         : (OVERVIEW_DEFAULT_CONFIG.show_area_expand_button ?? true),
+    show_floor_expand_button:
+      typeof config.show_floor_expand_button === "boolean"
+        ? config.show_floor_expand_button
+        : (OVERVIEW_DEFAULT_CONFIG.show_floor_expand_button ?? true),
+    area_open_mode: config.area_open_mode === "popup" ? "popup" : "expander",
     quick_actions_position: config.quick_actions_position === "near_name" ? "near_name" : "opposite",
     climate_tag_position: ["left", "right", "top", "bottom"].includes(String(config.climate_tag_position))
       ? config.climate_tag_position!

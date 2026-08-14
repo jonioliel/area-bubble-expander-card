@@ -109,6 +109,8 @@ export const OVERVIEW_DEFAULT_CONFIG: AreaBubbleOverviewCardConfig = {
   show_occupancy: true,
   show_quick_actions: true,
   show_area_expand_button: true,
+  show_floor_expand_button: true,
+  area_open_mode: "expander",
   quick_actions_position: "opposite",
   climate_tag_position: "left",
   show_fan_tag: true,

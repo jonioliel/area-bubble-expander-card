@@ -144,6 +144,8 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
   public setConfig(config: AreaBubbleOverviewCardConfig): void {
     const sanitized: AreaBubbleOverviewCardConfig = { ...config, type: OVERVIEW_CARD_TYPE };
     if (typeof config.show_area_expand_button !== "boolean") delete sanitized.show_area_expand_button;
+    if (typeof config.show_floor_expand_button !== "boolean") delete sanitized.show_floor_expand_button;
+    if (config.area_open_mode !== "expander" && config.area_open_mode !== "popup") delete sanitized.area_open_mode;
     this.config = sanitized;
     this.targetMode = config.floor ? "floor" : "area";
     if (config.area) this.activeAreaId = config.area;
@@ -241,6 +243,7 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
       ["show_occupancy", this.l("הצג נוכחות", "Show occupancy", language), this.l("מאוכלס, ריק או לא ידוע", "Occupied, vacant, or unknown", language), resolved.show_occupancy],
       ["show_quick_actions", this.l("הצג פעולות מהירות", "Show quick actions", language), this.l("פתח שליטה רק לקטגוריות פעילות", "Open control popups only for active categories", language), resolved.show_quick_actions],
       ["show_area_expand_button", this.l("הצג חץ פתיחה לאזורים", "Show area expand buttons", language), this.l("ניתן לפתוח ולכווץ גם בלחיצה על שם האזור", "Areas can still be expanded and collapsed by clicking their name", language), resolved.show_area_expand_button],
+      ["show_floor_expand_button", this.l("הצג חץ פתיחה בכותרת הקומה", "Show floor expand button", language), this.l("גם ללא החץ, לחיצה על כותרת הקומה פותחת ומכווצת אותה", "The floor header remains clickable when the arrow is hidden", language), resolved.show_floor_expand_button],
       ["default_expanded", this.l("פתוח כברירת מחדל", "Expanded by default", language), "", resolved.default_expanded],
       ["floor_default_expanded", this.l("פתח קומה כברירת מחדל", "Floor expanded by default", language), this.l("חל רק כאשר היעד הוא קומה", "Used only when the target is a floor", language), resolved.floor_default_expanded],
       ["remember_expanded_state", this.l("זכור מצב פתיחה", "Remember expansion", language), this.l("שומר בנפרד את מצב הקומה ואת מצב כל אזור", "Remembers the floor and each area separately", language), resolved.remember_expanded_state],
@@ -249,7 +252,17 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
     return html`
       <details>
         ${this.summary("mdi:view-dashboard-outline", this.l("תצוגה וסיכום", "Display and summary", language), this.l("טמפרטורה, נוכחות והרחבה", "Temperature, occupancy, and expansion", language))}
-        <div class="panel"><div class="settings-list">${rows.map(([key, title, description, value]) => this.booleanRow(title, description, value, (checked) => this.commitKey(key, checked)))}</div></div>
+        <div class="panel">
+          <div class="field">
+            <label>${this.l("אופן פתיחת חדר", "Room opening mode", language)}</label>
+            <select .value=${resolved.area_open_mode} @change=${(event: Event) => this.commitKey("area_open_mode", (event.target as HTMLSelectElement).value)}>
+              <option value="expander">Expander</option>
+              <option value="popup">Popup</option>
+            </select>
+            <div class="hint">${this.l("Popup פותח את תוכן החדר בחלון עם כפתור סגירה עליון. ניתן לבחור מצב אחר לכל חדר.", "Popup opens the room content in a modal with a top close button. Each room can override this setting.", language)}</div>
+          </div>
+          <div class="settings-list">${rows.map(([key, title, description, value]) => this.booleanRow(title, description, value, (checked) => this.commitKey(key, checked)))}</div>
+        </div>
       </details>
     `;
   }
@@ -462,6 +475,14 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
                     (checked) => this.updateAreaOverride(area.id, { show_when_parent_collapsed: checked }),
                   )
                 : nothing}
+              <div class="field">
+                <label>${this.l("אופן פתיחת חדר זה", "Opening mode for this room", language)}</label>
+                <select .value=${override.open_mode ?? ""} @change=${(event: Event) => this.updateAreaOverride(area.id, { open_mode: ((event.target as HTMLSelectElement).value || undefined) as OverviewAreaOverride["open_mode"] })}>
+                  <option value="">${this.l("כמו ההגדרה הכללית", "Use global setting", language)}</option>
+                  <option value="expander">Expander</option>
+                  <option value="popup">Popup</option>
+                </select>
+              </div>
               <div class="field">
                 <label>${this.l("מקור טמפרטורה מועדף", "Preferred temperature source", language)}</label>
                 <select .value=${override.temperature_entity ?? ""} @change=${(event: Event) => this.updateAreaOverride(area.id, { temperature_entity: (event.target as HTMLSelectElement).value || undefined })}>

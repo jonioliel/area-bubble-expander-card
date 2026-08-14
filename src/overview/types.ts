@@ -6,6 +6,7 @@ export type OverviewSectionActionMode = "toggle" | "dual";
 export type OverviewSectionBorderStyle = "solid" | "dashed" | "dotted";
 export type OverviewQuickActionsPosition = "near_name" | "opposite";
 export type OverviewClimateTagPosition = "left" | "right" | "top" | "bottom";
+export type OverviewAreaOpenMode = "expander" | "popup";
 export type OverviewStateLanguage = "auto" | "he" | "en";
 export type OverviewTileShape = "rectangle" | "square";
 export type OverviewTileIconPosition = "start" | "left" | "right" | "center";
@@ -47,6 +48,7 @@ export type OverviewAreaOverride = {
   show_when_parent_collapsed?: boolean;
   hidden?: boolean;
   default_expanded?: boolean;
+  open_mode?: OverviewAreaOpenMode;
   temperature_entity?: string;
   occupancy_count_entity?: string;
   occupancy_entities?: string[];
@@ -107,6 +109,8 @@ export type AreaBubbleOverviewCardConfig = {
   show_occupancy?: boolean;
   show_quick_actions?: boolean;
   show_area_expand_button?: boolean;
+  show_floor_expand_button?: boolean;
+  area_open_mode?: OverviewAreaOpenMode;
   quick_actions_position?: OverviewQuickActionsPosition;
   climate_tag_position?: OverviewClimateTagPosition;
   show_fan_tag?: boolean;

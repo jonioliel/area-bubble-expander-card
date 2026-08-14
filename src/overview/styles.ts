@@ -121,6 +121,10 @@ export const overviewCardStyles = css`
     cursor: pointer;
   }
 
+  .floor-toggle.without-floor-expand-button {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
   .floor-toggle .heading-main {
     direction: var(--aboc-direction, ltr);
     display: grid;
@@ -644,6 +648,33 @@ export const overviewCardStyles = css`
       linear-gradient(145deg, rgba(255, 255, 255, 0.065), transparent),
       var(--ha-card-background, var(--card-background-color));
     direction: var(--aboc-direction, ltr);
+  }
+
+  .area-detail-popup {
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .area-detail-dialog.has-active .area-detail-popup {
+    background: var(--aboc-active-surface);
+    color: var(--aboc-dark-text);
+  }
+
+  .area-detail-dialog.all-off .area-detail-popup {
+    background: var(--aboc-row-bg);
+  }
+
+  .area-detail-content {
+    display: grid;
+    align-content: start;
+    gap: var(--aboc-section-gap);
+    min-height: 0;
+    padding: 12px 12px max(16px, env(safe-area-inset-bottom));
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+
+  .area-detail-header {
+    background: color-mix(in srgb, currentColor 4%, transparent);
   }
 
   .quick-popup-header {
@@ -2096,6 +2127,10 @@ export const overviewCardStyles = css`
 
     .quick-popup-list {
       padding: 10px 10px max(14px, env(safe-area-inset-bottom));
+    }
+
+    .area-detail-content {
+      padding: 10px 8px max(14px, env(safe-area-inset-bottom));
     }
 
     .floor-room-list {

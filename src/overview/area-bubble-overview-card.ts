@@ -70,6 +70,7 @@ export class AreaBubbleOverviewCard extends LitElement {
   @state() private pendingSections = new Set<string>();
   @state() private pendingEntities = new Set<string>();
   @state() private quickPopup?: QuickPopupState;
+  @state() private areaPopupId?: string;
   @state() private floorPopupOpen = false;
   @state() private pendingFloor = false;
   @state() private pendingFloorRooms = new Set<string>();
@@ -85,6 +86,9 @@ export class AreaBubbleOverviewCard extends LitElement {
   private quickPopupTrigger?: HTMLElement;
   private quickPopupMoreInfo?: OverviewEntity;
   private restoreQuickPopupFocus = true;
+  private areaPopupTrigger?: HTMLElement;
+  private areaPopupMoreInfo?: OverviewEntity;
+  private restoreAreaPopupFocus = true;
   private floorPopupTrigger?: HTMLElement;
 
   public static getConfigElement(): HTMLElement {
@@ -98,6 +102,7 @@ export class AreaBubbleOverviewCard extends LitElement {
   public setConfig(config: AreaBubbleOverviewCardConfig): void {
     this.resetQuickPopup();
     this.resetFloorPopup();
+    this.resetAreaPopup();
     try {
       validateOverviewConfig(config);
       this.config = resolveOverviewConfig(config);
@@ -135,6 +140,7 @@ export class AreaBubbleOverviewCard extends LitElement {
     this.cancelHold();
     this.resetQuickPopup();
     this.resetFloorPopup();
+    this.resetAreaPopup();
   }
 
   protected override render() {
@@ -169,6 +175,7 @@ export class AreaBubbleOverviewCard extends LitElement {
       </ha-card>
       ${this.renderQuickActionPopup(discovery)}
       ${this.renderFloorPopup(discovery)}
+      ${this.renderAreaPopup(discovery)}
     `;
   }
 
@@ -193,10 +200,12 @@ export class AreaBubbleOverviewCard extends LitElement {
       return html`
         <div class="overview-heading floor-heading ${activeAreas.length ? "has-active" : "all-off"}" data-powered=${activeAreas.length ? "true" : "false"}>
           <div class="floor-summary-pill">
-            <button class="floor-toggle" type="button" aria-expanded=${this.floorExpanded} aria-controls=${contentId} aria-label=${label} @click=${() => this.toggleFloor()}>
+            <button class="floor-toggle ${this.config.show_floor_expand_button ? "" : "without-floor-expand-button"}" type="button" aria-expanded=${this.floorExpanded} aria-controls=${contentId} aria-label=${label} @click=${() => this.toggleFloor()}>
               <span class="icon-bubble small"><ha-icon icon=${discovery.targetIcon}></ha-icon></span>
               <span class="heading-main"><span class="floor-title">${discovery.targetName}</span><span class="subtitle">${summary}</span></span>
-              <span class="floor-chevron ${this.floorExpanded ? "expanded" : ""}" aria-hidden="true"><ha-icon icon="mdi:chevron-down"></ha-icon></span>
+              ${this.config.show_floor_expand_button
+                ? html`<span class="floor-chevron ${this.floorExpanded ? "expanded" : ""}" aria-hidden="true"><ha-icon icon="mdi:chevron-down"></ha-icon></span>`
+                : nothing}
             </button>
             ${activeClimates.length
               ? html`<button
@@ -250,7 +259,10 @@ export class AreaBubbleOverviewCard extends LitElement {
 
   private renderArea(area: OverviewArea, nestedContent: unknown = nothing) {
     if (!this.config) return nothing;
-    const expanded = this.isExpanded(area);
+    const openMode = this.areaOpenMode(area);
+    const popupMode = openMode === "popup";
+    const popupOpen = popupMode && this.areaPopupId === area.id;
+    const expanded = !popupMode && this.isExpanded(area);
     const activeCount = area.allEntities.filter(countsTowardAreaActivity).length;
     const activeQuickActions = this.config.show_quick_actions
       ? activeQuickActionSummaries(area, this.config.quick_actions)
@@ -280,8 +292,11 @@ export class AreaBubbleOverviewCard extends LitElement {
     const compactStatuses = summaryLoad >= 5;
     const safeAreaId = area.id.replace(/[^a-zA-Z0-9_-]/g, "-");
     const contentId = `overview-area-${safeAreaId}`;
+    const popupId = `overview-area-popup-${safeAreaId}`;
     const nameId = `overview-area-name-${safeAreaId}`;
-    const toggleLabel = `${overviewText(this.hass, this.config, expanded ? "collapse" : "expand")}: ${area.name}`;
+    const toggleLabel = popupMode
+      ? `${this.localText("פתיחת חדר בחלון", "Open room in dialog")}: ${area.name}`
+      : `${overviewText(this.hass, this.config, expanded ? "collapse" : "expand")}: ${area.name}`;
     return html`
       <section
         class="area-panel ${activeCount ? "has-active" : "all-off"} ${expanded ? "expanded" : ""}"
@@ -293,10 +308,11 @@ export class AreaBubbleOverviewCard extends LitElement {
             <button
               class="area-toggle"
               type="button"
-              aria-expanded=${expanded}
-              aria-controls=${contentId}
+              aria-expanded=${popupMode ? popupOpen : expanded}
+              aria-haspopup=${popupMode ? "dialog" : nothing}
+              aria-controls=${popupMode ? popupId : contentId}
               aria-label=${toggleLabel}
-              @click=${() => this.toggleArea(area)}
+              @click=${(event: Event) => this.activateArea(event, area)}
             >
               <span class="icon-bubble area-icon"><ha-icon icon=${area.icon}></ha-icon></span>
               <span class="area-main">
@@ -331,11 +347,12 @@ export class AreaBubbleOverviewCard extends LitElement {
             ? html`<button
                 class="expand-button"
                 type="button"
-                aria-expanded=${expanded}
-                aria-controls=${contentId}
+                aria-expanded=${popupMode ? popupOpen : expanded}
+                aria-haspopup=${popupMode ? "dialog" : nothing}
+                aria-controls=${popupMode ? popupId : contentId}
                 aria-label=${toggleLabel}
-                @click=${() => this.toggleArea(area)}
-              ><span class="chevron" aria-hidden="true"><ha-icon icon="mdi:chevron-down"></ha-icon></span></button>`
+                @click=${(event: Event) => this.activateArea(event, area)}
+              ><span class="chevron ${popupMode ? "popup-mode" : ""}" aria-hidden="true"><ha-icon icon=${popupMode ? "mdi:open-in-new" : "mdi:chevron-down"}></ha-icon></span></button>`
             : nothing}
         </header>
         <div class="area-disclosure" id=${contentId} ?hidden=${!expanded}>
@@ -653,6 +670,44 @@ export class AreaBubbleOverviewCard extends LitElement {
               `;
             })}
           </div>
+        </section>
+      </dialog>
+    `;
+  }
+
+  private renderAreaPopup(discovery: OverviewDiscovery) {
+    if (!this.config || !this.areaPopupId) return nothing;
+    const area = discovery.areas.find((candidate) => candidate.id === this.areaPopupId);
+    if (!area || this.areaOpenMode(area) !== "popup") {
+      queueMicrotask(() => this.resetAreaPopup());
+      return nothing;
+    }
+    const activeCount = area.allEntities.filter(countsTowardAreaActivity).length;
+    const safeAreaId = area.id.replace(/[^a-zA-Z0-9_-]/g, "-");
+    const dialogId = `overview-area-popup-${safeAreaId}`;
+    const titleId = `${dialogId}-title`;
+    return html`
+      <dialog
+        id=${dialogId}
+        class="quick-action-dialog area-detail-dialog ${activeCount ? "has-active" : "all-off"}"
+        aria-modal="true"
+        aria-labelledby=${titleId}
+        @cancel=${(event: Event) => { event.preventDefault(); this.closeAreaPopup(); }}
+        @close=${() => this.handleAreaPopupClosed()}
+        @click=${(event: MouseEvent) => { if (event.target === event.currentTarget) this.closeAreaPopup(); }}
+      >
+        <section class="quick-popup area-detail-popup">
+          <header class="quick-popup-header area-detail-header">
+            <span class="icon-bubble popup-icon"><ha-icon icon=${area.icon}></ha-icon></span>
+            <span class="quick-popup-heading">
+              <span class="quick-popup-title" id=${titleId}>${area.name}</span>
+              <span class="quick-popup-summary">${activeCount
+                ? `${activeCount} ${this.localText("פעילים", "active")}`
+                : this.localText("הכול כבוי", "All off")}</span>
+            </span>
+            <button class="quick-popup-close" type="button" aria-label=${`${this.localText("סגירת חדר", "Close room")}: ${area.name}`} @click=${() => this.closeAreaPopup()}><ha-icon icon="mdi:close"></ha-icon></button>
+          </header>
+          <div class="area-detail-content">${area.sections.map((section) => this.renderSection(section, area))}</div>
         </section>
       </dialog>
     `;
@@ -1103,8 +1158,19 @@ export class AreaBubbleOverviewCard extends LitElement {
   }
 
   private isExpanded(area: OverviewArea): boolean {
+    if (this.areaOpenMode(area) === "popup") return false;
     const override = this.config?.area_overrides[area.id] ?? this.config?.area_overrides[area.name];
     return this.expanded[area.id] ?? override?.default_expanded ?? this.config?.default_expanded ?? false;
+  }
+
+  private areaOpenMode(area: OverviewArea): "expander" | "popup" {
+    const override = this.config?.area_overrides[area.id] ?? this.config?.area_overrides[area.name];
+    return override?.open_mode ?? this.config?.area_open_mode ?? "expander";
+  }
+
+  private activateArea(event: Event, area: OverviewArea): void {
+    if (this.areaOpenMode(area) === "popup") this.openAreaPopup(event, area);
+    else this.toggleArea(area);
   }
 
   private toggleArea(area: OverviewArea): void {
@@ -1198,6 +1264,7 @@ export class AreaBubbleOverviewCard extends LitElement {
   private openFloorPopup(event: Event): void {
     event.stopPropagation();
     this.resetQuickPopup();
+    this.resetAreaPopup();
     this.floorPopupTrigger = event.currentTarget as HTMLElement;
     this.floorPopupOpen = true;
     void this.updateComplete.then(() => {
@@ -1228,6 +1295,53 @@ export class AreaBubbleOverviewCard extends LitElement {
     if (dialog?.open && typeof dialog.close === "function") dialog.close();
     this.floorPopupOpen = false;
     this.floorPopupTrigger = undefined;
+  }
+
+  private openAreaPopup(event: Event, area: OverviewArea): void {
+    event.stopPropagation();
+    this.resetQuickPopup();
+    this.resetFloorPopup();
+    this.areaPopupTrigger = event.currentTarget as HTMLElement;
+    this.areaPopupMoreInfo = undefined;
+    this.restoreAreaPopupFocus = true;
+    this.areaPopupId = area.id;
+    void this.updateComplete.then(() => {
+      const dialog = this.renderRoot.querySelector<HTMLDialogElement>(".area-detail-dialog");
+      if (!dialog || dialog.open || !dialog.isConnected) return;
+      if (typeof dialog.showModal === "function") dialog.showModal();
+      else dialog.setAttribute("open", "");
+    });
+  }
+
+  private closeAreaPopup(restoreFocus = true, moreInfo?: OverviewEntity): void {
+    this.restoreAreaPopupFocus = restoreFocus;
+    this.areaPopupMoreInfo = moreInfo;
+    const dialog = this.renderRoot.querySelector<HTMLDialogElement>(".area-detail-dialog");
+    if (dialog?.open && typeof dialog.close === "function") dialog.close();
+    else this.handleAreaPopupClosed();
+  }
+
+  private handleAreaPopupClosed(): void {
+    const moreInfo = this.areaPopupMoreInfo;
+    const restoreFocus = this.restoreAreaPopupFocus;
+    const trigger = this.areaPopupTrigger;
+    this.areaPopupId = undefined;
+    this.areaPopupTrigger = undefined;
+    this.areaPopupMoreInfo = undefined;
+    this.restoreAreaPopupFocus = true;
+    void this.updateComplete.then(() => {
+      if (moreInfo) this.moreInfo(moreInfo);
+      else if (restoreFocus && trigger?.isConnected) trigger.focus();
+    });
+  }
+
+  private resetAreaPopup(): void {
+    const dialog = this.renderRoot?.querySelector<HTMLDialogElement>(".area-detail-dialog");
+    if (dialog?.open && typeof dialog.close === "function") dialog.close();
+    this.areaPopupId = undefined;
+    this.areaPopupTrigger = undefined;
+    this.areaPopupMoreInfo = undefined;
+    this.restoreAreaPopupFocus = true;
   }
 
   private async handleFloorRoomOff(event: Event, area: OverviewArea): Promise<void> {
@@ -1271,6 +1385,7 @@ export class AreaBubbleOverviewCard extends LitElement {
   private openQuickActionPopup(event: Event, area: OverviewArea, action: OverviewQuickActionId): void {
     event.stopPropagation();
     this.resetFloorPopup();
+    this.resetAreaPopup();
     this.quickPopupTrigger = event.currentTarget as HTMLElement;
     this.quickPopupMoreInfo = undefined;
     this.restoreQuickPopupFocus = true;
@@ -1316,6 +1431,7 @@ export class AreaBubbleOverviewCard extends LitElement {
 
   private showMoreInfo(item: OverviewEntity): void {
     if (this.quickPopup) this.closeQuickActionPopup(false, item);
+    else if (this.areaPopupId) this.closeAreaPopup(false, item);
     else this.moreInfo(item);
   }
 

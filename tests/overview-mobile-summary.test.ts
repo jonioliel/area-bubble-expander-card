@@ -111,8 +111,8 @@ describe("optional Area disclosure arrow", () => {
     expect(source).toMatch(
       /\$\{this\.config\.show_area_expand_button\s*\?\s*html`<button[\s\S]*?class="expand-button"/,
     );
-    expect(areaToggle).toContain("aria-expanded=${expanded}");
-    expect(areaToggle).toContain("aria-controls=${contentId}");
-    expect(areaToggle).toContain("@click=${() => this.toggleArea(area)}");
+    expect(areaToggle).toContain('aria-expanded=${popupMode ? popupOpen : expanded}');
+    expect(areaToggle).toContain('aria-controls=${popupMode ? popupId : contentId}');
+    expect(areaToggle).toContain("@click=${(event: Event) => this.activateArea(event, area)}");
   });
 });

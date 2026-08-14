@@ -86,7 +86,9 @@ language: he
 rtl: true
 floor_default_expanded: true
 remember_expanded_state: true
+show_floor_expand_button: false
 show_area_expand_button: false
+area_open_mode: popup
 area_order:
   - kids_room
   - library
@@ -97,9 +99,11 @@ Choose exactly one of `area` or `floor`. The visual editor exposes Home Assistan
 
 ### Floor collapse and entity interactions
 
-In Floor mode, press the Floor header to collapse or reveal the complete Area list. This does not change the expanded/collapsed state of any individual Area. `floor_default_expanded` controls the initial state, and `remember_expanded_state: true` remembers the Floor and Area states independently for the card's stable `id`.
+In Floor mode, press the Floor header to collapse or reveal the complete Area list. This does not change the expanded/collapsed state of any individual Area. `floor_default_expanded` controls the initial state, and `remember_expanded_state: true` remembers the Floor and Area states independently for the card's stable `id`. Set `show_floor_expand_button: false` to hide the Floor chevron while keeping the complete Floor header clickable and keyboard accessible.
 
 Each Area name is itself a complete disclosure button. Set `show_area_expand_button: false` to remove the separate circular chevron and give the name, temperature, occupancy, and active quick actions the full row width. The visual editor exposes the same option under the summary settings.
+
+`area_open_mode` selects how a room opens: `expander` reveals its categories inline, while `popup` opens a native modal with a fixed title and close button, backdrop/Escape dismissal, internal scrolling, and the same live controls. The default is `expander` for existing dashboards. An individual room can override the global choice with `area_overrides.<area>.open_mode`.
 
 A normal tap keeps the control's primary behavior. Long-press an entity control for about half a second to open Home Assistant's More Info dialog without accidentally toggling it. Moving the pointer to scroll cancels the hold gesture; entity names remain directly accessible by mouse and keyboard.
 
@@ -540,7 +544,9 @@ style:
 | `show_temperature` | `true` | Shows the preferred/automatic current temperature. |
 | `show_occupancy` | `true` | Shows a numeric occupancy/count-sensor badge, including zero and unknown. |
 | `show_quick_actions` | `true` | Shows popup triggers only for categories that currently have a powered member. |
+| `show_floor_expand_button` | `true` | Shows the Floor chevron. Set `false` to keep the whole Floor header as the sole disclosure control. |
 | `show_area_expand_button` | `true` | Shows the separate Area chevron. Set `false` to use the Area name as the sole disclosure control and reclaim row width. |
+| `area_open_mode` | `expander` | `expander` opens rooms inline; `popup` opens a modal with a top close button and scrollable live controls. |
 | `quick_actions_position` | `opposite` | `opposite` places active quick actions at the other logical edge; `near_name` keeps them beside the Area name. |
 | `climate_tag_position` | `left` | Places attached climate/fan tags on the `left`, `right`, `top`, or `bottom` of the temperature. |
 | `show_fan_tag` | `true` | Shows an icon-only tag while an Area fan is on; the fan remains in the Climate popup/category. |
@@ -568,6 +574,7 @@ style:
 | `area_overrides.<area>.icon` | registry/fallback icon | Overrides one Area row icon. |
 | `area_overrides.<area>.parent_area` | none | Visually nests one Floor Area under another without combining state, summaries, or actions. |
 | `area_overrides.<area>.show_when_parent_collapsed` | `false` | Keeps this child visible inside its parent while the parent is collapsed. |
+| `area_overrides.<area>.open_mode` | inherit global | Overrides one room with `expander` or `popup`. |
 | `area_overrides.<area>.occupancy_count_entity` | none | Authoritative numeric people-count entity; zero is vacant. |
 | `area_overrides.<area>.occupancy_entities` | automatic | Presence sensors to count when no numeric count entity is selected. |
 | `area_overrides.<area>.exclude_entities` | `[]` | Removes entities from display and every Area state/summary calculation. |
