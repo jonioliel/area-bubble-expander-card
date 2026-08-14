@@ -292,6 +292,15 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
                     resolved.section_styles[section].show_border ?? false,
                     (checked) => this.setGlobalSectionStyle(section, { show_border: checked }),
                   )}
+                  ${section === "lights_switches"
+                    ? this.numberField(
+                        this.l("מספר אריחי תאורה בשורה", "Light tiles per row", language),
+                        resolved.section_styles[section].columns ?? 2,
+                        1,
+                        3,
+                        (value) => this.setGlobalSectionStyle(section, { columns: Math.round(value) as 1 | 2 | 3 }),
+                      )
+                    : nothing}
                   <div class="inline-fields">
                     ${this.valueColorField(
                       this.l("רקע קטגוריה", "Category background", language),
@@ -493,6 +502,18 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
                         localStyle.show_border ?? globalStyle.show_border ?? false,
                         (checked) => this.setAreaSectionStyle(area.id, section, { show_border: checked }),
                       )}
+                      ${section === "lights_switches"
+                        ? html`<div class="field">
+                            <label>${this.l("מספר תאורות בשורה בחדר זה", "Light tiles per row in this room", language)}</label>
+                            <select .value=${localStyle.columns === undefined ? "" : String(localStyle.columns)} @change=${(event: Event) => {
+                              const value = (event.target as HTMLSelectElement).value;
+                              this.setAreaSectionStyle(area.id, section, { columns: value ? Number(value) as 1 | 2 | 3 : undefined });
+                            }}>
+                              <option value="">${this.l("כמו ההגדרה הכללית", "Use global setting", language)}</option>
+                              <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+                            </select>
+                          </div>`
+                        : nothing}
                       <div class="inline-fields">
                         ${this.valueColorField(
                           this.l("רקע בחדר זה", "Background in this room", language),
@@ -623,6 +644,12 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
                         <div class="field"><label>${this.l("סעיף", "Section", language)}</label><select .value=${override.section ?? item.section} @change=${(event: Event) => this.updateEntityOverride(item.entityId, { section: (event.target as HTMLSelectElement).value as OverviewSectionId })}>${OVERVIEW_SECTIONS.map((section) => html`<option value=${section}>${this.sectionDefaultName(section, language)}</option>`)}</select></div>
                         <div class="field"><label>${this.l("תת־קבוצה בתוך החדר", "Sub-group inside room", language)}</label><input type="text" .value=${override.group ?? item.group ?? ""} placeholder=${this.l("לדוגמה: מקלחת", "Example: Shower", language)} @change=${(event: Event) => this.updateEntityOverride(item.entityId, { group: (event.target as HTMLInputElement).value.trim() || undefined })} /><div class="hint">${this.l("רכיבים עם אותו שם קבוצה יוצגו יחד בתוך הקטגוריה.", "Devices with the same group name are shown together inside the category.", language)}</div></div>
                         ${this.iconField(this.l("אייקון הרכיב", "Device icon", language), override.icon ?? "", item.icon, language, (value) => this.updateEntityOverride(item.entityId, { icon: value || undefined }))}
+                        ${item.section === "lights_switches" ? html`
+                          <div class="field"><label>${this.l("צורת האריח", "Tile shape", language)}</label><select .value=${override.tile_shape ?? ""} @change=${(event: Event) => this.updateEntityOverride(item.entityId, { tile_shape: ((event.target as HTMLSelectElement).value || undefined) as OverviewEntityOverride["tile_shape"] })}><option value="">${this.l("כמו ההגדרה הכללית", "Use global setting", language)}</option><option value="rectangle">${this.l("מלבן", "Rectangle", language)}</option><option value="square">${this.l("ריבוע", "Square", language)}</option></select></div>
+                          <div class="field"><label>${this.l("מיקום האייקון", "Icon position", language)}</label><select .value=${override.icon_position ?? ""} @change=${(event: Event) => this.updateEntityOverride(item.entityId, { icon_position: ((event.target as HTMLSelectElement).value || undefined) as OverviewEntityOverride["icon_position"] })}><option value="">${this.l("כמו ההגדרה הכללית", "Use global setting", language)}</option><option value="start">${this.l("תחילת השורה לפי השפה", "Language start", language)}</option><option value="right">${this.l("ימין", "Right", language)}</option><option value="left">${this.l("שמאל", "Left", language)}</option><option value="center">${this.l("מרכז", "Center", language)}</option></select></div>
+                          <div class="field"><label>${this.l("הצגת מידע", "State information", language)}</label><select .value=${override.show_state === undefined ? "" : String(override.show_state)} @change=${(event: Event) => { const value = (event.target as HTMLSelectElement).value; this.updateEntityOverride(item.entityId, { show_state: value === "" ? undefined : value === "true" }); }}><option value="">${this.l("כמו ההגדרה הכללית", "Use global setting", language)}</option><option value="true">${this.l("הצג", "Show", language)}</option><option value="false">${this.l("הסתר", "Hide", language)}</option></select></div>
+                          <div class="field"><label>${this.l("שפת מצב הרכיב", "Device state language", language)}</label><select .value=${override.state_language ?? ""} @change=${(event: Event) => this.updateEntityOverride(item.entityId, { state_language: ((event.target as HTMLSelectElement).value || undefined) as OverviewEntityOverride["state_language"] })}><option value="">${this.l("כמו ההגדרה הכללית", "Use global setting", language)}</option><option value="auto">Auto</option><option value="he">עברית</option><option value="en">English</option></select></div>
+                        ` : nothing}
                       </div>
                       <div class="entity-flags">
                         <label class="check-label"><input type="checkbox" .checked=${override.protected ?? item.protected} @change=${(event: Event) => this.updateEntityOverride(item.entityId, { protected: (event.target as HTMLInputElement).checked })} />${this.l("מוגן מכיבוי קבוצתי", "Protect from group off", language)}</label>
@@ -645,6 +672,16 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
         ${this.summary("mdi:palette-outline", this.l("מראה ושפה", "Appearance and language", language), this.l("צבעים, מרווחים ו-RTL", "Colors, spacing, and RTL", language))}
         <div class="panel">
           <div class="inline-fields">
+            <div class="field"><label>${this.l("מיקום פעולות מהירות בחדר", "Room quick-actions position", language)}</label><select .value=${resolved.quick_actions_position} @change=${(event: Event) => this.commitKey("quick_actions_position", (event.target as HTMLSelectElement).value)}><option value="opposite">${this.l("בצד הנגדי לשם", "Opposite the room name", language)}</option><option value="near_name">${this.l("צמוד לשם החדר", "Next to the room name", language)}</option></select></div>
+            <div class="field"><label>${this.l("מיקום תגי מזגן ומאוורר", "Climate and fan tag position", language)}</label><select .value=${resolved.climate_tag_position} @change=${(event: Event) => this.commitKey("climate_tag_position", (event.target as HTMLSelectElement).value)}><option value="left">${this.l("משמאל לטמפרטורה", "Left of temperature", language)}</option><option value="right">${this.l("מימין לטמפרטורה", "Right of temperature", language)}</option><option value="top">${this.l("מעל הטמפרטורה", "Above temperature", language)}</option><option value="bottom">${this.l("מתחת לטמפרטורה", "Below temperature", language)}</option></select></div>
+            <div class="field"><label>${this.l("שפת מצב דלוק/כבוי", "On/off state language", language)}</label><select .value=${resolved.entity_state_language} @change=${(event: Event) => this.commitKey("entity_state_language", (event.target as HTMLSelectElement).value)}><option value="auto">Auto</option><option value="he">עברית</option><option value="en">English</option></select></div>
+            <div class="field"><label>${this.l("צורת אריחי תאורה", "Light tile shape", language)}</label><select .value=${resolved.light_tile_shape} @change=${(event: Event) => this.commitKey("light_tile_shape", (event.target as HTMLSelectElement).value)}><option value="rectangle">${this.l("מלבנים", "Rectangles", language)}</option><option value="square">${this.l("ריבועים", "Squares", language)}</option></select></div>
+            <div class="field"><label>${this.l("מיקום אייקון תאורה", "Light icon position", language)}</label><select .value=${resolved.light_icon_position} @change=${(event: Event) => this.commitKey("light_icon_position", (event.target as HTMLSelectElement).value)}><option value="start">${this.l("תחילת השורה לפי השפה", "Language start", language)}</option><option value="right">${this.l("ימין", "Right", language)}</option><option value="left">${this.l("שמאל", "Left", language)}</option><option value="center">${this.l("מרכז", "Center", language)}</option></select></div>
+          </div>
+          ${this.booleanRow(this.l("הצג תג מאוורר פעיל", "Show active fan tag", language), this.l("מאוורר נשאר בתוך קטגוריית המיזוג ופותח את אותו חלון שליטה.", "Fans remain in the climate category and open the same control popup.", language), resolved.show_fan_tag, (checked) => this.commitKey("show_fan_tag", checked))}
+          ${this.booleanRow(this.l("הצג מידע באריחי תאורה", "Show state on light tiles", language), this.l("ניתן לדרוס הגדרה זו לכל רכיב בנפרד.", "Can be overridden for each device.", language), resolved.light_show_state, (checked) => this.commitKey("light_show_state", checked))}
+          ${this.booleanRow(this.l("קשר צבע מסגרות קטגוריה למסגרת החדר", "Link category frames to room frame", language), this.l("קטגוריה ללא צבע פרטי תקבל גוון בהיר או כהה מצבע מסגרת החדר.", "A category without its own color receives a lighter or darker shade of the room frame.", language), resolved.style.link_section_frame_color, (checked) => this.setStyle("link_section_frame_color", checked))}
+          <div class="inline-fields">
             ${this.numberField(this.l("עיגול פינות", "Corner radius", language), resolved.style.border_radius, 4, 40, (value) => this.setStyle("border_radius", value))}
             ${this.numberField(this.l("טשטוש זכוכית", "Glass blur", language), resolved.style.blur, 0, 40, (value) => this.setStyle("blur", value))}
             ${this.numberField(this.l("גובה שורה", "Row height", language), resolved.style.row_height, 44, 84, (value) => this.setStyle("row_height", value))}
@@ -656,6 +693,8 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
             ${this.numberField(this.l("גודל כפתור פעולה בקטגוריה", "Category action button size", language), resolved.style.section_action_size, 36, 56, (value) => this.setStyle("section_action_size", value))}
             ${this.numberField(this.l("גודל אייקון פעולה בקטגוריה", "Category action icon size", language), resolved.style.section_action_icon_size, 16, 36, (value) => this.setStyle("section_action_icon_size", value))}
             ${this.numberField(this.l("עובי מסגרת החדר", "Room frame thickness", language), resolved.style.area_frame_width, 0, 8, (value) => this.setStyle("area_frame_width", value))}
+            ${this.numberField(this.l("מרחק תג מהטמפרטורה", "Tag distance from temperature", language), resolved.style.climate_tag_gap, 0, 20, (value) => this.setStyle("climate_tag_gap", value))}
+            ${this.numberField(this.l("הפרש בהירות מסגרת קטגוריה", "Category frame brightness difference", language), resolved.style.section_frame_brightness, -100, 100, (value) => this.setStyle("section_frame_brightness", value))}
           </div>
           ${this.booleanRow(
             this.l("רקע כרטיס שקוף", "Transparent card background", language),

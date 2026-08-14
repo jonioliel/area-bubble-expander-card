@@ -263,7 +263,10 @@ export class AreaBubbleOverviewCard extends LitElement {
     const quickActions = climateTemperatureAction
       ? activeQuickActions.filter(({ action }) => action !== "climate")
       : activeQuickActions;
-    const activeClimateCount = climateTemperatureAction?.entities.filter((item) => item.powered && item.ignoreActivity !== true).length ?? 0;
+    const activeClimateCount = climateTemperatureAction?.entities.filter((item) => item.domain === "climate" && item.powered && item.ignoreActivity !== true).length ?? 0;
+    const activeFanCount = climateTemperatureAction?.entities.filter((item) => item.domain === "fan" && item.powered && item.ignoreActivity !== true).length ?? 0;
+    const totalClimateCount = climateTemperatureAction?.entities.filter((item) => item.domain === "climate").length ?? 0;
+    const totalFanCount = climateTemperatureAction?.entities.filter((item) => item.domain === "fan").length ?? 0;
     const hasStatuses = hasOccupancy || quickActions.length > 0 || hasTemperature;
     const formattedTemperature = hasTemperature ? this.formatTemperature(area.temperature!, area.temperatureUnit) : "";
     const temperatureModeLabel = {
@@ -286,7 +289,7 @@ export class AreaBubbleOverviewCard extends LitElement {
         aria-labelledby=${nameId}
       >
         <header class="area-summary ${this.config.show_area_expand_button ? "" : "without-expand-button"}">
-          <div class="area-summary-pill summary-load-${summaryLoad} ${compactStatuses ? "compact-statuses" : ""} ${hasStatuses ? "has-statuses" : "no-statuses"}">
+          <div class="area-summary-pill quick-actions-${this.config.quick_actions_position} climate-tag-${this.config.climate_tag_position} summary-load-${summaryLoad} ${compactStatuses ? "compact-statuses" : ""} ${hasStatuses ? "has-statuses" : "no-statuses"}">
             <button
               class="area-toggle"
               type="button"
@@ -305,25 +308,21 @@ export class AreaBubbleOverviewCard extends LitElement {
               ${this.renderOccupancy(area)}
               ${quickActions.length ? this.renderQuickActions(area, quickActions) : nothing}
               ${hasTemperature || climateTemperatureAction
-                ? html`<span class="temperature-summary">
+                ? html`<span
+                    class="temperature-summary tag-position-${this.config.climate_tag_position}"
+                    style=${`--aboc-temperature-tag-gap:${this.config.style.climate_tag_gap}px`}
+                  >
                     ${hasTemperature
                       ? html`<span class="temperature area-temperature temperature-${area.temperatureMode}" title=${`${formattedTemperature} · ${temperatureModeLabel}`} aria-label=${`${formattedTemperature} · ${temperatureModeLabel}`}>${formattedTemperature}</span>`
                       : nothing}
-                    ${climateTemperatureAction
-                      ? html`<button
-                          class="temperature-climate-tag temperature-${area.temperatureMode}"
-                          type="button"
-                          title=${`${activeClimateCount} ${this.localText("מזגנים פעילים", "active climate devices")}`}
-                          aria-label=${`${this.localText("פתיחת מיזוג אוויר", "Open climate controls")}: ${area.name} (${activeClimateCount}/${climateTemperatureAction.entities.length})`}
-                          aria-haspopup="dialog"
-                          aria-expanded=${this.quickPopup?.areaId === area.id && this.quickPopup.action === "climate"}
-                          aria-busy=${this.quickActionPending(area.id, "climate")}
-                          ?disabled=${this.quickActionPending(area.id, "climate")}
-                          @click=${(event: Event) => this.openQuickActionPopup(event, area, "climate")}
-                        >
-                          <ha-icon icon=${this.config.quick_action_icons.climate}></ha-icon>
-                        </button>`
-                      : nothing}
+                    <span class="temperature-tags">
+                      ${climateTemperatureAction && activeClimateCount > 0
+                        ? this.renderTemperatureStatusTag(area, this.config.quick_action_icons.climate, activeClimateCount, totalClimateCount, "climate")
+                        : nothing}
+                      ${climateTemperatureAction && this.config.show_fan_tag && activeFanCount > 0
+                        ? this.renderTemperatureStatusTag(area, "mdi:fan", activeFanCount, totalFanCount, "fan")
+                        : nothing}
+                    </span>
                   </span>`
                 : nothing}
             </div>
@@ -346,6 +345,25 @@ export class AreaBubbleOverviewCard extends LitElement {
         ${expanded ? nothing : nestedContent}
       </section>
     `;
+  }
+
+  private renderTemperatureStatusTag(area: OverviewArea, icon: string, active: number, total: number, kind: "climate" | "fan") {
+    if (!this.config) return nothing;
+    const pending = this.quickActionPending(area.id, "climate");
+    const label = kind === "fan"
+      ? this.localText("מאוורר פעיל", "Active fan")
+      : this.localText("מיזוג אוויר פעיל", "Active climate");
+    return html`<button
+      class="temperature-status-tag temperature-${kind}-tag temperature-${area.temperatureMode}"
+      type="button"
+      title=${`${label}: ${active}/${total}`}
+      aria-label=${`${this.localText("פתיחת מיזוג אוויר", "Open climate controls")}: ${area.name} · ${label} (${active}/${total})`}
+      aria-haspopup="dialog"
+      aria-expanded=${this.quickPopup?.areaId === area.id && this.quickPopup.action === "climate"}
+      aria-busy=${pending}
+      ?disabled=${pending}
+      @click=${(event: Event) => this.openQuickActionPopup(event, area, "climate")}
+    ><ha-icon icon=${icon}></ha-icon></button>`;
   }
 
   private renderOccupancy(area: OverviewArea) {
@@ -416,11 +434,19 @@ export class AreaBubbleOverviewCard extends LitElement {
     const offLabel = `${offVerb}: ${section.title} (${offTargets.length})`;
     const areaOverride = this.config?.area_overrides[area.id] ?? this.config?.area_overrides[area.name];
     const sectionStyle = { ...(this.config?.section_styles[section.id] ?? {}), ...(areaOverride?.section_styles?.[section.id] ?? {}) };
+    const frameBrightness = this.config?.style.section_frame_brightness ?? 12;
+    const frameMix = Math.max(0, 100 - Math.abs(frameBrightness));
+    const linkedFrameColor = `color-mix(in srgb, var(--aboc-area-frame-color) ${frameMix}%, ${frameBrightness >= 0 ? "white" : "black"})`;
+    const inheritedFrameColor = this.config?.style.link_section_frame_color
+      ? linkedFrameColor
+      : "color-mix(in srgb, var(--divider-color) 58%, transparent)";
+    const sectionColumns = sectionStyle.columns ?? (section.id === "lights_switches" || section.id === "floor_heating" ? 2 : 1);
     const sectionStyleText = [
       `--aboc-section-background:${sectionStyle.background || "transparent"}`,
-      `--aboc-section-border-color:${sectionStyle.border_color || "color-mix(in srgb, var(--divider-color) 58%, transparent)"}`,
+      `--aboc-section-border-color:${sectionStyle.border_color || inheritedFrameColor}`,
       `--aboc-section-border-width:${sectionStyle.border_width ?? 1}px`,
       `--aboc-section-border-style:${sectionStyle.border_style ?? "solid"}`,
+      `--aboc-section-columns:${sectionColumns}`,
     ].join(";");
     const toggleTurnOn = offTargets.length === 0;
     const toggleTargets = toggleTurnOn ? onTargets : offTargets;
@@ -707,6 +733,7 @@ export class AreaBubbleOverviewCard extends LitElement {
   }
 
   private renderEntityLead(item: OverviewEntity) {
+    const presentation = this.entityPresentation(item);
     return html`
       <button
         class="entity-lead hold-target"
@@ -720,10 +747,10 @@ export class AreaBubbleOverviewCard extends LitElement {
         @click=${(event: Event) => this.handleMoreInfoClick(event, item)}
       >
         <span class="icon-bubble small"><ha-icon icon=${item.icon}></ha-icon></span>
-        <span class="entity-main">
-          <span class="entity-name">${item.name}</span>
-          <span class="state-text">${this.entitySecondary(item)}</span>
-        </span>
+          <span class="entity-main">
+            <span class="entity-name">${item.name}</span>
+            ${presentation.showState ? html`<span class="state-text">${this.entitySecondary(item)}</span>` : nothing}
+          </span>
       </button>
     `;
   }
@@ -732,9 +759,10 @@ export class AreaBubbleOverviewCard extends LitElement {
     const busy = this.entityBusy(item);
     const powerPlan = entityPowerService(item, !item.powered);
     const toggleDisabled = !item.available || busy || !powerPlan;
+    const presentation = this.entityPresentation(item);
     return html`
       <button
-        class="toggle-tile entity-card hold-target ${item.active ? "active" : ""} ${item.available ? "" : "unavailable"}"
+        class="toggle-tile entity-card hold-target tile-shape-${presentation.shape} tile-icon-${presentation.iconPosition} ${item.active ? "active" : ""} ${item.available ? "" : "unavailable"}"
         type="button"
         aria-pressed=${item.powered}
         aria-busy=${busy}
@@ -751,7 +779,7 @@ export class AreaBubbleOverviewCard extends LitElement {
         <span class="icon-bubble small"><ha-icon icon=${busy ? "mdi:loading" : item.icon}></ha-icon></span>
         <span class="entity-main">
           <span class="entity-name">${item.name}</span>
-          <span class="state-text">${this.entitySecondary(item)}</span>
+          ${presentation.showState ? html`<span class="state-text">${this.entitySecondary(item)}</span>` : nothing}
         </span>
       </button>
     `;
@@ -830,8 +858,9 @@ export class AreaBubbleOverviewCard extends LitElement {
     const brightness = lightBrightnessPercentage(item);
     const powerPlan = entityPowerService(item, !item.powered);
     const brightnessLabel = `${this.localText("בהירות", "Brightness")}: ${item.name}`;
+    const presentation = this.entityPresentation(item);
     return html`
-      <article class="light-card entity-card ${item.active ? "active" : ""} ${item.available ? "" : "unavailable"}" aria-busy=${busy}>
+      <article class="light-card entity-card tile-shape-${presentation.shape} tile-icon-${presentation.iconPosition} ${item.active ? "active" : ""} ${item.available ? "" : "unavailable"}" aria-busy=${busy}>
         <div class="light-primary">
           ${this.renderEntityLead(item)}
           <button
@@ -979,6 +1008,8 @@ export class AreaBubbleOverviewCard extends LitElement {
 
   private entitySecondary(item: OverviewEntity): string {
     if (!item.available) return overviewText(this.hass, this.config!, "unavailable");
+    const binaryState = String(item.entity.state).toLowerCase();
+    const binaryLabel = binaryState === "on" || binaryState === "off" ? this.binaryStateLabel(binaryState, item) : undefined;
     if (item.domain === "climate") {
       const current = numberAttribute(item, "current_temperature");
       const action = String(item.entity.attributes.hvac_action ?? item.entity.state).replace(/_/g, " ");
@@ -990,16 +1021,35 @@ export class AreaBubbleOverviewCard extends LitElement {
     }
     if (item.domain === "light") {
       const brightness = numberAttribute(item, "brightness");
-      return brightness !== undefined && item.active ? `${overviewText(this.hass, this.config!, "on")} · ${Math.round((brightness / 255) * 100)}%` : item.entity.state;
+      return brightness !== undefined && item.active ? `${binaryLabel ?? item.entity.state} · ${Math.round((brightness / 255) * 100)}%` : binaryLabel ?? item.entity.state;
     }
     if (item.domain === "media_player") {
       return String(item.entity.attributes.media_title ?? item.entity.attributes.source ?? item.entity.state);
     }
     if (item.section === "floor_heating") {
       const current = numberAttribute(item, "current_temperature");
-      return [item.entity.state, current !== undefined ? this.formatTemperature(current, this.areaTemperatureUnit(item)) : ""].filter(Boolean).join(" · ");
+      return [binaryLabel ?? item.entity.state, current !== undefined ? this.formatTemperature(current, this.areaTemperatureUnit(item)) : ""].filter(Boolean).join(" · ");
     }
-    return this.hass?.formatEntityState?.(item.entity) ?? item.entity.state;
+    return binaryLabel ?? this.hass?.formatEntityState?.(item.entity) ?? item.entity.state;
+  }
+
+  private entityPresentation(item: OverviewEntity) {
+    const override = this.config?.entity_overrides[item.entityId];
+    const isLightTile = item.section === "lights_switches";
+    return {
+      shape: override?.tile_shape ?? (isLightTile ? this.config?.light_tile_shape : "rectangle") ?? "rectangle",
+      iconPosition: override?.icon_position ?? (isLightTile ? this.config?.light_icon_position : "start") ?? "start",
+      showState: override?.show_state ?? (isLightTile ? this.config?.light_show_state : true) ?? true,
+    };
+  }
+
+  private binaryStateLabel(state: "on" | "off", item: OverviewEntity): string {
+    const configured = this.config?.entity_overrides[item.entityId]?.state_language ?? this.config?.entity_state_language ?? "auto";
+    const language = configured === "auto"
+      ? (this.config && overviewLanguage(this.hass, this.config) === "he" ? "he" : "en")
+      : configured;
+    if (language === "he") return state === "on" ? "דלוק" : "כבוי";
+    return state === "on" ? "On" : "Off";
   }
 
   private climateModeIcon(mode: string): string {

@@ -4,6 +4,11 @@ export type OverviewSectionId = "climate" | "floor_heating" | "covers" | "lights
 export type OverviewQuickActionId = "lights" | "climate" | "floor_heating" | "switches" | "covers" | "media";
 export type OverviewSectionActionMode = "toggle" | "dual";
 export type OverviewSectionBorderStyle = "solid" | "dashed" | "dotted";
+export type OverviewQuickActionsPosition = "near_name" | "opposite";
+export type OverviewClimateTagPosition = "left" | "right" | "top" | "bottom";
+export type OverviewStateLanguage = "auto" | "he" | "en";
+export type OverviewTileShape = "rectangle" | "square";
+export type OverviewTileIconPosition = "start" | "left" | "right" | "center";
 
 export type OverviewSectionStyle = {
   background?: string;
@@ -11,6 +16,7 @@ export type OverviewSectionStyle = {
   border_width?: number;
   border_style?: OverviewSectionBorderStyle;
   show_border?: boolean;
+  columns?: 1 | 2 | 3;
 };
 
 export type OverviewSectionActionIcons = {
@@ -28,6 +34,10 @@ export type OverviewEntityOverride = {
   hidden?: boolean;
   protected?: boolean;
   ignore_activity?: boolean;
+  tile_shape?: OverviewTileShape;
+  icon_position?: OverviewTileIconPosition;
+  show_state?: boolean;
+  state_language?: OverviewStateLanguage;
 };
 
 export type OverviewAreaOverride = {
@@ -60,6 +70,9 @@ export type OverviewStyleConfig = Pick<
   entity_active_surface?: string;
   area_frame_color?: string;
   area_frame_width?: number;
+  climate_tag_gap?: number;
+  link_section_frame_color?: boolean;
+  section_frame_brightness?: number;
   climate_surface?: string;
   control_surface?: string;
   climate_color?: string;
@@ -94,6 +107,13 @@ export type AreaBubbleOverviewCardConfig = {
   show_occupancy?: boolean;
   show_quick_actions?: boolean;
   show_area_expand_button?: boolean;
+  quick_actions_position?: OverviewQuickActionsPosition;
+  climate_tag_position?: OverviewClimateTagPosition;
+  show_fan_tag?: boolean;
+  entity_state_language?: OverviewStateLanguage;
+  light_tile_shape?: OverviewTileShape;
+  light_icon_position?: OverviewTileIconPosition;
+  light_show_state?: boolean;
   show_empty_sections?: boolean;
   default_expanded?: boolean;
   floor_default_expanded?: boolean;

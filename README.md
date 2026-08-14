@@ -147,6 +147,38 @@ style:
 
 Dimmable lights are detected automatically from Home Assistant's light capabilities and receive a compact brightness slider. Dragging updates the visual value immediately and sends one `light.turn_on` action with `brightness_pct` when released; releasing at zero turns the light off. The separate power button remains available for a fast toggle.
 
+### Summary tags and lighting tiles
+
+Collapsed Area summaries can keep active quick actions beside the Area name or move them to the opposite logical edge. Climate and active-fan tags stay attached to the temperature cluster and may be placed on its left, right, top, or bottom with a configurable gap. Fans remain members of the Climate category and open the same safe popup.
+
+```yaml
+quick_actions_position: opposite # opposite | near_name
+climate_tag_position: left       # left | right | top | bottom
+show_fan_tag: true
+entity_state_language: auto      # auto | he | en
+light_tile_shape: rectangle      # rectangle | square
+light_icon_position: start       # start | left | right | center
+light_show_state: true
+section_styles:
+  lights_switches:
+    columns: 3
+style:
+  climate_tag_gap: 0
+  link_section_frame_color: true
+  section_frame_brightness: 12
+```
+
+The lighting grid supports one to three ordinary light/switch tiles per row. Dimmable lights intentionally span the complete row so their brightness slider remains accurate and easy to touch. Any light/switch can override the global shape, icon position, state visibility, and state language through `entity_overrides`:
+
+```yaml
+entity_overrides:
+  light.bedside:
+    tile_shape: square
+    icon_position: center
+    show_state: false
+    state_language: he
+```
+
 ### Temperature
 
 The displayed temperature is selected in this order:
@@ -509,13 +541,19 @@ style:
 | `show_occupancy` | `true` | Shows a numeric occupancy/count-sensor badge, including zero and unknown. |
 | `show_quick_actions` | `true` | Shows popup triggers only for categories that currently have a powered member. |
 | `show_area_expand_button` | `true` | Shows the separate Area chevron. Set `false` to use the Area name as the sole disclosure control and reclaim row width. |
+| `quick_actions_position` | `opposite` | `opposite` places active quick actions at the other logical edge; `near_name` keeps them beside the Area name. |
+| `climate_tag_position` | `left` | Places attached climate/fan tags on the `left`, `right`, `top`, or `bottom` of the temperature. |
+| `show_fan_tag` | `true` | Shows an icon-only tag while an Area fan is on; the fan remains in the Climate popup/category. |
+| `entity_state_language` | `auto` | Global ON/OFF text language: `auto`, `he`, or `en`. |
+| `light_tile_shape` / `light_icon_position` | `rectangle` / `start` | Global light/switch tile shape and icon placement (`start` follows RTL/LTR; or physical `left`, `right`, `center`). |
+| `light_show_state` | `true` | Shows state/brightness text on light/switch tiles by default. |
 | `show_empty_sections` | `false` | Keeps the layout compact when a category is absent. |
 | `default_expanded` | `false` | Initial Area expansion. |
 | `floor_default_expanded` | `true` | Initial visibility of all Areas under a Floor header. |
 | `remember_expanded_state` | `true` | Stores Floor and Area expansion independently per stable card ID. |
 | `section_order` | standard five sections | Priority order; missing built-in sections are appended safely. |
 | `section_titles` | localized | Global section headings. |
-| `section_styles` | `{}` | Global background plus optional frame visibility, color, 0–8 px thickness, and solid/dashed/dotted style per category. |
+| `section_styles` | `{}` | Global background plus optional frame visibility, color, 0–8 px thickness, solid/dashed/dotted style, and `columns: 1..3` per category. |
 | `section_action_mode` | `dual` | `dual` shows separate directional buttons; `toggle` shows one smart state button. |
 | `section_action_icons` | built-in semantic icons | Optional icons for `on`, `off`, `open`, and `close`. |
 | `quick_actions` | all six | Enabled actions in display order. |
@@ -534,10 +572,14 @@ style:
 | `area_overrides.<area>.occupancy_entities` | automatic | Presence sensors to count when no numeric count entity is selected. |
 | `area_overrides.<area>.exclude_entities` | `[]` | Removes entities from display and every Area state/summary calculation. |
 | `area_overrides.<area>.section_styles` | inherit global | Per-room category background, frame visibility, color, thickness, and style overrides. |
-| `entity_overrides` | `{}` | Entity name, icon, section, visibility, activity influence, and group-action protection. |
+| `entity_overrides` | `{}` | Entity name, icon, section, visibility, activity influence, group protection, and per-device tile/state presentation. |
 | `entity_overrides.<entity>.icon` | registry/fallback icon | Overrides one device icon. |
 | `entity_overrides.<entity>.group` | none | Places devices with the same group name under a sub-heading inside their category. |
 | `entity_overrides.<entity>.ignore_activity` | `false` | Keeps the device visible but removes its influence from room/Floor active state and quick summaries. |
+| `entity_overrides.<entity>.tile_shape` | inherit | `rectangle` or `square` for one light/switch tile. |
+| `entity_overrides.<entity>.icon_position` | inherit | `start`, physical `left`/`right`, or `center` for one light/switch tile. |
+| `entity_overrides.<entity>.show_state` | inherit | Shows or hides state/brightness information for one device. |
+| `entity_overrides.<entity>.state_language` | inherit | Per-device `auto`, `he`, or `en` ON/OFF text. |
 | `style.row_background` | theme-aware neutral | Shared Floor-header, powered-off Area, and inactive-entity background. |
 | `style.card_transparent` | `true` | Removes the card surface and border so the dashboard background is visible. |
 | `style.card_background` | HA card background | Card color/CSS value used when transparent mode is disabled. |
@@ -550,6 +592,9 @@ style:
 | `style.entity_active_surface` | pale cyan | Active entity-tile background, independent of the Area/Floor surface. |
 | `style.area_frame_color` | automatic | Optional Area summary/expanded-frame color; empty uses a theme-aware state color. |
 | `style.area_frame_width` | `2` | Area summary/expanded-frame thickness in pixels, clamped to 0–8. |
+| `style.climate_tag_gap` | `0` | Distance between the temperature and its climate/fan tags, clamped to 0–20 px. |
+| `style.link_section_frame_color` | `false` | Derives category-frame colors from the Area frame unless that category has an explicit color. |
+| `style.section_frame_brightness` | `12` | Linked frame shade difference from −100 (darker) to 100 (lighter). |
 | `style.occupancy_active_color` | light green | Occupied presence icon/count color. |
 | `style.occupancy_vacant_color` | light neutral | Vacant presence icon/count color. |
 | `style.occupancy_unknown_color` | amber | Unknown presence icon/count color. |
@@ -608,7 +653,7 @@ The Overview editor provides:
 
 - Area/Floor target selection
 - Collapsible Floor defaults plus independently remembered Floor/Area expansion
-- Summary, temperature, numeric occupancy, sensor fallback, active quick-action, and Area-chevron settings
+- Summary, temperature, attached climate/fan tags, numeric occupancy, sensor fallback, active quick-action placement, and Area-chevron settings
 - Section title/order editing, one-button or paired actions, action icon pickers, spacing, and global category appearance
 - Floor Area order, cycle-safe parent/child nesting, and per-Area overrides
 - Floor/Area/entity icon pickers with registry fallbacks and built-in search
@@ -617,7 +662,7 @@ The Overview editor provides:
 - Complete per-Area entity hiding/restoration that also excludes hidden devices from state, color, summaries, and group actions
 - Entity section/sub-group assignment, names, icons, group protection, activity exclusion, and priority order
 - Convenient on/off, occupancy, and HVAC temperature-state color pickers with CSS-value inputs, reset actions, and live previews
-- Adjustable Area-name size, native Home Assistant HVAC/fan menus, and automatic brightness sliders for dimmable lights
+- Adjustable Area-name size, one-to-three-column light grids, global/per-device tile presentation and state language, native Home Assistant HVAC/fan menus, and automatic full-row brightness sliders for dimmable lights
 - Safe Area/category/Floor popups and on/off/open/close controls that honor exclusion, availability, capability, and protection rules
 - Hebrew/English, RTL, responsive appearance, long-press More Info, and advanced safety lists
 

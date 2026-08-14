@@ -7,6 +7,9 @@ import type {
   OverviewSectionBorderStyle,
   OverviewSectionId,
   OverviewSectionStyle,
+  OverviewStateLanguage,
+  OverviewTileIconPosition,
+  OverviewTileShape,
   ResolvedOverviewConfig,
 } from "./types";
 import type { OverviewQuickActionId } from "./types";
@@ -55,12 +58,16 @@ const sectionStyles = (value: unknown): Partial<Record<OverviewSectionId, Overvi
     const borderStyle = typeof raw.border_style === "string" && borderStyles.has(raw.border_style as OverviewSectionBorderStyle)
       ? raw.border_style as OverviewSectionBorderStyle
       : undefined;
+    const columns = typeof raw.columns === "number" && Number.isFinite(raw.columns)
+      ? Math.min(3, Math.max(1, Math.round(raw.columns))) as 1 | 2 | 3
+      : undefined;
     result[section] = {
       ...(background ? { background } : {}),
       ...(borderColor ? { border_color: borderColor } : {}),
       ...(borderWidth !== undefined ? { border_width: borderWidth } : {}),
       ...(borderStyle ? { border_style: borderStyle } : {}),
       ...(typeof raw.show_border === "boolean" ? { show_border: raw.show_border } : {}),
+      ...(columns !== undefined ? { columns } : {}),
     };
   }
   return result;
@@ -125,6 +132,9 @@ const entityOverrides = (value: unknown): Record<string, OverviewEntityOverride>
   if (!isRecord(value)) return {};
   const allowed = new Set<string>(OVERVIEW_SECTIONS);
   const result: Record<string, OverviewEntityOverride> = {};
+  const tileShapes = new Set<OverviewTileShape>(["rectangle", "square"]);
+  const iconPositions = new Set<OverviewTileIconPosition>(["start", "left", "right", "center"]);
+  const stateLanguages = new Set<OverviewStateLanguage>(["auto", "he", "en"]);
   for (const [entityId, raw] of Object.entries(value)) {
     if (!isRecord(raw)) continue;
     result[entityId] = {
@@ -135,6 +145,10 @@ const entityOverrides = (value: unknown): Record<string, OverviewEntityOverride>
       ...(typeof raw.hidden === "boolean" ? { hidden: raw.hidden } : {}),
       ...(typeof raw.protected === "boolean" ? { protected: raw.protected } : {}),
       ...(typeof raw.ignore_activity === "boolean" ? { ignore_activity: raw.ignore_activity } : {}),
+      ...(typeof raw.tile_shape === "string" && tileShapes.has(raw.tile_shape as OverviewTileShape) ? { tile_shape: raw.tile_shape as OverviewTileShape } : {}),
+      ...(typeof raw.icon_position === "string" && iconPositions.has(raw.icon_position as OverviewTileIconPosition) ? { icon_position: raw.icon_position as OverviewTileIconPosition } : {}),
+      ...(typeof raw.show_state === "boolean" ? { show_state: raw.show_state } : {}),
+      ...(typeof raw.state_language === "string" && stateLanguages.has(raw.state_language as OverviewStateLanguage) ? { state_language: raw.state_language as OverviewStateLanguage } : {}),
     };
   }
   return result;
@@ -164,6 +178,9 @@ export const resolveOverviewConfig = (config: AreaBubbleOverviewCardConfig): Res
       ? Math.min(max, Math.max(min, value))
       : OVERVIEW_DEFAULT_STYLE[key];
   };
+  const stateLanguages = new Set<OverviewStateLanguage>(["auto", "he", "en"]);
+  const tileShapes = new Set<OverviewTileShape>(["rectangle", "square"]);
+  const iconPositions = new Set<OverviewTileIconPosition>(["start", "left", "right", "center"]);
   return {
     ...merged,
     type: OVERVIEW_CARD_TYPE,
@@ -176,6 +193,17 @@ export const resolveOverviewConfig = (config: AreaBubbleOverviewCardConfig): Res
       typeof config.show_area_expand_button === "boolean"
         ? config.show_area_expand_button
         : (OVERVIEW_DEFAULT_CONFIG.show_area_expand_button ?? true),
+    quick_actions_position: config.quick_actions_position === "near_name" ? "near_name" : "opposite",
+    climate_tag_position: ["left", "right", "top", "bottom"].includes(String(config.climate_tag_position))
+      ? config.climate_tag_position!
+      : "left",
+    show_fan_tag: typeof config.show_fan_tag === "boolean" ? config.show_fan_tag : true,
+    entity_state_language: stateLanguages.has(config.entity_state_language as OverviewStateLanguage)
+      ? config.entity_state_language!
+      : "auto",
+    light_tile_shape: tileShapes.has(config.light_tile_shape as OverviewTileShape) ? config.light_tile_shape! : "rectangle",
+    light_icon_position: iconPositions.has(config.light_icon_position as OverviewTileIconPosition) ? config.light_icon_position! : "start",
+    light_show_state: typeof config.light_show_state === "boolean" ? config.light_show_state : true,
     section_order: sectionArray(config.section_order),
     section_titles: Object.fromEntries(
       OVERVIEW_SECTIONS.map((section) => [section, typeof customTitles[section] === "string" ? customTitles[section] : ""]),
@@ -208,6 +236,15 @@ export const resolveOverviewConfig = (config: AreaBubbleOverviewCardConfig): Res
       area_frame_width: typeof customStyle.area_frame_width === "number" && Number.isFinite(customStyle.area_frame_width)
         ? Math.min(8, Math.max(0, customStyle.area_frame_width))
         : OVERVIEW_DEFAULT_STYLE.area_frame_width,
+      climate_tag_gap: typeof customStyle.climate_tag_gap === "number" && Number.isFinite(customStyle.climate_tag_gap)
+        ? Math.min(20, Math.max(0, customStyle.climate_tag_gap))
+        : OVERVIEW_DEFAULT_STYLE.climate_tag_gap,
+      link_section_frame_color: typeof customStyle.link_section_frame_color === "boolean"
+        ? customStyle.link_section_frame_color
+        : OVERVIEW_DEFAULT_STYLE.link_section_frame_color,
+      section_frame_brightness: typeof customStyle.section_frame_brightness === "number" && Number.isFinite(customStyle.section_frame_brightness)
+        ? Math.min(100, Math.max(-100, customStyle.section_frame_brightness))
+        : OVERVIEW_DEFAULT_STYLE.section_frame_brightness,
       occupancy_active_color: colorStyle("occupancy_active_color"),
       occupancy_vacant_color: colorStyle("occupancy_vacant_color"),
       occupancy_unknown_color: colorStyle("occupancy_unknown_color"),

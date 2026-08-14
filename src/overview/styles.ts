@@ -410,6 +410,26 @@ export const overviewCardStyles = css`
     overflow: hidden;
   }
 
+  .area-summary-pill.quick-actions-opposite .area-statuses {
+    justify-content: flex-end;
+  }
+
+  .area-summary-pill.quick-actions-near_name .area-statuses {
+    justify-content: flex-start;
+  }
+
+  .area-summary-pill.climate-tag-top,
+  .area-summary-pill.climate-tag-bottom {
+    min-height: 86px;
+    border-radius: calc(var(--aboc-radius) - 4px);
+  }
+
+  .area-summary-pill.climate-tag-top .area-statuses,
+  .area-summary-pill.climate-tag-bottom .area-statuses {
+    min-height: 72px;
+    overflow-y: visible;
+  }
+
   .expand-button {
     display: grid;
     place-items: center;
@@ -891,15 +911,27 @@ export const overviewCardStyles = css`
   }
 
   .temperature-summary {
-    direction: var(--aboc-direction, ltr);
+    direction: ltr;
     display: inline-flex;
     align-items: center;
-    gap: 1px;
+    gap: var(--aboc-temperature-tag-gap, 0px);
     min-width: max-content;
     flex: 0 0 auto;
   }
 
-  .temperature-climate-tag {
+  .temperature-summary.tag-position-left { flex-direction: row-reverse; }
+  .temperature-summary.tag-position-right { flex-direction: row; }
+  .temperature-summary.tag-position-top { flex-direction: column-reverse; }
+  .temperature-summary.tag-position-bottom { flex-direction: column; }
+
+  .temperature-tags {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+  }
+
+  .temperature-status-tag {
     position: relative;
     z-index: 1;
     display: inline-flex;
@@ -916,27 +948,32 @@ export const overviewCardStyles = css`
     cursor: pointer;
   }
 
-  .temperature-climate-tag::before {
+  .temperature-status-tag::before {
     content: "";
     position: absolute;
     inset: -9px;
     border-radius: inherit;
   }
 
-  .temperature-climate-tag ha-icon {
+  .temperature-status-tag ha-icon {
     --mdc-icon-size: 15px;
   }
 
-  .temperature-climate-tag.temperature-off {
+  .temperature-status-tag.temperature-off {
     background: var(--aboc-temperature-off);
   }
 
-  .temperature-climate-tag.temperature-cool {
+  .temperature-status-tag.temperature-cool {
     background: var(--aboc-temperature-cool);
   }
 
-  .temperature-climate-tag.temperature-heat {
+  .temperature-status-tag.temperature-heat {
     background: var(--aboc-temperature-heat);
+  }
+
+  .temperature-status-tag.temperature-fan-tag {
+    background: var(--aboc-entity-active-surface);
+    color: var(--aboc-dark-text);
   }
 
   .temperature.temperature-none {
@@ -1079,7 +1116,7 @@ export const overviewCardStyles = css`
 
   .section-lights_switches .section-entities,
   .section-floor_heating .section-entities {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(var(--aboc-section-columns, 2), minmax(0, 1fr));
   }
 
   .entity-subgroup {
@@ -1176,6 +1213,41 @@ export const overviewCardStyles = css`
     text-align: start;
     cursor: pointer;
     transition: transform 120ms ease, background-color 140ms ease, color 140ms ease;
+  }
+
+  .toggle-tile.tile-icon-start {
+    direction: var(--aboc-direction, ltr);
+  }
+
+  .toggle-tile.tile-icon-right {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .toggle-tile.tile-icon-right > .icon-bubble {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .toggle-tile.tile-icon-right > .entity-main {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .toggle-tile.tile-icon-center {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    align-content: center;
+    text-align: center;
+  }
+
+  .toggle-tile.tile-icon-center > .entity-main {
+    text-align: center;
+  }
+
+  .toggle-tile.tile-shape-square {
+    aspect-ratio: 1;
+    min-height: 0;
+    align-content: center;
   }
 
   .hold-target {
@@ -1294,6 +1366,38 @@ export const overviewCardStyles = css`
     gap: 7px;
     min-height: max(92px, var(--aboc-row-height));
     padding: 8px 10px;
+  }
+
+  .section-lights_switches .light-card {
+    grid-column: 1 / -1;
+  }
+
+  .light-card.tile-icon-left .entity-lead,
+  .light-card.tile-icon-right .entity-lead {
+    direction: ltr;
+  }
+
+  .light-card.tile-icon-right .entity-lead {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .light-card.tile-icon-right .entity-lead .icon-bubble {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .light-card.tile-icon-right .entity-lead .entity-main {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .light-card.tile-icon-center .entity-lead {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+  }
+
+  .light-card.tile-icon-center .entity-lead .entity-main {
+    text-align: center;
   }
 
   .light-card.active {
@@ -1686,13 +1790,13 @@ export const overviewCardStyles = css`
       font-size: 12px;
     }
 
-    .area-summary-pill.compact-statuses .temperature-climate-tag {
+    .area-summary-pill.compact-statuses .temperature-status-tag {
       width: 22px;
       height: 22px;
       margin-inline-start: 0;
     }
 
-    .area-summary-pill.compact-statuses .temperature-climate-tag ha-icon {
+    .area-summary-pill.compact-statuses .temperature-status-tag ha-icon {
       --mdc-icon-size: 13px;
     }
 
@@ -1886,12 +1990,12 @@ export const overviewCardStyles = css`
       --mdc-icon-size: min(var(--aboc-quick-action-icon-size), 16px);
     }
 
-    .area-summary-pill.compact-statuses .temperature-climate-tag {
+    .area-summary-pill.compact-statuses .temperature-status-tag {
       width: 18px;
       height: 18px;
     }
 
-    .area-summary-pill.compact-statuses .temperature-climate-tag ha-icon {
+    .area-summary-pill.compact-statuses .temperature-status-tag ha-icon {
       --mdc-icon-size: 11px;
     }
 
@@ -1920,7 +2024,7 @@ export const overviewCardStyles = css`
 
     .area-summary.without-expand-button .area-statuses {
       max-width: none;
-      flex: 0 1 auto;
+      flex: 1 1 0;
     }
 
     .area-summary.without-expand-button .quick-actions {

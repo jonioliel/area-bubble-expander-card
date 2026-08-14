@@ -133,9 +133,9 @@ describe("overview header presentation contracts", () => {
     expect(cssText).toMatch(/\.area-panel\.expanded\.has-active\s*\{[^}]*background:\s*var\(--aboc-active-surface\)/s);
   });
 
-  it("styles the climate count as a compact tag attached to temperature", () => {
-    expect(cssText).toMatch(/\.temperature-climate-tag\s*\{[^}]*display:\s*inline-flex;[^}]*width:\s*26px;[^}]*height:\s*26px/s);
-    expect(cssText).toMatch(/\.temperature-climate-tag::before\s*\{[^}]*inset:\s*-9px/s);
+  it("styles climate and fan state as compact tags attached to temperature", () => {
+    expect(cssText).toMatch(/\.temperature-status-tag\s*\{[^}]*display:\s*inline-flex;[^}]*width:\s*26px;[^}]*height:\s*26px/s);
+    expect(cssText).toMatch(/\.temperature-status-tag::before\s*\{[^}]*inset:\s*-9px/s);
   });
 
   it("supports a transparent card surface and mirrors cover rows in RTL", () => {

@@ -79,7 +79,7 @@ describe("Overview climate menus and typography", () => {
 
     const source = readFileSync(new URL("../src/overview/area-bubble-overview-card.ts", import.meta.url), "utf8");
     expect(source).toContain('activeQuickActions.filter(({ action }) => action !== "climate")');
-    expect(source).toContain('class="temperature-climate-tag temperature-${area.temperatureMode}"');
+    expect(source).toContain('class="temperature-status-tag temperature-${kind}-tag temperature-${area.temperatureMode}"');
     expect(source).not.toContain('<span>${activeClimateCount}</span>');
     expect(source).toContain('this.openQuickActionPopup(event, area, "climate")');
   });

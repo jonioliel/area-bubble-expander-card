@@ -48,15 +48,15 @@ describe("Overview 0.10 compact summary contracts", () => {
   const css = overviewCardStyles.cssText;
 
   it("keeps temperature and its climate action in one non-overlapping cluster", () => {
-    expect(source).toContain('class="temperature-summary"');
-    expect(css).toMatch(/\.temperature-summary\s*\{[^}]*display:\s*inline-flex;[^}]*gap:\s*1px/s);
-    expect(css).toMatch(/\.temperature-climate-tag\s*\{[^}]*margin-inline-start:\s*0/s);
+    expect(source).toContain('class="temperature-summary tag-position-${this.config.climate_tag_position}"');
+    expect(css).toMatch(/\.temperature-summary\s*\{[^}]*display:\s*inline-flex;[^}]*gap:\s*var\(--aboc-temperature-tag-gap,\s*0px\)/s);
+    expect(css).toMatch(/\.temperature-status-tag\s*\{[^}]*margin-inline-start:\s*0/s);
   });
 
   it("shrinks dense mobile statuses before clipping them", () => {
     expect(css).toMatch(/@container overview-card \(max-width:\s*430px\)[\s\S]*?\.area-summary-pill\.has-statuses[\s\S]*?max-width:\s*96px/s);
     expect(css).toMatch(/@container overview-card \(max-width:\s*340px\)[\s\S]*?\.compact-statuses \.quick-action\s*\{[^}]*30px/s);
-    expect(css).toMatch(/@container overview-card \(max-width:\s*340px\)[\s\S]*?\.compact-statuses \.temperature-climate-tag\s*\{[^}]*width:\s*18px/s);
+    expect(css).toMatch(/@container overview-card \(max-width:\s*340px\)[\s\S]*?\.compact-statuses \.temperature-status-tag\s*\{[^}]*width:\s*18px/s);
   });
 
   it("routes the two active surfaces and room frame through separate theme variables", () => {

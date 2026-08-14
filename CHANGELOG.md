@@ -2,6 +2,15 @@
 
 All notable changes to Area Bubble Expander Card will be documented in this file.
 
+## 0.11.0 - 2026-08-15
+
+- Added a collapsed-room layout choice that keeps quick actions beside the Area name or moves them to the opposite logical edge, with correct RTL/LTR behavior.
+- Added attached climate and active-fan tags with left, right, above, or below placement plus an adjustable 0–20 px temperature gap; both open the existing climate popup.
+- Added global and per-device light/switch presentation controls: one to three tiles per row, rectangle or square tiles, left/right/center icons, optional state text, and Hebrew/English/automatic ON/OFF labels.
+- Added optional category-frame color linking to the Area frame with an adjustable lighter/darker shade while preserving explicit global and per-Area category colors.
+- Preserved full-width brightness sliders for dimmable lights while non-dimmable lights and switches follow the selected grid.
+- Expanded the regression suite to 163 tests and verified narrow 320 px and 390 px RTL layouts without horizontal overflow or control intersections.
+
 ## 0.10.0 - 2026-08-15
 
 - Rebalanced collapsed mobile summaries so the Area name gives priority to presence, active-category, and temperature controls; dense controls now shrink progressively at 430 px and 340 px instead of clipping each other.
