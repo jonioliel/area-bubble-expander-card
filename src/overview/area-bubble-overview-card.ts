@@ -1,7 +1,7 @@
 import { LitElement, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type { HomeAssistant } from "../types";
-import { callEntityService, quickActionEntities, runQuickAction } from "./actions";
+import { callEntityService, quickActionEntities, runQuickAction, runSectionOffAction, sectionActionEntities } from "./actions";
 import { resolveOverviewConfig, validateOverviewConfig } from "./config";
 import {
   CLIMATE_FEATURES,
@@ -10,7 +10,6 @@ import {
   OVERVIEW_CARD_TYPE,
   OVERVIEW_EDITOR_TAG,
   OVERVIEW_STORAGE_PREFIX,
-  QUICK_ACTION_ICONS,
   WATER_HEATER_FEATURES,
 } from "./constants";
 import { discoverOverview } from "./discovery";
@@ -42,6 +41,7 @@ export class AreaBubbleOverviewCard extends LitElement {
   @state() private expanded: Record<string, boolean> = {};
   @state() private floorExpanded = true;
   @state() private pendingActions = new Set<string>();
+  @state() private pendingSections = new Set<string>();
   @state() private pendingEntities = new Set<string>();
   @state() private error?: string;
   private storageId = "overview";
@@ -118,7 +118,7 @@ export class AreaBubbleOverviewCard extends LitElement {
             : html`
                 <div id=${floorContentId} ?hidden=${floorCanCollapse && !this.floorExpanded}>
                   ${discovery.areas.length
-                    ? html`<div class="areas">${discovery.areas.map((area) => this.renderArea(area))}</div>`
+                    ? this.renderAreaHierarchy(discovery.areas)
                     : this.renderEmpty(overviewText(this.hass, this.config, "no_areas"), "mdi:home-search-outline")}
                 </div>
               `}
@@ -157,6 +157,38 @@ export class AreaBubbleOverviewCard extends LitElement {
     return html`<div class="overview-heading"><span class="icon-bubble small"><ha-icon icon=${discovery.targetIcon}></ha-icon></span><div class="heading-main"><h2>${discovery.targetName}</h2></div></div>`;
   }
 
+  private renderAreaHierarchy(areas: OverviewArea[]) {
+    const byId = new Map(areas.map((area) => [area.id, area]));
+    const children = new Map<string, OverviewArea[]>();
+    const roots: OverviewArea[] = [];
+    for (const area of areas) {
+      if (area.parentAreaId && byId.has(area.parentAreaId)) {
+        const siblings = children.get(area.parentAreaId) ?? [];
+        siblings.push(area);
+        children.set(area.parentAreaId, siblings);
+      } else {
+        roots.push(area);
+      }
+    }
+    const visited = new Set<string>();
+    const renderNode = (area: OverviewArea): unknown => {
+      if (visited.has(area.id)) return nothing;
+      visited.add(area.id);
+      const nested = children.get(area.id) ?? [];
+      return html`
+        <div class="area-tree-node">
+          ${this.renderArea(area)}
+          ${nested.length
+            ? html`<div class="subareas" role="group" aria-label=${`${this.localText("תתי אזורים של", "Sub-areas of")} ${area.name}`}>${nested.map(renderNode)}</div>`
+            : nothing}
+        </div>
+      `;
+    };
+    const renderedRoots = roots.map(renderNode);
+    const renderedOrphans = areas.filter((area) => !visited.has(area.id)).map(renderNode);
+    return html`<div class="areas">${renderedRoots}${renderedOrphans}</div>`;
+  }
+
   private renderArea(area: OverviewArea) {
     if (!this.config) return nothing;
     const expanded = this.isExpanded(area);
@@ -168,6 +200,14 @@ export class AreaBubbleOverviewCard extends LitElement {
       : [];
     const hasOccupancy = this.config.show_occupancy && area.occupancy !== "none";
     const hasTemperature = this.config.show_temperature && area.temperature !== undefined;
+    const formattedTemperature = hasTemperature ? this.formatTemperature(area.temperature!, area.temperatureUnit) : "";
+    const temperatureModeLabel = {
+      none: this.localText("ללא מצב מיזוג", "No climate mode"),
+      off: this.localText("המיזוג כבוי", "Climate off"),
+      cool: this.localText("קירור", "Cooling"),
+      heat: this.localText("חימום", "Heating"),
+      active: this.localText("מצב מיזוג פעיל", "Climate active"),
+    }[area.temperatureMode];
     const denseActions = quickActions.length >= 3 || (quickActions.length >= 2 && hasOccupancy && hasTemperature);
     const responsiveActions =
       (quickActions.length >= 2 && hasTemperature) ||
@@ -199,7 +239,7 @@ export class AreaBubbleOverviewCard extends LitElement {
               ${this.renderOccupancy(area)}
               ${quickActions.length ? this.renderQuickActions(area, quickActions) : nothing}
               ${hasTemperature
-                ? html`<span class="temperature area-temperature">${this.formatTemperature(area.temperature!, area.temperatureUnit)}</span>`
+                ? html`<span class="temperature area-temperature temperature-${area.temperatureMode}" title=${`${formattedTemperature} · ${temperatureModeLabel}`} aria-label=${`${formattedTemperature} · ${temperatureModeLabel}`}>${formattedTemperature}</span>`
                 : nothing}
             </div>
           </div>
@@ -261,7 +301,7 @@ export class AreaBubbleOverviewCard extends LitElement {
               ?disabled=${pending}
               @click=${(event: Event) => this.handleQuickAction(event, area, action)}
             >
-              <ha-icon icon=${pending ? "mdi:loading" : QUICK_ACTION_ICONS[action]}></ha-icon>
+              <ha-icon icon=${pending ? "mdi:loading" : this.config!.quick_action_icons[action]}></ha-icon>
               ${entities.length ? html`<span class="count-badge">${entities.length}</span>` : nothing}
             </button>
           `;
@@ -272,12 +312,26 @@ export class AreaBubbleOverviewCard extends LitElement {
 
   private renderSection(section: OverviewSection, areaId: string) {
     const headingId = `overview-section-${section.id}-${areaId.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
+    const actionKey = `${areaId}:${section.id}`;
+    const targets = sectionActionEntities(section);
+    const pending = this.pendingSections.has(actionKey);
+    const actionVerb = section.id === "covers" ? this.localText("סגירת כל התריסים", "Close all covers") : this.localText("כיבוי כללי", "Turn everything off");
+    const actionLabel = `${actionVerb}: ${section.title} (${targets.length})`;
     return html`
       <section class="device-section section-${section.id}" aria-labelledby=${headingId}>
         <h3 class="section-heading" id=${headingId}>
           <ha-icon icon=${section.icon}></ha-icon>
-          <span>${section.title}</span>
+          <span class="section-title" title=${section.title}>${section.title}</span>
           <span class="section-count">${section.activeCount}/${section.entities.length}</span>
+          <button
+            class="section-off-button"
+            type="button"
+            title=${actionLabel}
+            aria-label=${actionLabel}
+            aria-busy=${pending}
+            ?disabled=${pending || targets.length === 0}
+            @click=${(event: Event) => this.handleSectionOff(event, section, areaId)}
+          ><ha-icon icon=${pending ? "mdi:loading" : section.id === "covers" ? "mdi:window-shutter-alert" : "mdi:power"}></ha-icon></button>
         </h3>
         <div class="section-entities">
           ${section.entities.length
@@ -694,6 +748,23 @@ export class AreaBubbleOverviewCard extends LitElement {
     }
   }
 
+  private async handleSectionOff(event: Event, section: OverviewSection, areaId: string): Promise<void> {
+    event.stopPropagation();
+    if (!this.hass) return;
+    const key = `${areaId}:${section.id}`;
+    if (this.pendingSections.has(key) || sectionActionEntities(section).length === 0) return;
+    this.pendingSections = new Set([...this.pendingSections, key]);
+    try {
+      await runSectionOffAction(this.hass, section);
+    } catch (error) {
+      this.reportError(error);
+    } finally {
+      const next = new Set(this.pendingSections);
+      next.delete(key);
+      this.pendingSections = next;
+    }
+  }
+
   private toggleEntity(event: Event, item: OverviewEntity): void {
     event.stopPropagation();
     const plan = entityPowerService(item, !item.powered);
@@ -823,6 +894,10 @@ export class AreaBubbleOverviewCard extends LitElement {
     this.style.setProperty("--area-bubble-overview-climate-color", style.climate_color);
     this.style.setProperty("--area-bubble-overview-cover-color", style.cover_color);
     this.style.setProperty("--area-bubble-overview-media-color", style.media_color);
+    this.style.setProperty("--area-bubble-overview-temperature-off-surface", style.temperature_off_surface);
+    this.style.setProperty("--area-bubble-overview-temperature-cool-surface", style.temperature_cool_surface);
+    this.style.setProperty("--area-bubble-overview-temperature-heat-surface", style.temperature_heat_surface);
+    this.style.setProperty("--area-bubble-overview-temperature-active-surface", style.temperature_active_surface);
     this.style.setProperty(
       "--area-bubble-overview-shadow",
       style.show_shadows ? `0 12px 30px rgba(0,0,0,${style.shadow_intensity})` : "none",

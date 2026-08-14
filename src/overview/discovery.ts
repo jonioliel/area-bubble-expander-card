@@ -7,6 +7,7 @@ import type {
   OverviewEntity,
   OccupancyCountSource,
   OverviewSectionId,
+  OverviewTemperatureMode,
   OccupancyState,
   ResolvedOverviewConfig,
 } from "./types";
@@ -89,6 +90,31 @@ export const isOverviewEntityPowered = (entity: HassEntity, domain = domainOf(en
   if (domain === "climate" || domain === "water_heater") return state !== "off";
   if (domain === "cover") return ["open", "opening", "closing"].includes(state);
   return state === "on";
+};
+
+export const overviewTemperatureMode = (entities: OverviewEntity[]): OverviewTemperatureMode => {
+  const climates = entities.filter((item) => item.domain === "climate" && item.section === "climate" && item.available);
+  if (!climates.length) return "none";
+  const modes = new Set<Exclude<OverviewTemperatureMode, "none">>();
+  for (const item of climates) {
+    const action = String(item.entity.attributes.hvac_action ?? "").toLowerCase();
+    const state = String(item.entity.state ?? "").toLowerCase();
+    if (action === "heating") modes.add("heat");
+    else if (action === "cooling") modes.add("cool");
+    else if (["drying", "fan"].includes(action)) modes.add("active");
+    else if (action === "off") modes.add("off");
+    else if (state === "heat") modes.add("heat");
+    else if (state === "cool") modes.add("cool");
+    else if (state === "off") modes.add("off");
+    else modes.add("active");
+  }
+  const operationalModes = [...modes].filter((mode) => mode !== "off");
+  if (!operationalModes.length) return "off";
+  if (new Set(operationalModes).size > 1) return "active";
+  if (modes.has("active")) return "active";
+  if (modes.has("heat")) return "heat";
+  if (modes.has("cool")) return "cool";
+  return "active";
 };
 
 const entityName = (hass: HomeAssistant | undefined, entity: HassEntity, override?: string): string =>
@@ -279,10 +305,12 @@ const createArea = (
     name: override?.name ?? registryArea?.name ?? areaId,
     icon: override?.icon ?? registryArea?.icon ?? "mdi:floor-plan",
     floorId: registryArea?.floor_id ?? undefined,
+    parentAreaId: override?.parent_area,
     sections,
     allEntities: entities,
     temperature: temperature.temperature,
     temperatureUnit: temperature.unit ?? hass?.config?.unit_system?.temperature ?? "°C",
+    temperatureMode: overviewTemperatureMode(entities),
     occupancy: occupancy.occupancy,
     occupancyCount: occupancy.count,
     occupancyCountSource: occupancy.countSource,
@@ -325,15 +353,55 @@ export const discoverOverview = (hass: HomeAssistant | undefined, config: Resolv
     const index = config.area_order.findIndex((item) => item === id || item === name);
     return index < 0 ? Number.MAX_SAFE_INTEGER : index;
   };
-  const areas = target.ids
+  const discoveredAreas = target.ids
     .map((areaId) => createArea(hass, config, areaId, registry.get(areaId), entitiesByArea.get(areaId) ?? []))
     .filter((area): area is OverviewArea => Boolean(area))
     .sort((a, b) => areaOrderIndex(a.id, a.name) - areaOrderIndex(b.id, b.name) || a.name.localeCompare(b.name));
+  const references = new Map<string, string>();
+  const aliases = new Map<string, Set<string>>();
+  const registerAlias = (alias: string | undefined, areaId: string): void => {
+    if (!alias) return;
+    const matches = aliases.get(alias) ?? new Set<string>();
+    matches.add(areaId);
+    aliases.set(alias, matches);
+  };
+  for (const area of discoveredAreas) {
+    references.set(area.id, area.id);
+    registerAlias(area.name, area.id);
+    const registryName = registry.get(area.id)?.name;
+    registerAlias(registryName, area.id);
+  }
+  for (const [alias, matches] of aliases) {
+    if (matches.size === 1 && !references.has(alias)) references.set(alias, [...matches][0]);
+  }
+  const normalizedAreas = discoveredAreas.map((area) => {
+    const parentAreaId = area.parentAreaId ? references.get(area.parentAreaId) : undefined;
+    return { ...area, parentAreaId: parentAreaId && parentAreaId !== area.id ? parentAreaId : undefined };
+  });
+  const parentById = new Map(normalizedAreas.filter((area) => area.parentAreaId).map((area) => [area.id, area.parentAreaId!]));
+  const cyclic = new Set<string>();
+  for (const area of normalizedAreas) {
+    const path: string[] = [];
+    const positions = new Map<string, number>();
+    let current: string | undefined = area.id;
+    while (current) {
+      const position = positions.get(current);
+      if (position !== undefined) {
+        for (const member of path.slice(position)) cyclic.add(member);
+        break;
+      }
+      positions.set(current, path.length);
+      path.push(current);
+      current = parentById.get(current);
+    }
+  }
+  const areas = normalizedAreas.map((area) => cyclic.has(area.id) ? { ...area, parentAreaId: undefined } : area);
+  const hierarchyWarnings = cyclic.size ? [`Area parent cycle ignored: ${[...cyclic].join(", ")}`] : [];
   return {
     areas,
     targetName: config.title || target.targetName,
     targetIcon: target.targetIcon,
     targetKind: target.kind,
-    warnings: target.warnings,
+    warnings: [...target.warnings, ...hierarchyWarnings],
   };
 };

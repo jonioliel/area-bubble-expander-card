@@ -1,4 +1,4 @@
-import { OVERVIEW_CARD_TYPE, OVERVIEW_DEFAULT_CONFIG, OVERVIEW_DEFAULT_STYLE, OVERVIEW_SECTIONS } from "./constants";
+import { OVERVIEW_CARD_TYPE, OVERVIEW_DEFAULT_CONFIG, OVERVIEW_DEFAULT_STYLE, OVERVIEW_SECTIONS, QUICK_ACTION_ICONS } from "./constants";
 import type {
   AreaBubbleOverviewCardConfig,
   OverviewAreaOverride,
@@ -42,6 +42,16 @@ const quickActionArray = (value: unknown): OverviewQuickActionId[] => {
   return [...new Set(stringArray(value).filter((item): item is OverviewQuickActionId => allowed.has(item as OverviewQuickActionId)))];
 };
 
+const quickActionIcons = (value: unknown): Record<OverviewQuickActionId, string> => {
+  const raw = isRecord(value) ? value : {};
+  return Object.fromEntries(
+    (Object.keys(QUICK_ACTION_ICONS) as OverviewQuickActionId[]).map((action) => {
+      const custom = typeof raw[action] === "string" ? raw[action].trim() : "";
+      return [action, custom || QUICK_ACTION_ICONS[action]];
+    }),
+  ) as Record<OverviewQuickActionId, string>;
+};
+
 const areaOverrides = (value: unknown): Record<string, OverviewAreaOverride> => {
   if (!isRecord(value)) return {};
   const result: Record<string, OverviewAreaOverride> = {};
@@ -50,6 +60,7 @@ const areaOverrides = (value: unknown): Record<string, OverviewAreaOverride> => 
     result[areaId] = {
       ...(typeof raw.name === "string" && raw.name.trim() ? { name: raw.name.trim() } : {}),
       ...(typeof raw.icon === "string" && raw.icon.trim() ? { icon: raw.icon.trim() } : {}),
+      ...(typeof raw.parent_area === "string" && raw.parent_area.trim() ? { parent_area: raw.parent_area.trim() } : {}),
       ...(typeof raw.hidden === "boolean" ? { hidden: raw.hidden } : {}),
       ...(typeof raw.default_expanded === "boolean" ? { default_expanded: raw.default_expanded } : {}),
       ...(typeof raw.temperature_entity === "string" && raw.temperature_entity.trim() ? { temperature_entity: raw.temperature_entity.trim() } : {}),
@@ -100,6 +111,7 @@ export const resolveOverviewConfig = (config: AreaBubbleOverviewCardConfig): Res
       OVERVIEW_SECTIONS.map((section) => [section, typeof customTitles[section] === "string" ? customTitles[section] : ""]),
     ) as Record<OverviewSectionId, string>,
     quick_actions: quickActionArray(config.quick_actions ?? merged.quick_actions),
+    quick_action_icons: quickActionIcons(config.quick_action_icons),
     area_order: stringArray(config.area_order),
     floor_heating_labels: stringArray(merged.floor_heating_labels),
     floor_heating_entities: stringArray(merged.floor_heating_entities),

@@ -67,6 +67,10 @@ export const OVERVIEW_DEFAULT_STYLE: Required<OverviewStyleConfig> = {
   climate_color: "var(--state-climate-cool-color, #2196f3)",
   cover_color: "var(--state-cover-active-color, #00bcd4)",
   media_color: "var(--state-media-player-active-color, #9c27b0)",
+  temperature_off_surface: "rgba(11, 28, 58, 0.94)",
+  temperature_cool_surface: "rgba(34, 113, 196, 0.96)",
+  temperature_heat_surface: "rgba(198, 83, 47, 0.96)",
+  temperature_active_surface: "rgba(91, 86, 168, 0.96)",
 };
 
 export const OVERVIEW_DEFAULT_CONFIG: AreaBubbleOverviewCardConfig = {
@@ -85,6 +89,7 @@ export const OVERVIEW_DEFAULT_CONFIG: AreaBubbleOverviewCardConfig = {
   remember_expanded_state: true,
   section_order: OVERVIEW_SECTIONS,
   quick_actions: OVERVIEW_QUICK_ACTIONS,
+  quick_action_icons: {},
   area_order: [],
   floor_heating_labels: ["floor_heating", "underfloor_heating"],
   floor_heating_entities: [],

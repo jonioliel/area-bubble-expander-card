@@ -16,10 +16,13 @@ Both cards are delivered by the same JavaScript resource. Install it once, then 
 - Temperature priority: configured source, HA Area source, median temperature sensors, then climate devices
 - Numeric occupancy from a count entity, with active presence-sensor count as a fallback
 - Quick off/close actions available while an Area is collapsed
+- Safe off/close actions on every expanded section heading
 - Tap controls directly and long-press an entity for Home Assistant More Info
 - Dedicated climate, cover, light/switch, and media controls inside each expanded Area
 - Floor-heating discovery using Labels, explicit entity lists, or per-entity section overrides
 - Custom Floor/Area/entity icons, Area and section names, and stable priority ordering
+- Visual parent/child Area nesting with independent child state and controls
+- Editable quick-action icons and climate-aware room-temperature colors
 - Per-Area entity exclusion that also removes the entity from activity, color, and summary calculations
 - Visual editors in a Home Assistant-style vertical layout
 - Hebrew and English editors, automatic/forced RTL, mobile layouts, and keyboard accessibility
@@ -93,6 +96,18 @@ In Floor mode, press the Floor header to collapse or reveal the complete Area li
 
 A normal tap keeps the control's primary behavior. Long-press an entity control for about half a second to open Home Assistant's More Info dialog without accidentally toggling it. Moving the pointer to scroll cancels the hold gesture; entity names remain directly accessible by mouse and keyboard.
 
+### Visual sub-Areas
+
+In Floor mode, one Area can be displayed beneath another Area. For example, this places the Parents bathroom under the Parents bedroom:
+
+```yaml
+area_overrides:
+  parents_bathroom:
+    parent_area: parents_bedroom
+```
+
+`parent_area` is a visual relationship only. The child Area keeps its own entity discovery, active color, summaries, expansion state, and actions, and it does not make the parent Area active. The visual editor stores stable Area IDs and prevents self-parenting and cycles. A missing, hidden, or out-of-target parent safely leaves the Area at the Floor root.
+
 ### Default expanded order
 
 1. Climate
@@ -115,6 +130,18 @@ The displayed temperature is selected in this order:
 4. The median `current_temperature` of Area climate entities
 
 Select the preferred source directly in the visual editor when automatic discovery is not the desired result.
+
+The temperature chip also reflects the state of an available climate entity in the Area. It uses a neutral surface while the climate is off, blue while cooling, warm orange while heating, and a separate active surface for fan, dry, mixed, or otherwise active HVAC operation. These colors can be changed in the Appearance editor or YAML:
+
+```yaml
+style:
+  temperature_off_surface: rgba(11, 28, 58, 0.94)
+  temperature_cool_surface: rgba(34, 113, 196, 0.96)
+  temperature_heat_surface: rgba(198, 83, 47, 0.96)
+  temperature_active_surface: rgba(91, 86, 168, 0.96)
+```
+
+Unavailable climate entities do not produce an active temperature color. When several climate entities are active in different modes, the general active surface is used instead of presenting one mode as authoritative.
 
 ### Occupancy
 
@@ -187,7 +214,17 @@ quick_actions:
   - switches
   - covers
   - media
+
+quick_action_icons:
+  lights: mdi:lightbulb-group
+  switches: mdi:lightbulb
+  climate: mdi:air-conditioner
+  floor_heating: mdi:heating-coil
+  covers: mdi:window-shutter
+  media: mdi:music
 ```
+
+`quick_action_icons` is optional and may contain only the actions you want to customize. Empty or invalid values fall back to the card's built-in icon. The visual editor provides an icon picker and reset action for every enabled quick action.
 
 Safety behavior:
 
@@ -197,6 +234,12 @@ Safety behavior:
 - Hidden, excluded, unavailable, and protected entities are omitted.
 - Buttons are disabled while an action is in flight, and partial failures produce a Home Assistant notification.
 - `protected` applies to group actions; direct controls remain available after intentionally expanding the Area.
+
+### Section-wide off and close actions
+
+Every expanded section heading has a group action, so a complete category can be stopped without operating each tile. Climate, floor heating, lights/switches, and media use their safe off service; covers use close. The button is disabled when the section has no controllable targets and while its request is running.
+
+Section actions follow the same safety boundary as header quick actions: hidden or Area-excluded entities never participate, and unavailable, protected, or unsupported entities are skipped. Service calls are grouped by Domain and target only the remaining discovered Entity IDs; one unsupported device does not prevent other valid devices in the section from being controlled.
 
 ### Excluding an entity from one Area
 
@@ -209,7 +252,9 @@ area_overrides:
       - switch.kids_room_always_on
 ```
 
-An excluded entity is removed from the Area tiles, active count, active/inactive Area color, quick actions, and automatic temperature/occupancy summaries. This prevents a permanently-on switch from making the room look active. The visual editor keeps excluded entities available in a muted **Removed** list so they can be restored without editing YAML. Top-level `exclude_entities` and `entity_overrides.<entity>.hidden: true` remain available for global removal.
+An excluded entity is removed from the Area tiles, active count, active/inactive Area color, section and header quick actions, and automatic temperature/occupancy summaries. This prevents a permanently-on switch or main floor-heating relay from making the room look active. The visual editor gives every discovered device a complete hide action and keeps locally hidden devices as muted, restorable entries so they can be restored without editing YAML.
+
+Hiding from one Area changes only that Area's `exclude_entities` list and preserves configured temperature and occupancy references for later restoration. Top-level `exclude_entities` and `entity_overrides.<entity>.hidden: true` remain available for deliberate global removal; an Area-level restore does not silently override those global safety rules.
 
 ### On/off colors
 
@@ -242,6 +287,18 @@ default_expanded: false
 floor_default_expanded: true
 remember_expanded_state: true
 
+quick_actions:
+  - lights
+  - climate
+  - floor_heating
+  - switches
+  - covers
+  - media
+quick_action_icons:
+  lights: mdi:lightbulb-group
+  switches: mdi:lightbulb
+  climate: mdi:air-conditioner
+
 section_order:
   - climate
   - floor_heating
@@ -260,6 +317,7 @@ area_order:
   - kids_room
   - library
   - parents_room
+  - parents_bathroom
 
 floor_heating_labels:
   - floor_heating
@@ -291,6 +349,9 @@ area_overrides:
       lights_switches:
         - light.kids_ceiling
         - switch.kids_night_light
+  parents_bathroom:
+    parent_area: parents_room
+    icon: mdi:shower
 
 entity_overrides:
   switch.kids_floor_heating:
@@ -313,6 +374,10 @@ style:
   active_surface: rgba(174, 215, 219, 0.94)
   climate_surface: rgba(139, 181, 255, 0.94)
   control_surface: rgba(11, 28, 58, 0.94)
+  temperature_off_surface: rgba(11, 28, 58, 0.94)
+  temperature_cool_surface: rgba(34, 113, 196, 0.96)
+  temperature_heat_surface: rgba(198, 83, 47, 0.96)
+  temperature_active_surface: rgba(91, 86, 168, 0.96)
 ```
 
 ### Overview configuration reference
@@ -334,6 +399,7 @@ style:
 | `section_order` | standard five sections | Priority order; missing built-in sections are appended safely. |
 | `section_titles` | localized | Global section headings. |
 | `quick_actions` | all six | Enabled actions in display order. |
+| `quick_action_icons` | built-in action icons | Optional icon map for `lights`, `switches`, `climate`, `floor_heating`, `covers`, and `media`. |
 | `area_order` | Area name | Priority list; newly discovered Areas append automatically. |
 | `floor_heating_labels` | common labels | Labels used for explicit heating classification. |
 | `floor_heating_entities` | `[]` | Explicit floor-heating entities. |
@@ -342,6 +408,7 @@ style:
 | `protected_labels` / `protected_entities` | safe defaults / `[]` | Excluded from quick group actions. |
 | `area_overrides` | `{}` | Area name/icon, temperature source, numeric occupancy source, headings, inclusion/exclusion, and order. |
 | `area_overrides.<area>.icon` | registry/fallback icon | Overrides one Area row icon. |
+| `area_overrides.<area>.parent_area` | none | Visually nests one Floor Area under another without combining state, summaries, or actions. |
 | `area_overrides.<area>.occupancy_count_entity` | none | Authoritative numeric people-count entity; zero is vacant. |
 | `area_overrides.<area>.occupancy_entities` | automatic | Presence sensors to count when no numeric count entity is selected. |
 | `area_overrides.<area>.exclude_entities` | `[]` | Removes entities from display and every Area state/summary calculation. |
@@ -352,6 +419,10 @@ style:
 | `style.active_surface` | pale cyan | Active light/switch tile background. |
 | `style.climate_surface` | soft blue | Active climate-controller background. |
 | `style.control_surface` | dark navy | Temperature, mode, fan, and thermostat control pills. |
+| `style.temperature_off_surface` | dark navy | Room-temperature chip when every climate device is off. |
+| `style.temperature_cool_surface` | blue | Room-temperature chip while cooling. |
+| `style.temperature_heat_surface` | warm orange | Room-temperature chip while heating. |
+| `style.temperature_active_surface` | violet | Room-temperature chip for another active or mixed HVAC mode. |
 
 Entity and Area order lists are priority lists, not frozen inventories. New Home Assistant entities that are not yet listed are appended automatically.
 
@@ -403,11 +474,14 @@ The Overview editor provides:
 - Collapsible Floor defaults plus independently remembered Floor/Area expansion
 - Summary, temperature, numeric occupancy, sensor fallback, and quick-action settings
 - Section title and order editing
-- Floor Area order and per-Area overrides
+- Floor Area order, cycle-safe parent/child nesting, and per-Area overrides
 - Floor/Area/entity icon pickers with registry fallbacks
+- Quick-action icon pickers with built-in fallbacks and one-click reset
 - Preferred temperature, occupancy-count, and occupancy sensor selection
-- Entity visibility/removal, restoration, section assignment, names, protection, and priority order
-- Convenient on/off color pickers with CSS-value inputs, reset actions, and a live preview
+- Complete per-Area entity hiding/restoration that also excludes hidden devices from state, color, summaries, and group actions
+- Entity section assignment, names, icons, protection, and priority order
+- Convenient on/off and HVAC temperature-state color pickers with CSS-value inputs, reset actions, and live previews
+- Safe section-heading off/close controls that honor exclusion, availability, capability, and protection rules
 - Hebrew/English, RTL, responsive appearance, long-press More Info, and advanced safety lists
 
 The What's-on-now editor provides a Home Assistant-style vertical navigation layout with live Area/Entity/Label pickers, accessible reordering, and local JSON drafts. Invalid JSON is never emitted to Home Assistant; it remains an editor draft with an inline error until corrected or reset.

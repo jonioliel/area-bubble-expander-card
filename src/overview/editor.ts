@@ -101,15 +101,20 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
     .icon-button[disabled], .small-button[disabled] { cursor: not-allowed; opacity: .4; }
     .inline-fields { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
     .area-card { display: grid; gap: 10px; padding: 10px; border: 1px solid var(--divider-color); border-radius: 12px; }
+    .area-card.child { margin-inline-start: 18px; border-inline-start: 3px solid color-mix(in srgb, var(--primary-color) 44%, var(--divider-color)); }
     .area-card.hidden { opacity: .62; }
     .area-line { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 9px; }
     .area-actions { display: flex; align-items: center; gap: 4px; }
     .entity-toolbar { position: sticky; top: 0; z-index: 2; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding-block: 4px; background: var(--card-background-color); }
     .entity-list { display: grid; gap: 8px; max-height: 560px; overflow: auto; padding-inline-end: 2px; }
-    .entity-item { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 9px; padding: 10px; border: 1px solid var(--divider-color); border-radius: 12px; background: var(--secondary-background-color); }
+    .entity-item { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 9px; padding: 10px; border: 1px solid var(--divider-color); border-radius: 12px; background: var(--secondary-background-color); }
     .entity-item.active { border-color: color-mix(in srgb, var(--primary-color) 45%, var(--divider-color)); }
     .entity-item.excluded { border-style: dashed; opacity: .68; }
     .entity-item.excluded .order-icon { color: var(--secondary-text-color); background: color-mix(in srgb, var(--secondary-text-color) 10%, transparent); }
+    .visibility-button { display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border: 1px solid var(--divider-color); border-radius: 10px; background: var(--card-background-color); color: var(--error-color, #db4437); cursor: pointer; }
+    .visibility-button.restore { color: var(--success-color, #4caf50); }
+    .visibility-button[disabled] { cursor: not-allowed; opacity: .45; }
+    .quick-action-icon-field { grid-column: 1 / -1; width: 100%; }
     .entity-fields { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .entity-flags { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 12px; }
     .check-label { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; }
@@ -267,13 +272,24 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
             ${[...resolved.quick_actions, ...OVERVIEW_QUICK_ACTIONS.filter((action) => !resolved.quick_actions.includes(action))].map((action) => {
               const enabled = resolved.quick_actions.includes(action);
               const index = resolved.quick_actions.indexOf(action);
+              const configuredIcon = this.config.quick_action_icons?.[action];
+              const customIcon = typeof configuredIcon === "string" ? configuredIcon : "";
               return html`
                 <div class="order-item">
-                  <span class="order-icon"><ha-icon icon=${QUICK_ACTION_ICONS[action]}></ha-icon></span>
+                  <span class="order-icon"><ha-icon icon=${resolved.quick_action_icons[action]}></ha-icon></span>
                   <div class="order-main"><div class="order-title">${this.quickName(action, language)}</div></div>
                   <div class="area-actions">
                     ${enabled ? this.orderButtons(index, resolved.quick_actions.length, () => this.moveQuickAction(action, -1), () => this.moveQuickAction(action, 1)) : nothing}
                     ${this.switchControl(enabled, (checked) => this.toggleQuickAction(action, checked), this.quickName(action, language))}
+                  </div>
+                  <div class="quick-action-icon-field">
+                    ${this.iconField(
+                      `${this.l("אייקון פעולה", "Action icon", language)} · ${this.quickName(action, language)}`,
+                      customIcon,
+                      QUICK_ACTION_ICONS[action],
+                      language,
+                      (value) => this.setQuickActionIcon(action, value),
+                    )}
                   </div>
                 </div>
               `;
@@ -295,7 +311,11 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
         ${this.summary("mdi:floor-plan", this.l("אזורים בקומה", "Areas", language), this.l("סדר, כותרת, אייקון וחיישנים מועדפים", "Order, title, icon, and preferred sensors", language))}
         <div class="panel">
           ${areas.length
-            ? html`<div class="order-list">${areas.map((area, index) => this.renderAreaEditor(area, index, areas.length, resolved, entitiesByArea.get(area.id) ?? [], language))}</div>`
+            ? html`<div class="order-list">${areas.map((area) => {
+                const parentId = this.normalizedParentId(area.id, resolved);
+                const siblings = areas.filter((candidate) => this.normalizedParentId(candidate.id, resolved) === parentId);
+                return this.renderAreaEditor(area, siblings.findIndex((candidate) => candidate.id === area.id), siblings.length, resolved, entitiesByArea.get(area.id) ?? [], language);
+              })}</div>`
             : html`<div class="empty">${this.l("בחרו יעד כדי לערוך אזורים", "Choose a target to edit its areas", language)}</div>`}
         </div>
       </details>
@@ -323,8 +343,15 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
       const domain = item.entity_id.split(".")[0];
       return ["sensor", "input_number", "counter"].includes(domain ?? "") && (Number.isFinite(Number(item.state)) || item.entity_id === override.occupancy_count_entity);
     });
+    const parentOptions = this.targetAreas(resolved).filter((candidate) => {
+      const candidateOverride = resolved.area_overrides[candidate.id] ?? resolved.area_overrides[candidate.name];
+      return candidate.id !== area.id && candidateOverride?.hidden !== true && !this.wouldCreateAreaCycle(area.id, candidate.id, resolved);
+    });
+    const parentValue = override.parent_area
+      ? this.areaOptions().find((candidate) => candidate.id === override.parent_area || candidate.name === override.parent_area)?.id ?? ""
+      : "";
     return html`
-      <div class="area-card ${override.hidden ? "hidden" : ""}">
+      <div class="area-card ${override.hidden ? "hidden" : ""} ${parentValue ? "child" : ""}">
         <div class="area-line">
           <span class="order-icon"><ha-icon icon=${override.icon ?? area.icon}></ha-icon></span>
           <button type="button" class="segment ${selected ? "active" : ""}" @click=${() => (this.activeAreaId = area.id)}>
@@ -340,6 +367,14 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
               <div class="inline-fields">
                 <div class="field"><label>${this.l("שם מותאם", "Custom name", language)}</label><input type="text" .value=${override.name ?? ""} placeholder=${area.name} @change=${(event: Event) => this.updateAreaOverride(area.id, { name: (event.target as HTMLInputElement).value || undefined })} /></div>
                 ${this.iconField(this.l("אייקון האזור", "Area icon", language), override.icon ?? "", area.icon, language, (value) => this.updateAreaOverride(area.id, { icon: value || undefined }))}
+              </div>
+              <div class="field">
+                <label>${this.l("תת־אזור של", "Parent area", language)}</label>
+                <select .value=${parentValue} @change=${(event: Event) => this.updateAreaOverride(area.id, { parent_area: (event.target as HTMLSelectElement).value || undefined })}>
+                  <option value="">${this.l("ללא אזור אב", "No parent area", language)}</option>
+                  ${parentOptions.map((candidate) => html`<option value=${candidate.id}>${candidate.name}</option>`)}
+                </select>
+                <div class="hint">${this.l("הקשר הוא חזותי בלבד; המצב והפעולות של כל אזור נשארים עצמאיים.", "Nesting is visual only; every area's state and actions remain independent.", language)}</div>
               </div>
               <div class="field">
                 <label>${this.l("מקור טמפרטורה מועדף", "Preferred temperature source", language)}</label>
@@ -394,7 +429,7 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
             <select .value=${areaId} @change=${(event: Event) => (this.activeAreaId = (event.target as HTMLSelectElement).value)}>${areas.map((item) => html`<option value=${item.id}>${item.name}</option>`)}</select>
             <input type="search" placeholder=${this.l("חיפוש רכיב", "Search devices", language)} .value=${this.entitySearch} @input=${(event: Event) => (this.entitySearch = (event.target as HTMLInputElement).value)} />
           </div>
-          <div class="hint">${this.l("שינוי סעיף הוא הדרך המומלצת לזהות חימום רצפתי או לתקן גילוי אוטומטי.", "Change a section to identify floor heating or correct automatic discovery.", language)}</div>
+          <div class="hint">${this.l("לכל רכיב יש כפתור הסתרה מלא. רכיב מוסתר נשאר כאן לשחזור, אך אינו מוצג ואינו משפיע על צבע, מונים או פעולות האזור.", "Every device has a complete hide control. Hidden devices remain here for restore, but do not appear or affect area color, counts, or actions.", language)}</div>
           ${candidates.length
             ? html`
                 <div class="area-card">
@@ -427,17 +462,30 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
                    const sectionEntities = editableEntities.filter((entity) => entity.section === item.section);
                    const index = sectionEntities.findIndex((entity) => entity.entityId === item.entityId);
                    const excluded = this.isEntityExcluded(areaId, item.entityId, resolved);
+                   const globallyExcluded = this.isEntityGloballyExcluded(item.entityId, resolved);
+                   const visibilityLabel = globallyExcluded
+                     ? this.l("מוסתר גלובלית — ניתן לשנות במתקדם", "Globally hidden — change it in Advanced", language)
+                     : excluded
+                       ? this.l("החזר רכיב לאזור", "Restore device to area", language)
+                       : this.l("הסתר רכיב לחלוטין מהאזור", "Hide device completely from area", language);
                    return html`
                     <div class="entity-item ${!excluded && item.active ? "active" : ""} ${excluded ? "excluded" : ""}">
                       <span class="order-icon"><ha-icon icon=${override.icon ?? item.icon}></ha-icon></span>
-                      <div class="order-main"><div class="order-title">${override.name || item.name}</div><div class="meta">${item.entityId}${excluded ? ` · ${this.l("מוסר מהאזור", "removed from area", language)}` : ""}</div></div>
+                      <div class="order-main"><div class="order-title">${override.name || item.name}</div><div class="meta">${item.entityId}${excluded ? ` · ${globallyExcluded ? this.l("מוסתר גלובלית", "globally hidden", language) : this.l("מוסר מהאזור", "removed from area", language)}` : ""}</div></div>
+                      <button
+                        class="visibility-button ${excluded ? "restore" : ""}"
+                        type="button"
+                        title=${visibilityLabel}
+                        aria-label=${`${visibilityLabel}: ${item.name}`}
+                        ?disabled=${globallyExcluded}
+                        @click=${() => this.setEntityVisible(areaId, item.entityId, excluded)}
+                      ><ha-icon icon=${excluded ? "mdi:restore" : "mdi:eye-off-outline"}></ha-icon></button>
                       <div class="entity-fields">
                         <div class="field"><label>${this.l("שם מותאם", "Custom name", language)}</label><input type="text" .value=${override.name ?? ""} placeholder=${item.name} @change=${(event: Event) => this.updateEntityOverride(item.entityId, { name: (event.target as HTMLInputElement).value || undefined })} /></div>
                         <div class="field"><label>${this.l("סעיף", "Section", language)}</label><select .value=${override.section ?? item.section} @change=${(event: Event) => this.updateEntityOverride(item.entityId, { section: (event.target as HTMLSelectElement).value as OverviewSectionId })}>${OVERVIEW_SECTIONS.map((section) => html`<option value=${section}>${this.sectionDefaultName(section, language)}</option>`)}</select></div>
                         ${this.iconField(this.l("אייקון הרכיב", "Device icon", language), override.icon ?? "", item.icon, language, (value) => this.updateEntityOverride(item.entityId, { icon: value || undefined }))}
                       </div>
                       <div class="entity-flags">
-                        <label class="check-label"><input type="checkbox" .checked=${!excluded} @change=${(event: Event) => this.setEntityVisible(areaId, item.entityId, (event.target as HTMLInputElement).checked)} />${this.l("הצג וספור במצב האזור", "Show and include in area state", language)}</label>
                         <label class="check-label"><input type="checkbox" .checked=${override.protected ?? item.protected} @change=${(event: Event) => this.updateEntityOverride(item.entityId, { protected: (event.target as HTMLInputElement).checked })} />${this.l("מוגן מכיבוי קבוצתי", "Protect from group off", language)}</label>
                         ${this.orderButtons(index, sectionEntities.length, () => this.moveEntity(areaId, item.section, item.entityId, -1, sectionEntities.map((entity) => entity.entityId)), () => this.moveEntity(areaId, item.section, item.entityId, 1, sectionEntities.map((entity) => entity.entityId)))}
                       </div>
@@ -472,6 +520,10 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
             ${this.colorField(this.l("רקע דלוק", "ON surface", language), "active_surface", resolved.style.active_surface, "#aed7db", language)}
             ${this.colorField(this.l("צבע תג פעיל", "Active count badge", language), "active_color", resolved.style.active_color, "#ffd54f", language)}
             ${this.colorField(this.l("צבע הדגשה", "Accent color", language), "accent_color", resolved.style.accent_color, "#03a9f4", language)}
+            ${this.colorField(this.l("טמפרטורה — מיזוג כבוי", "Temperature — climate off", language), "temperature_off_surface", resolved.style.temperature_off_surface, "#0b1c3a", language)}
+            ${this.colorField(this.l("טמפרטורה — קירור", "Temperature — cooling", language), "temperature_cool_surface", resolved.style.temperature_cool_surface, "#2271c4", language)}
+            ${this.colorField(this.l("טמפרטורה — חימום", "Temperature — heating", language), "temperature_heat_surface", resolved.style.temperature_heat_surface, "#c6532f", language)}
+            ${this.colorField(this.l("טמפרטורה — מצב פעיל אחר", "Temperature — other active mode", language), "temperature_active_surface", resolved.style.temperature_active_surface, "#5b56a8", language)}
             ${this.colorField(this.l("רקע מזגן פעיל", "Active climate surface", language), "climate_surface", resolved.style.climate_surface, "#8bb5ff", language)}
             ${this.colorField(this.l("רקע פקדי גלולה", "Pill control surface", language), "control_surface", resolved.style.control_surface, "#0b1c3a", language)}
             ${this.colorField(this.l("צבע מיזוג", "Climate accent", language), "climate_color", resolved.style.climate_color, "#2196f3", language)}
@@ -713,9 +765,46 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
     this.commitKey("quick_actions", order);
   }
 
+  private setQuickActionIcon(action: OverviewQuickActionId, value: string): void {
+    const configured = this.config.quick_action_icons;
+    const icons = configured && typeof configured === "object" && !Array.isArray(configured) ? { ...configured } : {};
+    const normalized = value.trim();
+    if (normalized) icons[action] = normalized;
+    else delete icons[action];
+    this.commit({ ...this.config, quick_action_icons: icons });
+  }
+
+  private normalizedParentId(areaId: string, resolved: ResolvedOverviewConfig): string | undefined {
+    const options = this.targetAreas(resolved);
+    const area = options.find((candidate) => candidate.id === areaId);
+    const override = resolved.area_overrides[areaId] ?? resolved.area_overrides[area?.name ?? ""];
+    const raw = override?.parent_area;
+    if (!raw) return undefined;
+    return options.find((candidate) => candidate.id === raw || candidate.name === raw)?.id;
+  }
+
+  private wouldCreateAreaCycle(areaId: string, parentId: string, resolved: ResolvedOverviewConfig): boolean {
+    const seen = new Set<string>();
+    let current: string | undefined = parentId;
+    while (current && !seen.has(current)) {
+      if (current === areaId) return true;
+      seen.add(current);
+      current = this.normalizedParentId(current, resolved);
+    }
+    return false;
+  }
+
   private moveArea(areaId: string, direction: -1 | 1, resolved: ResolvedOverviewConfig): void {
-    const order = this.targetAreas(resolved).map((area) => area.id);
-    this.moveValue(order, areaId, direction);
+    const areas = this.targetAreas(resolved);
+    const parentId = this.normalizedParentId(areaId, resolved);
+    const siblings = areas.filter((area) => this.normalizedParentId(area.id, resolved) === parentId).map((area) => area.id);
+    const index = siblings.indexOf(areaId);
+    const swapId = siblings[index + direction];
+    if (index < 0 || !swapId) return;
+    const order = areas.map((area) => area.id);
+    const areaIndex = order.indexOf(areaId);
+    const swapIndex = order.indexOf(swapId);
+    [order[areaIndex], order[swapIndex]] = [order[swapIndex], order[areaIndex]];
     this.commitKey("area_order", order);
   }
 
@@ -766,6 +855,10 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
     return resolved.exclude_entities.includes(entityId) || Boolean(current.exclude_entities?.includes(entityId)) || resolved.entity_overrides[entityId]?.hidden === true;
   }
 
+  private isEntityGloballyExcluded(entityId: string, resolved: ResolvedOverviewConfig): boolean {
+    return resolved.exclude_entities.includes(entityId) || resolved.entity_overrides[entityId]?.hidden === true;
+  }
+
   private setEntityVisible(areaId: string, entityId: string, visible: boolean): void {
     const areaOverrides = { ...(this.config.area_overrides ?? {}) };
     const areaName = this.areaOptions().find((area) => area.id === areaId)?.name;
@@ -773,26 +866,9 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
     const localExcluded = [...(current.exclude_entities ?? [])].filter((item) => item !== entityId);
     if (!visible) localExcluded.push(entityId);
     const nextArea: OverviewAreaOverride = { ...current, exclude_entities: localExcluded };
-    if (!visible) {
-      if (nextArea.temperature_entity === entityId) delete nextArea.temperature_entity;
-      if (nextArea.occupancy_count_entity === entityId) delete nextArea.occupancy_count_entity;
-      if (nextArea.occupancy_entities?.includes(entityId)) {
-        nextArea.occupancy_entities = nextArea.occupancy_entities.filter((item) => item !== entityId);
-      }
-    }
     if (areaName && areaName !== areaId) delete areaOverrides[areaName];
     areaOverrides[areaId] = nextArea;
-
-    const entityOverrides = { ...(this.config.entity_overrides ?? {}) };
-    if (visible && entityOverrides[entityId]?.hidden === true) {
-      entityOverrides[entityId] = { ...entityOverrides[entityId], hidden: false };
-    }
-    this.commit({
-      ...this.config,
-      area_overrides: areaOverrides,
-      entity_overrides: entityOverrides,
-      exclude_entities: visible ? (this.config.exclude_entities ?? []).filter((item) => item !== entityId) : this.config.exclude_entities,
-    });
+    this.commit({ ...this.config, area_overrides: areaOverrides });
   }
 
   private moveEntity(areaId: string, section: OverviewSectionId, entityId: string, direction: -1 | 1, fallback: string[]): void {

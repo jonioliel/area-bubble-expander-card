@@ -14,6 +14,7 @@ export type OverviewEntityOverride = {
 export type OverviewAreaOverride = {
   name?: string;
   icon?: string;
+  parent_area?: string;
   hidden?: boolean;
   default_expanded?: boolean;
   temperature_entity?: string;
@@ -37,6 +38,10 @@ export type OverviewStyleConfig = Pick<
   climate_color?: string;
   cover_color?: string;
   media_color?: string;
+  temperature_off_surface?: string;
+  temperature_cool_surface?: string;
+  temperature_heat_surface?: string;
+  temperature_active_surface?: string;
 };
 
 export type AreaBubbleOverviewCardConfig = {
@@ -60,6 +65,7 @@ export type AreaBubbleOverviewCardConfig = {
   section_order?: OverviewSectionId[];
   section_titles?: Partial<Record<OverviewSectionId, string>>;
   quick_actions?: OverviewQuickActionId[];
+  quick_action_icons?: Partial<Record<OverviewQuickActionId, string>>;
   area_order?: string[];
   floor_heating_labels?: string[];
   floor_heating_entities?: string[];
@@ -80,6 +86,7 @@ export type ResolvedOverviewConfig = Required<
     | "area"
     | "floor"
     | "section_titles"
+    | "quick_action_icons"
     | "include_entities"
     | "area_overrides"
     | "entity_overrides"
@@ -89,6 +96,7 @@ export type ResolvedOverviewConfig = Required<
   area?: string;
   floor?: string;
   section_titles: Record<OverviewSectionId, string>;
+  quick_action_icons: Record<OverviewQuickActionId, string>;
   include_entities: Partial<Record<OverviewSectionId, string[]>>;
   area_overrides: Record<string, OverviewAreaOverride>;
   entity_overrides: Record<string, OverviewEntityOverride>;
@@ -120,16 +128,19 @@ export type OverviewSection = {
 
 export type OccupancyState = "occupied" | "vacant" | "unknown" | "none";
 export type OccupancyCountSource = "entity" | "sensors" | "none";
+export type OverviewTemperatureMode = "none" | "off" | "cool" | "heat" | "active";
 
 export type OverviewArea = {
   id: string;
   name: string;
   icon: string;
   floorId?: string;
+  parentAreaId?: string;
   sections: OverviewSection[];
   allEntities: OverviewEntity[];
   temperature?: number;
   temperatureUnit?: string;
+  temperatureMode: OverviewTemperatureMode;
   occupancy: OccupancyState;
   occupancyCount?: number;
   occupancyCountSource: OccupancyCountSource;

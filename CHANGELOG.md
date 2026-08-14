@@ -2,6 +2,14 @@
 
 All notable changes to Area Bubble Expander Card will be documented in this file.
 
+## 0.4.0 - 2026-08-14
+
+- Added a complete per-entity hide/restore control to every Area editor. A hidden entity is omitted from the layout and no longer affects Area color, active counts, summaries, quick actions, temperature, or occupancy.
+- Added visual sub-Areas with cycle-safe `area_overrides.<area>.parent_area` configuration. Nesting changes presentation only: a child Area keeps independent state, summaries, expansion, and actions.
+- Added editable quick-action icons through the visual editor and the `quick_action_icons` YAML map, with built-in fallbacks for every action type.
+- Added climate-aware room-temperature surfaces for off, cooling, heating, and other active HVAC states, including four independently configurable Appearance colors.
+- Added safe off/close controls to every section heading. Group actions omit hidden, unavailable, protected, and unsupported entities, and covers use close instead of toggle.
+
 ## 0.3.0 - 2026-08-14
 
 - Added a collapsible Floor header with active/occupied Area summaries, independent remembered state, and responsive Lovelace remeasurement.

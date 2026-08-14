@@ -20,6 +20,10 @@ export const overviewCardStyles = css`
     --aboc-climate: var(--area-bubble-overview-climate-color, var(--state-climate-cool-color, #2196f3));
     --aboc-cover: var(--area-bubble-overview-cover-color, var(--state-cover-active-color, #00bcd4));
     --aboc-media: var(--area-bubble-overview-media-color, var(--state-media-player-active-color, #9c27b0));
+    --aboc-temperature-off: var(--area-bubble-overview-temperature-off-surface, rgba(11, 28, 58, 0.94));
+    --aboc-temperature-cool: var(--area-bubble-overview-temperature-cool-surface, rgba(34, 113, 196, 0.96));
+    --aboc-temperature-heat: var(--area-bubble-overview-temperature-heat-surface, rgba(198, 83, 47, 0.96));
+    --aboc-temperature-active: var(--area-bubble-overview-temperature-active-surface, rgba(91, 86, 168, 0.96));
     --aboc-row-bg: var(--area-bubble-overview-row-bg, rgba(74, 74, 74, 0.88));
     --aboc-shadow: var(--area-bubble-overview-shadow, 0 12px 30px rgba(0, 0, 0, 0.2));
     --aboc-dark-text: #111827;
@@ -138,6 +142,19 @@ export const overviewCardStyles = css`
   .areas {
     display: grid;
     gap: var(--aboc-gap);
+  }
+
+  .area-tree-node,
+  .subareas {
+    display: grid;
+    gap: var(--aboc-gap);
+    min-width: 0;
+  }
+
+  .subareas {
+    margin-inline-start: 22px;
+    padding-inline-start: 9px;
+    border-inline-start: 2px solid color-mix(in srgb, var(--aboc-accent) 38%, var(--divider-color));
   }
 
   .area-panel {
@@ -436,6 +453,29 @@ export const overviewCardStyles = css`
     font-weight: 750;
     font-variant-numeric: tabular-nums;
     unicode-bidi: isolate;
+    transition: background-color 180ms ease, box-shadow 180ms ease;
+  }
+
+  .temperature.temperature-none {
+    background: var(--aboc-control-surface);
+  }
+
+  .temperature.temperature-off {
+    background: var(--aboc-temperature-off);
+  }
+
+  .temperature.temperature-cool {
+    background: var(--aboc-temperature-cool);
+    box-shadow: 0 0 0 1px color-mix(in srgb, #64b5f6 55%, transparent);
+  }
+
+  .temperature.temperature-heat {
+    background: var(--aboc-temperature-heat);
+    box-shadow: 0 0 0 1px color-mix(in srgb, #ffab91 55%, transparent);
+  }
+
+  .temperature.temperature-active {
+    background: var(--aboc-temperature-active);
   }
 
   .expanded-content {
@@ -463,6 +503,7 @@ export const overviewCardStyles = css`
     font-size: 14px;
     font-weight: 680;
     letter-spacing: 0.01em;
+    min-width: 0;
   }
 
   .section-heading ha-icon {
@@ -470,7 +511,12 @@ export const overviewCardStyles = css`
     --mdc-icon-size: 18px;
   }
 
-  .section-heading > span:not(.section-count) {
+  .section-title {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     direction: var(--aboc-direction, ltr);
     text-align: start;
   }
@@ -479,6 +525,24 @@ export const overviewCardStyles = css`
     margin-inline-start: auto;
     font-size: 11px;
     font-variant-numeric: tabular-nums;
+  }
+
+  .section-off-button {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--aboc-control-surface) 92%, transparent);
+    color: var(--aboc-light-text);
+    cursor: pointer;
+  }
+
+  .section-off-button ha-icon {
+    --mdc-icon-size: 21px;
   }
 
   .section-entities {
@@ -851,6 +915,7 @@ export const overviewCardStyles = css`
   .expand-button:hover,
   .entity-lead:hover,
   .quick-action:hover:not([disabled]),
+  .section-off-button:hover:not([disabled]),
   .control-button:hover:not([disabled]),
   .climate-mode-button:hover:not([disabled]),
   .cover-control:hover:not([disabled]),
@@ -864,6 +929,7 @@ export const overviewCardStyles = css`
   }
 
   .quick-action:active:not([disabled]),
+  .section-off-button:active:not([disabled]),
   .control-button:active:not([disabled]),
   .climate-mode-button:active:not([disabled]),
   .cover-control:active:not([disabled]),
@@ -1002,6 +1068,10 @@ export const overviewCardStyles = css`
   }
 
   @container overview-card (max-width: 360px) {
+    .subareas {
+      margin-inline-start: 10px;
+      padding-inline-start: 6px;
+    }
     .area-summary {
       grid-template-columns: minmax(0, 1fr) 40px;
       gap: 3px;
@@ -1140,6 +1210,7 @@ export const overviewCardStyles = css`
 
     .chevron,
     .floor-chevron,
+    .section-off-button,
     .quick-action,
     .control-button,
     .climate-mode-button,
