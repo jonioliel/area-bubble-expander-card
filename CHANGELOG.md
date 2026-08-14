@@ -2,6 +2,12 @@
 
 All notable changes to Area Bubble Expander Card will be documented in this file.
 
+## 0.2.2 - 2026-08-14
+
+- Fixed Area summary colors so the cyan active surface is shown only when at least one entity is powered; fully off Areas now remain neutral even while expanded.
+- Reflowed three or more quick actions into a dedicated wrapping row so every 44 px control and count badge stays visible without clipping or overlap.
+- Added visual contract tests for powered/off Area surfaces and dense quick-action headers.
+
 ## 0.2.1 - 2026-08-14
 
 - Redesigned Overview around the compact Bubble-style composition: a capsule Area summary, dedicated climate controller, full-width cover/media controls, and two-column light/switch tiles.

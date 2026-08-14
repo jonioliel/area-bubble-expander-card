@@ -129,12 +129,26 @@ export class AreaBubbleOverviewCard extends LitElement {
     if (!this.config) return nothing;
     const expanded = this.isExpanded(area);
     const activeCount = area.allEntities.filter((item) => item.powered).length;
+    const quickActions = this.config.show_quick_actions
+      ? this.config.quick_actions
+          .map((action) => ({ action, entities: quickActionEntities(area, action) }))
+          .filter((item) => item.entities.length > 0)
+      : [];
+    const hasOccupancy = this.config.show_occupancy && area.occupancy !== "none";
+    const hasTemperature = this.config.show_temperature && area.temperature !== undefined;
+    const denseActions = quickActions.length >= 3 || (quickActions.length >= 2 && hasOccupancy && hasTemperature);
+    const responsiveActions =
+      (quickActions.length >= 2 && hasTemperature) ||
+      (quickActions.length >= 1 && hasOccupancy && hasTemperature);
     const contentId = `overview-area-${area.id.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
     const toggleLabel = `${overviewText(this.hass, this.config, expanded ? "collapse" : "expand")}: ${area.name}`;
     return html`
-      <section class="area-panel ${expanded ? "expanded" : ""}">
+      <section
+        class="area-panel ${activeCount ? "has-active" : "all-off"} ${expanded ? "expanded" : ""}"
+        data-powered=${activeCount ? "true" : "false"}
+      >
         <header class="area-summary">
-          <div class="area-summary-pill">
+          <div class="area-summary-pill ${denseActions ? "dense-actions" : ""} ${responsiveActions ? "responsive-actions" : ""}">
             <button
               class="area-toggle"
               type="button"
@@ -151,9 +165,9 @@ export class AreaBubbleOverviewCard extends LitElement {
             </button>
             <div class="area-statuses">
               ${this.renderOccupancy(area)}
-              ${this.config.show_quick_actions ? this.renderQuickActions(area) : nothing}
-              ${this.config.show_temperature && area.temperature !== undefined
-                ? html`<span class="temperature area-temperature">${this.formatTemperature(area.temperature, area.temperatureUnit)}</span>`
+              ${quickActions.length ? this.renderQuickActions(area, quickActions) : nothing}
+              ${hasTemperature
+                ? html`<span class="temperature area-temperature">${this.formatTemperature(area.temperature!, area.temperatureUnit)}</span>`
                 : nothing}
             </div>
           </div>
@@ -186,13 +200,14 @@ export class AreaBubbleOverviewCard extends LitElement {
     `;
   }
 
-  private renderQuickActions(area: OverviewArea) {
+  private renderQuickActions(
+    area: OverviewArea,
+    actions: Array<{ action: OverviewQuickActionId; entities: OverviewEntity[] }>,
+  ) {
     if (!this.config) return nothing;
     return html`
       <div class="quick-actions" role="group" aria-label=${`${this.localText("פעולות מהירות", "Quick actions")}: ${area.name}`}>
-        ${this.config.quick_actions.map((action) => {
-          const entities = quickActionEntities(area, action);
-          if (!entities.length) return nothing;
+        ${actions.map(({ action, entities }) => {
           const key = `${area.id}:${action}`;
           const pending = this.pendingActions.has(key);
           const label = quickActionLabel(this.hass, this.config!, action);

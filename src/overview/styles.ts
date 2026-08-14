@@ -99,8 +99,15 @@ export const overviewCardStyles = css`
   }
 
   .area-panel.expanded {
-    border-color: color-mix(in srgb, var(--aboc-accent) 46%, var(--divider-color));
     background: color-mix(in srgb, var(--secondary-background-color) 88%, transparent);
+  }
+
+  .area-panel.expanded.has-active {
+    border-color: color-mix(in srgb, var(--aboc-accent) 46%, var(--divider-color));
+  }
+
+  .area-panel.expanded.all-off {
+    border-color: color-mix(in srgb, var(--divider-color) 82%, transparent);
   }
 
   .area-summary {
@@ -119,10 +126,53 @@ export const overviewCardStyles = css`
     min-width: 0;
     min-height: 60px;
     padding: 5px 8px 5px 5px;
-    border: 2px solid color-mix(in srgb, var(--aboc-control-surface) 72%, var(--divider-color));
+    border: 2px solid color-mix(in srgb, var(--divider-color) 72%, transparent);
     border-radius: 999px;
+    background: var(--aboc-row-bg);
+    color: var(--primary-text-color);
+    transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease;
+  }
+
+  .area-panel.has-active .area-summary-pill {
+    border-color: color-mix(in srgb, var(--aboc-control-surface) 72%, var(--divider-color));
     background: var(--aboc-active-surface);
     color: var(--aboc-dark-text);
+  }
+
+  .area-summary-pill.dense-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-areas:
+      "area-toggle occupancy area-temperature"
+      "quick-actions quick-actions quick-actions";
+    border-radius: calc(var(--aboc-radius) - 2px);
+  }
+
+  .area-summary-pill.dense-actions .area-toggle {
+    grid-area: area-toggle;
+    width: 100%;
+  }
+
+  .area-summary-pill.dense-actions .area-statuses {
+    display: contents;
+  }
+
+  .area-summary-pill.dense-actions .occupancy {
+    grid-area: occupancy;
+  }
+
+  .area-summary-pill.dense-actions .area-temperature {
+    grid-area: area-temperature;
+  }
+
+  .area-summary-pill.dense-actions .quick-actions {
+    grid-area: quick-actions;
+    justify-self: stretch;
+    justify-content: flex-end;
+    width: 100%;
+    max-width: none;
+    overflow: visible;
+    flex-wrap: wrap;
   }
 
   .area-toggle {
@@ -209,9 +259,14 @@ export const overviewCardStyles = css`
     color: var(--aboc-accent);
   }
 
-  .area-summary-pill .area-icon {
+  .area-panel.has-active .area-icon {
     background: color-mix(in srgb, var(--aboc-control-surface) 72%, transparent);
     color: var(--aboc-light-text);
+  }
+
+  .area-panel.all-off .area-icon {
+    background: color-mix(in srgb, var(--primary-text-color) 9%, transparent);
+    color: var(--secondary-text-color);
   }
 
   .icon-bubble.small {
@@ -269,14 +324,10 @@ export const overviewCardStyles = css`
     display: flex;
     align-items: center;
     gap: 5px;
+    width: max-content;
+    flex: 0 0 auto;
     max-width: clamp(44px, 24cqi, 142px);
-    overflow-x: auto;
-    overscroll-behavior-inline: contain;
-    scrollbar-width: none;
-  }
-
-  .quick-actions::-webkit-scrollbar {
-    display: none;
+    overflow: visible;
   }
 
   .quick-action {
@@ -804,7 +855,7 @@ export const overviewCardStyles = css`
       display: none;
     }
 
-    .quick-actions {
+    .area-summary-pill:not(.dense-actions):not(.responsive-actions) .quick-actions {
       max-width: 93px;
     }
 
@@ -819,6 +870,44 @@ export const overviewCardStyles = css`
 
     .expanded-content {
       padding-inline: 7px;
+    }
+  }
+
+  @container overview-card (max-width: 380px) {
+    .area-summary-pill.responsive-actions {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto auto;
+      grid-template-areas:
+        "area-toggle occupancy area-temperature"
+        "quick-actions quick-actions quick-actions";
+      border-radius: calc(var(--aboc-radius) - 2px);
+    }
+
+    .area-summary-pill.responsive-actions .area-toggle {
+      grid-area: area-toggle;
+      width: 100%;
+    }
+
+    .area-summary-pill.responsive-actions .area-statuses {
+      display: contents;
+    }
+
+    .area-summary-pill.responsive-actions .occupancy {
+      grid-area: occupancy;
+    }
+
+    .area-summary-pill.responsive-actions .area-temperature {
+      grid-area: area-temperature;
+    }
+
+    .area-summary-pill.responsive-actions .quick-actions {
+      grid-area: quick-actions;
+      justify-self: stretch;
+      justify-content: flex-end;
+      width: 100%;
+      max-width: none;
+      overflow: visible;
+      flex-wrap: wrap;
     }
   }
 
@@ -854,9 +943,8 @@ export const overviewCardStyles = css`
       height: 44px;
     }
 
-    .quick-actions {
+    .area-summary-pill:not(.dense-actions):not(.responsive-actions) .quick-actions {
       max-width: 93px;
-      flex: 0 0 93px;
     }
 
     .area-statuses .occupancy {
@@ -888,10 +976,13 @@ export const overviewCardStyles = css`
 
     .quick-actions {
       grid-area: quick-actions;
-      justify-self: end;
-      width: auto;
+      justify-self: stretch;
+      justify-content: flex-end;
+      width: 100%;
       max-width: 100%;
       flex-basis: auto;
+      overflow: visible;
+      flex-wrap: wrap;
     }
 
     .climate-primary {
