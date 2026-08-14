@@ -121,10 +121,15 @@ describe("overview header presentation contracts", () => {
     expect(cssText).not.toMatch(/\.expanded\s+\.chevron\s*\{/);
   });
 
-  it("removes the outer Area frame in both collapsed and expanded states", () => {
+  it("shows no outer frame while collapsed and one enclosing frame while expanded", () => {
     expect(cssText).toMatch(/\.area-panel\s*\{[^}]*overflow:\s*visible;[^}]*border:\s*0;[^}]*background:\s*transparent/s);
     expect(cssText).toMatch(/\.area-panel:not\(\.expanded\)\s*>\s*\.area-summary\s*\{[^}]*padding:\s*0/s);
-    expect(cssText).not.toMatch(/\.area-panel\.expanded(?:\.has-active|\.all-off)\s*\{[^}]*border-color:/s);
+    expect(cssText).toMatch(/\.area-panel\.expanded\s*\{[^}]*overflow:\s*hidden;[^}]*border:\s*1px solid[^}]*--aboc-accent/s);
+  });
+
+  it("styles the climate count as a compact tag attached to temperature", () => {
+    expect(cssText).toMatch(/\.temperature-climate-tag\s*\{[^}]*display:\s*inline-flex;[^}]*min-width:\s*32px;[^}]*height:\s*22px/s);
+    expect(cssText).toMatch(/\.temperature-climate-tag::before\s*\{[^}]*inset:\s*-11px -6px/s);
   });
 
   it("uses configurable Area-name typography at regular and mobile widths", () => {

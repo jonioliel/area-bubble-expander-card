@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import { resolveOverviewConfig } from "../src/overview/config";
-import { lightBrightnessPercentage, supportsLightBrightness } from "../src/overview/features";
+import { countsTowardAreaActivity, lightBrightnessPercentage, supportsLightBrightness } from "../src/overview/features";
 import type { OverviewEntity } from "../src/overview/types";
 import type { HassEntity } from "../src/types";
 
@@ -70,6 +70,17 @@ describe("Overview climate menus and typography", () => {
     expect(source).not.toContain('class="climate-mode-button');
     const styles = readFileSync(new URL("../src/overview/styles.ts", import.meta.url), "utf8");
     expect(styles).not.toContain(".climate-mode-button");
+  });
+
+  it("keeps open covers out of room activity and merges climate into the temperature tag", () => {
+    expect(countsTowardAreaActivity({ ...overviewEntity("cover.room", "open", {}), powered: true })).toBe(false);
+    expect(countsTowardAreaActivity({ ...overviewEntity("climate.room", "cool", {}), powered: true })).toBe(true);
+    expect(countsTowardAreaActivity(overviewEntity("light.room", "on", {}))).toBe(true);
+
+    const source = readFileSync(new URL("../src/overview/area-bubble-overview-card.ts", import.meta.url), "utf8");
+    expect(source).toContain('activeQuickActions.filter(({ action }) => action !== "climate")');
+    expect(source).toContain('class="temperature-climate-tag"');
+    expect(source).toContain('this.openQuickActionPopup(event, area, "climate")');
   });
 
   it("defaults, clamps, and preserves the room-name font size", () => {

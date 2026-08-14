@@ -41,6 +41,10 @@ export const lightBrightnessPercentage = (item: OverviewEntity): number => {
   return Math.min(100, Math.max(0, Math.round((brightness / 255) * 100)));
 };
 
+/** Covers report their open state in the cover quick action, not as room activity. */
+export const countsTowardAreaActivity = (item: OverviewEntity): boolean =>
+  item.powered && item.domain !== "cover";
+
 export const entityPowerService = (item: OverviewEntity, turnOn: boolean): EntityServicePlan | undefined => {
   if (item.domain === "climate") {
     const feature = turnOn ? CLIMATE_FEATURES.TURN_ON : CLIMATE_FEATURES.TURN_OFF;

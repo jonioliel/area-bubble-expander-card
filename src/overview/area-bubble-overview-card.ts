@@ -26,6 +26,7 @@ import { buildOverviewAreaHierarchy, visibleOverviewAreas } from "./hierarchy";
 import "./editor";
 import {
   climateModes,
+  countsTowardAreaActivity,
   entityPowerService,
   lightBrightnessPercentage,
   supportsEntityFeature,
@@ -165,7 +166,7 @@ export class AreaBubbleOverviewCard extends LitElement {
     const show = discovery.targetKind === "floor" ? this.config.show_floor_header : Boolean(this.config.title);
     if (!show || !discovery.targetName) return nothing;
     if (discovery.targetKind === "floor") {
-      const activeAreas = discovery.areas.filter((area) => area.allEntities.some((item) => item.powered)).length;
+      const activeAreas = discovery.areas.filter((area) => area.allEntities.some(countsTowardAreaActivity)).length;
       const occupiedAreas = discovery.areas.filter((area) => area.occupancy === "occupied").length;
       const summary = [
         `${discovery.areas.length} ${this.localText("אזורים", "areas")}`,
@@ -210,12 +211,19 @@ export class AreaBubbleOverviewCard extends LitElement {
   private renderArea(area: OverviewArea, nestedContent: unknown = nothing) {
     if (!this.config) return nothing;
     const expanded = this.isExpanded(area);
-    const activeCount = area.allEntities.filter((item) => item.powered).length;
-    const quickActions = this.config.show_quick_actions
+    const activeCount = area.allEntities.filter(countsTowardAreaActivity).length;
+    const activeQuickActions = this.config.show_quick_actions
       ? activeQuickActionSummaries(area, this.config.quick_actions)
       : [];
     const hasOccupancy = this.config.show_occupancy && area.occupancy !== "none";
     const hasTemperature = this.config.show_temperature && area.temperature !== undefined;
+    const climateTemperatureAction = hasTemperature
+      ? activeQuickActions.find(({ action }) => action === "climate")
+      : undefined;
+    const quickActions = climateTemperatureAction
+      ? activeQuickActions.filter(({ action }) => action !== "climate")
+      : activeQuickActions;
+    const activeClimateCount = climateTemperatureAction?.entities.filter((item) => item.powered).length ?? 0;
     const formattedTemperature = hasTemperature ? this.formatTemperature(area.temperature!, area.temperatureUnit) : "";
     const temperatureModeLabel = {
       none: this.localText("ללא מצב מיזוג", "No climate mode"),
@@ -257,6 +265,22 @@ export class AreaBubbleOverviewCard extends LitElement {
               ${quickActions.length ? this.renderQuickActions(area, quickActions) : nothing}
               ${hasTemperature
                 ? html`<span class="temperature area-temperature temperature-${area.temperatureMode}" title=${`${formattedTemperature} · ${temperatureModeLabel}`} aria-label=${`${formattedTemperature} · ${temperatureModeLabel}`}>${formattedTemperature}</span>`
+                : nothing}
+              ${climateTemperatureAction
+                ? html`<button
+                    class="temperature-climate-tag"
+                    type="button"
+                    title=${`${activeClimateCount} ${this.localText("מזגנים פעילים", "active climate devices")}`}
+                    aria-label=${`${this.localText("פתיחת מיזוג אוויר", "Open climate controls")}: ${area.name} (${activeClimateCount}/${climateTemperatureAction.entities.length})`}
+                    aria-haspopup="dialog"
+                    aria-expanded=${this.quickPopup?.areaId === area.id && this.quickPopup.action === "climate"}
+                    aria-busy=${this.quickActionPending(area.id, "climate")}
+                    ?disabled=${this.quickActionPending(area.id, "climate")}
+                    @click=${(event: Event) => this.openQuickActionPopup(event, area, "climate")}
+                  >
+                    <ha-icon icon=${this.config.quick_action_icons.climate}></ha-icon>
+                    <span>${activeClimateCount}</span>
+                  </button>`
                 : nothing}
             </div>
           </div>

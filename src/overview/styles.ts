@@ -181,6 +181,16 @@ export const overviewCardStyles = css`
     background: transparent;
   }
 
+  .area-panel.expanded {
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--aboc-accent) 46%, var(--divider-color));
+    border-radius: calc(var(--aboc-radius) + 4px);
+  }
+
+  .area-panel.expanded.has-active {
+    border-color: color-mix(in srgb, var(--aboc-accent) 62%, var(--divider-color));
+  }
+
   .area-panel:not(.expanded) > .area-summary {
     padding: 0;
   }
@@ -694,6 +704,38 @@ export const overviewCardStyles = css`
     font-variant-numeric: tabular-nums;
     unicode-bidi: isolate;
     transition: background-color 180ms ease, box-shadow 180ms ease;
+  }
+
+  .temperature-climate-tag {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    min-width: 32px;
+    height: 22px;
+    margin-inline-start: -15px;
+    padding-inline: 4px;
+    border: 2px solid var(--aboc-control-surface);
+    border-radius: 999px;
+    background: var(--aboc-active);
+    color: var(--aboc-dark-text);
+    font-size: 10px;
+    font-weight: 820;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .temperature-climate-tag::before {
+    content: "";
+    position: absolute;
+    inset: -11px -6px;
+    border-radius: inherit;
+  }
+
+  .temperature-climate-tag ha-icon {
+    --mdc-icon-size: 12px;
   }
 
   .temperature.temperature-none {

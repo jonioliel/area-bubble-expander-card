@@ -2,6 +2,12 @@
 
 All notable changes to Area Bubble Expander Card will be documented in this file.
 
+## 0.6.2 - 2026-08-14
+
+- Restored a single accent frame only while an Area is expanded, enclosing its complete device content while collapsed Areas remain free of an outer frame.
+- Stopped open covers from coloring an Area active; their powered count remains available on the cover quick action and in the cover section.
+- Merged active climate quick actions into the temperature chip as a compact A/C icon-and-count tag. The tag remains the popup trigger for full climate controls.
+
 ## 0.6.1 - 2026-08-14
 
 - Removed the outer Area outline in both collapsed and expanded states, leaving the summary capsule as the only room frame.
