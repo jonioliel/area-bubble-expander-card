@@ -56,6 +56,7 @@ export const OVERVIEW_DEFAULT_STYLE: Required<OverviewStyleConfig> = {
   blur: 18,
   section_gap: 12,
   row_height: 56,
+  area_name_size: 17,
   show_shadows: true,
   shadow_intensity: 0.2,
   accent_color: "var(--primary-color)",

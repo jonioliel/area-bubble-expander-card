@@ -24,7 +24,13 @@ import {
 import { discoverOverview } from "./discovery";
 import { buildOverviewAreaHierarchy, visibleOverviewAreas } from "./hierarchy";
 import "./editor";
-import { climateModes, entityPowerService, supportsEntityFeature } from "./features";
+import {
+  climateModes,
+  entityPowerService,
+  lightBrightnessPercentage,
+  supportsEntityFeature,
+  supportsLightBrightness,
+} from "./features";
 import { overviewCardStyles } from "./styles";
 import { overviewLanguage, overviewRtl, overviewText, quickActionLabel } from "./translations";
 import type {
@@ -499,6 +505,7 @@ export class AreaBubbleOverviewCard extends LitElement {
     if (item.domain === "climate") return this.renderClimate(item);
     if (item.domain === "cover") return this.renderCover(item);
     if (item.domain === "media_player") return this.renderMedia(item);
+    if (supportsLightBrightness(item)) return this.renderLight(item);
     return this.renderToggle(item);
   }
 
@@ -571,20 +578,11 @@ export class AreaBubbleOverviewCard extends LitElement {
       ? item.entity.attributes.fan_modes.map(String)
       : [];
     const busy = this.entityBusy(item);
-    const modeIcon = this.climateModeIcon(item);
-    const powerPlan = entityPowerService(item, !item.powered);
+    const modeIcon = this.climateModeIcon(item.entity.state);
     return html`
       <article class="climate-card entity-card full-span mode-${item.entity.state} ${item.active ? "active" : ""} ${item.available ? "" : "unavailable"}" aria-busy=${busy}>
         <div class="climate-primary">
           ${this.renderEntityLead(item)}
-          <button
-            class="climate-mode-button ${item.active ? "active" : ""}"
-            type="button"
-            ?disabled=${!item.available || busy || !powerPlan}
-            aria-pressed=${item.powered}
-            aria-label=${`${item.powered ? overviewText(this.hass, this.config!, "turn_off") : overviewText(this.hass, this.config!, "on")}: ${item.name}`}
-            @click=${(event: Event) => this.toggleEntity(event, item)}
-          ><ha-icon icon=${busy ? "mdi:loading" : modeIcon}></ha-icon></button>
           ${!hasRange && target !== undefined
             ? html`
                 <span class="temperature-stepper">
@@ -601,25 +599,70 @@ export class AreaBubbleOverviewCard extends LitElement {
         ${modes.length || fanModes.length
           ? html`<div class="climate-secondary" @click=${(event: Event) => event.stopPropagation()}>
           ${modes.length
-            ? html`<label class="select-pill">
-                <ha-icon icon=${modeIcon}></ha-icon>
-                <select .value=${item.entity.state} ?disabled=${busy || !item.available} @change=${(event: Event) => this.setClimateMode(item, event)} aria-label=${`${this.localText("מצב מיזוג", "HVAC mode")}: ${item.name}`}>
-                  ${modes.map((mode) => html`<option value=${mode} ?selected=${mode === item.entity.state}>${mode.replace(/_/g, " ")}</option>`)}
-                </select>
-                <ha-icon class="select-chevron" icon="mdi:chevron-down"></ha-icon>
-              </label>`
+            ? html`<ha-control-select-menu
+                class="mode-select"
+                show-arrow
+                hide-label
+                .label=${`${this.localText("מצב מיזוג", "HVAC mode")}: ${item.name}`}
+                .value=${item.entity.state}
+                .disabled=${busy || !item.available}
+                .options=${modes.map((mode) => ({ value: mode, label: this.climateModeLabel(mode), icon: this.climateModeIcon(mode) }))}
+                @wa-select=${(event: Event) => this.setClimateMode(item, event)}
+              ><ha-icon slot="icon" icon=${modeIcon}></ha-icon></ha-control-select-menu>`
             : nothing}
           ${fanModes.length
-            ? html`<label class="select-pill">
-                <ha-icon icon="mdi:fan"></ha-icon>
-                <select .value=${String(item.entity.attributes.fan_mode ?? "")} ?disabled=${busy || !item.available} @change=${(event: Event) => this.setFanMode(item, event)} aria-label=${`${this.localText("מהירות מאוורר", "Fan mode")}: ${item.name}`}>
-                  ${fanModes.map((mode) => html`<option value=${mode} ?selected=${mode === String(item.entity.attributes.fan_mode ?? "")}>${mode.replace(/_/g, " ")}</option>`)}
-                </select>
-                <ha-icon class="select-chevron" icon="mdi:chevron-down"></ha-icon>
-              </label>`
+            ? html`<ha-control-select-menu
+                class="mode-select"
+                show-arrow
+                hide-label
+                .label=${`${this.localText("מהירות מאוורר", "Fan mode")}: ${item.name}`}
+                .value=${String(item.entity.attributes.fan_mode ?? "")}
+                .disabled=${busy || !item.available}
+                .options=${fanModes.map((mode) => ({ value: mode, label: this.modeLabel(mode), icon: "mdi:fan" }))}
+                @wa-select=${(event: Event) => this.setFanMode(item, event)}
+              ><ha-icon slot="icon" icon="mdi:fan"></ha-icon></ha-control-select-menu>`
             : nothing}
           </div>`
           : nothing}
+      </article>
+    `;
+  }
+
+  private renderLight(item: OverviewEntity) {
+    const busy = this.entityBusy(item);
+    const brightness = lightBrightnessPercentage(item);
+    const powerPlan = entityPowerService(item, !item.powered);
+    const brightnessLabel = `${this.localText("בהירות", "Brightness")}: ${item.name}`;
+    return html`
+      <article class="light-card entity-card ${item.active ? "active" : ""} ${item.available ? "" : "unavailable"}" aria-busy=${busy}>
+        <div class="light-primary">
+          ${this.renderEntityLead(item)}
+          <button
+            class="light-power ${item.powered ? "active" : ""}"
+            type="button"
+            aria-pressed=${item.powered}
+            aria-label=${`${item.powered ? overviewText(this.hass, this.config!, "turn_off") : overviewText(this.hass, this.config!, "on")}: ${item.name}`}
+            ?disabled=${busy || !item.available || !powerPlan}
+            @click=${(event: Event) => this.toggleEntity(event, item)}
+          ><ha-icon icon=${busy ? "mdi:loading" : "mdi:power"}></ha-icon></button>
+        </div>
+        <div class="brightness-control" @click=${(event: Event) => event.stopPropagation()}>
+          <ha-control-slider
+            class="brightness-slider"
+            .value=${brightness}
+            .min=${0}
+            .max=${100}
+            .step=${1}
+            .disabled=${busy || !item.available}
+            .locale=${this.hass?.locale}
+            .label=${brightnessLabel}
+            unit="%"
+            show-handle
+            tooltip-mode="interaction"
+            @value-changed=${(event: Event) => this.setLightBrightness(item, event)}
+          ></ha-control-slider>
+          <span class="brightness-value" aria-hidden="true">${brightness}%</span>
+        </div>
       </article>
     `;
   }
@@ -762,14 +805,31 @@ export class AreaBubbleOverviewCard extends LitElement {
     return this.hass?.formatEntityState?.(item.entity) ?? item.entity.state;
   }
 
-  private climateModeIcon(item: OverviewEntity): string {
-    const mode = item.entity.state;
+  private climateModeIcon(mode: string): string {
     if (mode === "cool") return "mdi:snowflake";
     if (mode === "heat") return "mdi:fire";
     if (mode === "dry") return "mdi:water-percent";
     if (mode === "fan_only") return "mdi:fan";
     if (mode === "heat_cool" || mode === "auto") return "mdi:autorenew";
     return "mdi:power";
+  }
+
+  private climateModeLabel(mode: string): string {
+    const labels: Record<string, [string, string]> = {
+      off: ["כבוי", "Off"],
+      auto: ["אוטומטי", "Auto"],
+      cool: ["קירור", "Cool"],
+      heat: ["חימום", "Heat"],
+      dry: ["ייבוש", "Dry"],
+      fan_only: ["מאוורר בלבד", "Fan only"],
+      heat_cool: ["חימום וקירור", "Heat/Cool"],
+    };
+    const label = labels[mode];
+    return label ? this.localText(label[0], label[1]) : this.modeLabel(mode);
+  }
+
+  private modeLabel(mode: string): string {
+    return mode.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
   }
 
   private coverServiceLabel(service: string): string {
@@ -1059,16 +1119,35 @@ export class AreaBubbleOverviewCard extends LitElement {
     }));
   }
 
+  private menuValue(event: Event): string | undefined {
+    const detail = (event as CustomEvent<{ value?: unknown; item?: { value?: unknown } }>).detail;
+    const value = detail?.value ?? detail?.item?.value;
+    return typeof value === "string" && value ? value : undefined;
+  }
+
   private setClimateMode(item: OverviewEntity, event: Event): void {
     event.stopPropagation();
-    const hvacMode = (event.target as HTMLSelectElement).value;
+    const hvacMode = this.menuValue(event);
+    if (!hvacMode || hvacMode === item.entity.state) return;
     void this.performEntityCall(item, () => callEntityService(this.hass!, item.entityId, "set_hvac_mode", { hvac_mode: hvacMode }));
   }
 
   private setFanMode(item: OverviewEntity, event: Event): void {
     event.stopPropagation();
-    const fanMode = (event.target as HTMLSelectElement).value;
+    const fanMode = this.menuValue(event);
+    if (!fanMode || fanMode === String(item.entity.attributes.fan_mode ?? "")) return;
     void this.performEntityCall(item, () => callEntityService(this.hass!, item.entityId, "set_fan_mode", { fan_mode: fanMode }));
+  }
+
+  private setLightBrightness(item: OverviewEntity, event: Event): void {
+    event.stopPropagation();
+    const value = (event as CustomEvent<{ value?: unknown }>).detail?.value;
+    if (typeof value !== "number" || !Number.isFinite(value)) return;
+    const brightness = Math.min(100, Math.max(0, Math.round(value)));
+    if (brightness === lightBrightnessPercentage(item)) return;
+    void this.performEntityCall(item, () => brightness === 0
+      ? callEntityService(this.hass!, item.entityId, "turn_off")
+      : callEntityService(this.hass!, item.entityId, "turn_on", { brightness_pct: brightness }));
   }
 
   private setMediaVolume(event: Event, item: OverviewEntity, volume: number): void {
@@ -1149,6 +1228,7 @@ export class AreaBubbleOverviewCard extends LitElement {
     this.style.setProperty("--area-bubble-overview-blur", `${style.blur}px`);
     this.style.setProperty("--area-bubble-overview-gap", `${style.section_gap}px`);
     this.style.setProperty("--area-bubble-overview-row-height", `${style.row_height}px`);
+    this.style.setProperty("--area-bubble-overview-area-name-size", `${style.area_name_size}px`);
     this.style.setProperty("--area-bubble-overview-accent", style.accent_color);
     this.style.setProperty("--area-bubble-overview-active", style.active_color);
     this.style.setProperty("--area-bubble-overview-row-bg", style.row_background);

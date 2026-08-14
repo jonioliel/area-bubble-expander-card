@@ -101,6 +101,11 @@ const entityOverrides = (value: unknown): Record<string, OverviewEntityOverride>
 export const resolveOverviewConfig = (config: AreaBubbleOverviewCardConfig): ResolvedOverviewConfig => {
   const merged = { ...OVERVIEW_DEFAULT_CONFIG, ...config };
   const customTitles = sectionTitles(config.section_titles);
+  const customStyle = isRecord(config.style) ? config.style : {};
+  const requestedAreaNameSize = customStyle.area_name_size;
+  const areaNameSize = typeof requestedAreaNameSize === "number" && Number.isFinite(requestedAreaNameSize)
+    ? Math.min(24, Math.max(11, requestedAreaNameSize))
+    : OVERVIEW_DEFAULT_STYLE.area_name_size;
   return {
     ...merged,
     type: OVERVIEW_CARD_TYPE,
@@ -129,7 +134,7 @@ export const resolveOverviewConfig = (config: AreaBubbleOverviewCardConfig): Res
     protected_entities: stringArray(merged.protected_entities),
     area_overrides: areaOverrides(config.area_overrides),
     entity_overrides: entityOverrides(config.entity_overrides),
-    style: { ...OVERVIEW_DEFAULT_STYLE, ...(isRecord(config.style) ? config.style : {}) },
+    style: { ...OVERVIEW_DEFAULT_STYLE, ...customStyle, area_name_size: areaNameSize },
   } as ResolvedOverviewConfig;
 };
 

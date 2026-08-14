@@ -83,7 +83,7 @@ describe("overview header presentation contracts", () => {
 
   it("preserves 44px touch targets for the remaining controls", () => {
     expectCircularActionTarget(".control-button");
-    expectCircularActionTarget(".climate-mode-button");
+    expectCircularActionTarget(".light-power");
     expectCircularActionTarget(".expand-button");
     expectCircularActionTarget(".section-off-button");
     expectCircularActionTarget(".section-on-button");
@@ -121,6 +121,18 @@ describe("overview header presentation contracts", () => {
     expect(cssText).not.toMatch(/\.expanded\s+\.chevron\s*\{/);
   });
 
+  it("removes the outer gray frame while keeping one accent frame for expanded Areas", () => {
+    expect(cssText).toMatch(/\.area-panel\s*\{[^}]*border:\s*1px solid transparent;[^}]*background:\s*transparent/s);
+    expect(cssText).toMatch(/\.area-panel:not\(\.expanded\)\s*>\s*\.area-summary\s*\{[^}]*padding:\s*0/s);
+    expect(cssText).toMatch(/\.area-panel\.expanded\.has-active\s*\{[^}]*border-color:\s*color-mix\([^}]*--aboc-accent/s);
+  });
+
+  it("uses configurable Area-name typography at regular and mobile widths", () => {
+    expect(regularWidthCss).toMatch(/--aboc-area-name-size:\s*var\(--area-bubble-overview-area-name-size,\s*17px\)/);
+    expect(regularWidthCss).toMatch(/\.area-name\s*\{[^}]*font-size:\s*var\(--aboc-area-name-size\)/s);
+    expect(containerCssAt(360)).toMatch(/\.area-name\s*\{[^}]*font-size:\s*min\(var\(--aboc-area-name-size\),\s*15px\)/s);
+  });
+
   it("styles the floor header as an accessible full-width disclosure target", () => {
     expect(cssText).toMatch(/\.floor-toggle\s*\{[^}]*width:\s*100%/s);
     expect(cssText).toMatch(/\.floor-toggle\s*\{[^}]*min-height:\s*(?:4[4-9]|[5-9]\d)px/s);
@@ -133,7 +145,13 @@ describe("overview header presentation contracts", () => {
     expect(cssText).toMatch(/\.occupancy-count\s*\{[^}]*font-weight:\s*\d+/s);
     expect(cssText).not.toMatch(/\.area-statuses\s+\.occupancy\s*\{[^}]*display:\s*none/s);
     expect(containerCssAt(340)).not.toMatch(/grid-template-areas:\s*[\s\S]*?quick-actions quick-actions/);
-    expect(cssText).toMatch(/\.select-pill select\s*\{[^}]*height:\s*44px/s);
+    expect(cssText).toMatch(/\.mode-select\s*\{[^}]*--control-select-menu-height:\s*44px/s);
+  });
+
+  it("styles native Home Assistant mode menus and brightness sliders", () => {
+    expect(cssText).toMatch(/\.mode-select\s*\{[^}]*--control-select-menu-border-radius:\s*999px/s);
+    expect(cssText).toMatch(/\.brightness-slider\s*\{[^}]*min-height:\s*44px;[^}]*--control-slider-thickness:\s*38px/s);
+    expect(cssText).toMatch(/\.brightness-control\s*\{[^}]*direction:\s*ltr/s);
   });
 
   it("gives long-press targets touch-safe feedback without blocking vertical scroll", () => {

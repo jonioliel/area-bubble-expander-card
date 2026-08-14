@@ -524,6 +524,7 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
             ${this.numberField(this.l("עיגול פינות", "Corner radius", language), resolved.style.border_radius, 4, 40, (value) => this.setStyle("border_radius", value))}
             ${this.numberField(this.l("טשטוש זכוכית", "Glass blur", language), resolved.style.blur, 0, 40, (value) => this.setStyle("blur", value))}
             ${this.numberField(this.l("גובה שורה", "Row height", language), resolved.style.row_height, 44, 84, (value) => this.setStyle("row_height", value))}
+            ${this.numberField(this.l("גודל שם חדר", "Room name size", language), resolved.style.area_name_size, 11, 24, (value) => this.setStyle("area_name_size", value))}
             ${this.numberField(this.l("מרווח סעיפים", "Section gap", language), resolved.style.section_gap, 4, 30, (value) => this.setStyle("section_gap", value))}
           </div>
           <div class="setting-title">${this.l("צבעי מצב", "State colors", language)}</div>

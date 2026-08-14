@@ -12,6 +12,7 @@ export const overviewCardStyles = css`
     --aboc-blur: var(--area-bubble-overview-blur, 18px);
     --aboc-gap: var(--area-bubble-overview-gap, 12px);
     --aboc-row-height: var(--area-bubble-overview-row-height, 56px);
+    --aboc-area-name-size: var(--area-bubble-overview-area-name-size, 17px);
     --aboc-accent: var(--area-bubble-overview-accent, var(--primary-color));
     --aboc-active: var(--area-bubble-overview-active, var(--state-active-color, #ffd54f));
     --aboc-active-surface: var(--area-bubble-overview-active-surface, rgba(174, 215, 219, 0.94));
@@ -175,22 +176,26 @@ export const overviewCardStyles = css`
 
   .area-panel {
     overflow: hidden;
-    border: 1px solid color-mix(in srgb, var(--divider-color) 78%, transparent);
+    border: 1px solid transparent;
     border-radius: calc(var(--aboc-radius) + 4px);
-    background: color-mix(in srgb, var(--secondary-background-color) 76%, transparent);
+    background: transparent;
     transition: border-color 160ms ease, background-color 160ms ease;
   }
 
   .area-panel.expanded {
-    background: color-mix(in srgb, var(--secondary-background-color) 88%, transparent);
+    background: transparent;
   }
 
   .area-panel.expanded.has-active {
-    border-color: color-mix(in srgb, var(--aboc-accent) 46%, var(--divider-color));
+    border-color: color-mix(in srgb, var(--aboc-accent) 62%, var(--divider-color));
   }
 
   .area-panel.expanded.all-off {
-    border-color: color-mix(in srgb, var(--divider-color) 82%, transparent);
+    border-color: color-mix(in srgb, var(--aboc-accent) 46%, var(--divider-color));
+  }
+
+  .area-panel:not(.expanded) > .area-summary {
+    padding: 0;
   }
 
   .area-summary {
@@ -303,7 +308,7 @@ export const overviewCardStyles = css`
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-size: 17px;
+    font-size: var(--aboc-area-name-size);
     font-weight: 780;
   }
 
@@ -844,7 +849,7 @@ export const overviewCardStyles = css`
   }
 
   .entity-lead {
-    direction: ltr;
+    direction: var(--aboc-direction, ltr);
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
     align-items: center;
@@ -945,28 +950,26 @@ export const overviewCardStyles = css`
   }
 
   .climate-primary {
-    direction: ltr;
+    direction: var(--aboc-direction, ltr);
     display: grid;
-    grid-template-columns: minmax(88px, 1fr) 44px auto;
+    grid-template-columns: minmax(88px, 1fr) auto;
     align-items: center;
     gap: 7px;
     min-width: 0;
   }
 
-  .climate-mode-button,
   .control-button {
     border: 0;
     cursor: pointer;
     transition: transform 120ms ease, filter 120ms ease;
   }
 
-  .climate-mode-button ha-icon,
   .control-button ha-icon {
     --mdc-icon-size: 23px;
   }
 
   .climate-secondary {
-    direction: ltr;
+    direction: var(--aboc-direction, ltr);
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
@@ -992,47 +995,90 @@ export const overviewCardStyles = css`
     opacity: 0.72;
   }
 
-  .select-pill {
-    direction: ltr;
-    display: grid;
-    grid-template-columns: 26px minmax(0, 1fr) 22px;
-    align-items: center;
-    gap: 5px;
+  .mode-select {
+    direction: var(--aboc-direction, ltr);
+    display: block;
+    width: 100%;
     min-width: 0;
-    min-height: 44px;
-    padding: 0 8px;
-    border-radius: 999px;
-    background: var(--aboc-control-surface);
-    color: var(--aboc-light-text);
-  }
-
-  .select-pill > ha-icon {
+    --control-select-menu-height: 44px;
+    --control-select-menu-border-radius: 999px;
+    --control-select-menu-padding: 5px 10px;
+    --control-select-menu-background-color: var(--secondary-background-color);
+    --control-select-menu-background-opacity: 1;
+    --control-select-menu-focus-color: var(--aboc-accent);
     --mdc-icon-size: 21px;
   }
 
-  .select-pill select {
-    width: 100%;
+  .light-card {
+    display: grid;
+    gap: 7px;
+    min-height: max(92px, var(--aboc-row-height));
+    padding: 8px 10px;
+  }
+
+  .light-card.active {
+    border-color: color-mix(in srgb, var(--aboc-control-surface) 62%, transparent);
+    background: var(--aboc-active-surface);
+    color: var(--aboc-dark-text);
+  }
+
+  .light-card.active .state-text {
+    color: color-mix(in srgb, var(--aboc-dark-text) 70%, transparent);
+  }
+
+  .light-card.active .icon-bubble {
+    background: color-mix(in srgb, var(--aboc-control-surface) 78%, transparent);
+    color: var(--aboc-light-text);
+  }
+
+  .light-primary {
+    direction: var(--aboc-direction, ltr);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 44px;
+    align-items: center;
+    gap: 6px;
     min-width: 0;
+  }
+
+  .light-power {
+    display: grid;
+    place-items: center;
+    width: 44px;
     height: 44px;
     padding: 0;
     border: 0;
-    outline: 0;
-    appearance: none;
-    background: transparent;
-    color: inherit;
-    text-align: center;
-    font-size: 13px;
-    font-weight: 680;
+    border-radius: 999px;
+    background: var(--aboc-control-surface);
+    color: var(--aboc-light-text);
     cursor: pointer;
   }
 
-  .select-pill select option {
-    background: var(--card-background-color);
-    color: var(--primary-text-color);
+  .brightness-control {
+    direction: ltr;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 42px;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
   }
 
-  .select-chevron {
-    pointer-events: none;
+  .brightness-slider {
+    min-width: 0;
+    min-height: 44px;
+    --control-slider-thickness: 38px;
+    --control-slider-border-radius: 999px;
+    --control-slider-color: var(--aboc-accent);
+    --control-slider-background: var(--aboc-control-surface);
+    --control-slider-background-opacity: 0.22;
+  }
+
+  .brightness-value {
+    color: inherit;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 760;
+    font-variant-numeric: tabular-nums;
+    unicode-bidi: isolate;
   }
 
   .temperature-stepper {
@@ -1388,7 +1434,7 @@ export const overviewCardStyles = css`
     }
 
     .area-name {
-      font-size: 15px;
+      font-size: min(var(--aboc-area-name-size), 15px);
     }
 
     .area-summary-pill .area-icon,
@@ -1488,7 +1534,7 @@ export const overviewCardStyles = css`
     }
 
     .climate-primary {
-      grid-template-columns: minmax(0, 1fr) 44px;
+      grid-template-columns: minmax(0, 1fr);
     }
 
     .climate-primary .temperature-stepper,

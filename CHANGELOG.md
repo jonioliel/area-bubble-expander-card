@@ -2,6 +2,14 @@
 
 All notable changes to Area Bubble Expander Card will be documented in this file.
 
+## 0.6.0 - 2026-08-14
+
+- Removed the redundant outer Area frame from collapsed rooms and kept a single accent outline around expanded Area content.
+- Replaced climate and fan dropdowns with native Home Assistant anchored control menus, and removed the duplicate climate power button because the HVAC mode menu already includes Off.
+- Added automatic brightness sliders for dimmable lights. Brightness is committed on release with `brightness_pct`, while zero safely turns the light off.
+- Added `style.area_name_size` (11–24 px, default 17) to YAML and the visual Appearance editor so long room names fit without sacrificing controls.
+- Added climate-menu, light-capability, brightness mapping, typography, and frame regression coverage; the suite now contains 127 tests.
+
 ## 0.5.1 - 2026-08-14
 
 - Changed collapsed Area quick actions to show only powered categories; off lights, off climate devices, and fully closed covers no longer consume summary space, while an active category popup still lists all of its members.

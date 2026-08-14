@@ -126,6 +126,10 @@ Empty sections are hidden by default. Every discovered device remains visible in
 
 The expanded layout is intentionally compact: climate uses a dedicated two-row controller, covers and media keep full-width controls, and lights/switches use a two-column tile grid whenever the card is wide enough. Collapsed Area summaries always remain one physical row. Mobile quick-action circles become visually smaller while retaining a 44 px hit area, and an extreme number of simultaneous active categories scrolls within the action strip instead of increasing the room height. Responsiveness follows the card's own width, so the same layout also works inside narrow desktop dashboard columns.
 
+Collapsed Areas use only their summary capsule, without an extra outer frame. Expanded Areas retain one accent outline around the complete Area content. Climate mode and fan controls use Home Assistant's native anchored menus; the mode menu is also the single power control, so there is no duplicate power button above it.
+
+Dimmable lights are detected automatically from Home Assistant's light capabilities and receive a compact brightness slider. Dragging updates the visual value immediately and sends one `light.turn_on` action with `brightness_pct` when released; releasing at zero turns the light off. The separate power button remains available for a fast toggle.
+
 ### Temperature
 
 The displayed temperature is selected in this order:
@@ -141,6 +145,7 @@ The temperature chip also reflects the state of an available climate entity in t
 
 ```yaml
 style:
+  area_name_size: 14
   temperature_off_surface: rgba(11, 28, 58, 0.94)
   temperature_cool_surface: rgba(34, 113, 196, 0.96)
   temperature_heat_surface: rgba(198, 83, 47, 0.96)
@@ -428,6 +433,7 @@ style:
 | `entity_overrides` | `{}` | Entity name, icon, section, visibility, and group-action protection. |
 | `entity_overrides.<entity>.icon` | registry/fallback icon | Overrides one device icon. |
 | `style.row_background` | theme-aware neutral | Shared Floor-header, powered-off Area, and inactive-entity background. |
+| `style.area_name_size` | `17` | Area-name font size in pixels, clamped to 11–24; also editable in Appearance. |
 | `style.active_color` | HA active color | Active badge and indicator color. |
 | `style.active_surface` | pale cyan | Active light/switch tile background. |
 | `style.climate_surface` | soft blue | Active climate-controller background. |
@@ -494,6 +500,7 @@ The Overview editor provides:
 - Complete per-Area entity hiding/restoration that also excludes hidden devices from state, color, summaries, and group actions
 - Entity section assignment, names, icons, protection, and priority order
 - Convenient on/off and HVAC temperature-state color pickers with CSS-value inputs, reset actions, and live previews
+- Adjustable Area-name size, native Home Assistant HVAC/fan menus, and automatic brightness sliders for dimmable lights
 - Safe popup and section-heading on/off/open/close controls that honor exclusion, availability, capability, and protection rules
 - Hebrew/English, RTL, responsive appearance, long-press More Info, and advanced safety lists
 

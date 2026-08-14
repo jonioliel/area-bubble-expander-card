@@ -32,6 +32,7 @@ export type OverviewStyleConfig = Pick<
   CardStyleConfig,
   "border_radius" | "blur" | "section_gap" | "row_height" | "show_shadows" | "shadow_intensity" | "accent_color" | "row_background"
 > & {
+  area_name_size?: number;
   active_color?: string;
   active_surface?: string;
   climate_surface?: string;
