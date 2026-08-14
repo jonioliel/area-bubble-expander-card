@@ -85,6 +85,9 @@ describe("overview configuration", () => {
     const config = resolved({ area: "kids" });
 
     expect(config.type).toBe(CARD_TYPE);
+    expect(config.target_icon).toBe("");
+    expect(config.floor_default_expanded).toBe(true);
+    expect(resolved({ floor_default_expanded: false }).floor_default_expanded).toBe(false);
     expect(config.section_order).toEqual(ALL_SECTIONS);
     expect(config.quick_actions).toEqual(["lights", "climate", "floor_heating", "switches", "covers", "media"]);
     expect(config.floor_heating_labels).toEqual(["floor_heating", "underfloor_heating"]);
@@ -119,6 +122,7 @@ describe("overview configuration", () => {
       area_overrides: {
         kids: {
           name: "Children",
+          occupancy_count_entity: " sensor.kids_people ",
           occupancy_entities: [" binary_sensor.kids_presence ", ""],
           section_order: ["covers", "invalid"] as OverviewSectionId[],
           section_titles: {
@@ -128,6 +132,9 @@ describe("overview configuration", () => {
           include_entities: {
             floor_heating: [" switch.floor ", ""],
           },
+        },
+        blank_count: {
+          occupancy_count_entity: "   ",
         },
         broken: [] as unknown as never,
       },
@@ -160,16 +167,32 @@ describe("overview configuration", () => {
     expect(config.area_overrides.broken).toBeUndefined();
     expect(config.area_overrides.kids).toMatchObject({
       name: "Children",
+      occupancy_count_entity: "sensor.kids_people",
       occupancy_entities: ["binary_sensor.kids_presence"],
       section_order: ["covers", "climate", "floor_heating", "lights_switches", "media"],
       section_titles: { covers: "Shades" },
       include_entities: { floor_heating: ["switch.floor"] },
     });
+    expect(config.area_overrides.blank_count).not.toHaveProperty("occupancy_count_entity");
     expect(config.entity_overrides.broken).toBeUndefined();
     expect(config.entity_overrides["light.kids"]).toEqual({
       name: "Night light",
       protected: true,
     });
+  });
+
+  it("trims a configured target icon and ignores malformed icon/count overrides", () => {
+    const config = resolveOverviewConfig({
+      type: CARD_TYPE,
+      area: "kids",
+      target_icon: "  mdi:home-heart  ",
+      area_overrides: {
+        kids: { occupancy_count_entity: 7 as unknown as string },
+      },
+    });
+
+    expect(config.target_icon).toBe("mdi:home-heart");
+    expect(config.area_overrides.kids).not.toHaveProperty("occupancy_count_entity");
   });
 });
 
@@ -218,6 +241,48 @@ describe("area and floor discovery", () => {
       areas: [],
       warnings: ["Area not found: attic"],
     });
+  });
+
+  it("applies target, area, and entity icon overrides in their intended scopes", () => {
+    const instance = registryHass();
+    instance.states["light.kids"].attributes.icon = "mdi:lightbulb-variant";
+
+    const result = discoverOverview(
+      instance,
+      resolved({
+        area: "kids",
+        target_icon: "mdi:home-heart",
+        area_overrides: { kids: { icon: "mdi:rocket-launch" } },
+        entity_overrides: { "light.kids": { icon: "mdi:ceiling-light-multiple" } },
+      }),
+    );
+
+    expect(result.targetIcon).toBe("mdi:home-heart");
+    expect(result.areas[0].icon).toBe("mdi:rocket-launch");
+    expect(result.areas[0].allEntities[0].icon).toBe("mdi:ceiling-light-multiple");
+  });
+
+  it("falls back through area/entity registry icons and lets a target icon override a floor icon", () => {
+    const instance = registryHass();
+    instance.states["light.kids"].attributes.icon = "mdi:light-recessed";
+
+    const areaResult = discoverOverview(instance, resolved({ area: "kids" }));
+    const overriddenAreaTarget = discoverOverview(
+      instance,
+      resolved({ area: "kids", area_overrides: { kids: { icon: "mdi:star-four-points" } } }),
+    );
+    const floorResult = discoverOverview(
+      instance,
+      resolved({ floor: "upstairs", target_icon: "mdi:layers-triple" }),
+    );
+
+    expect(areaResult.targetIcon).toBe("mdi:teddy-bear");
+    expect(areaResult.areas[0].icon).toBe("mdi:teddy-bear");
+    expect(areaResult.areas[0].allEntities[0].icon).toBe("mdi:light-recessed");
+    expect(overriddenAreaTarget.targetIcon).toBe("mdi:star-four-points");
+    expect(floorResult.targetIcon).toBe("mdi:layers-triple");
+    expect(floorResult.areas.find((area) => area.id === "kids")?.icon).toBe("mdi:teddy-bear");
+    expect(floorResult.areas.find((area) => area.id === "office")?.allEntities[0].icon).toBe("mdi:lightbulb");
   });
 
   it("expands a floor into its areas and honors configured area ordering", () => {
@@ -395,6 +460,63 @@ describe("entity classification and filtering", () => {
     expect(area.allEntities.map((item) => item.entityId)).toEqual(["light.visible"]);
   });
 
+  it("removes excluded entities from area power, temperature, and occupancy summaries", () => {
+    const area = discoverArea(
+      hass({
+        areas: { kids: { area_id: "kids", name: "Kids" } },
+        states: {
+          "switch.always_on": entity("switch.always_on", "on", { friendly_name: "Infrastructure" }),
+          "light.room": entity("light.room", "off", { friendly_name: "Room light" }),
+          "sensor.hot": entity("sensor.hot", "99", {
+            device_class: "temperature",
+            unit_of_measurement: "ֲ°C",
+          }),
+          "sensor.room_temperature": entity("sensor.room_temperature", "22", {
+            device_class: "temperature",
+            unit_of_measurement: "ֲ°C",
+          }),
+          "binary_sensor.always_present": entity("binary_sensor.always_present", "on", {
+            device_class: "presence",
+          }),
+          "binary_sensor.room_presence": entity("binary_sensor.room_presence", "off", {
+            device_class: "presence",
+          }),
+        },
+        entities: Object.fromEntries(
+          [
+            "switch.always_on",
+            "light.room",
+            "sensor.hot",
+            "sensor.room_temperature",
+            "binary_sensor.always_present",
+            "binary_sensor.room_presence",
+          ].map((entityId) => [entityId, { entity_id: entityId, area_id: "kids" }]),
+        ),
+      }),
+      {
+        exclude_entities: ["switch.always_on"],
+        area_overrides: {
+          kids: {
+            temperature_entity: "sensor.hot",
+            occupancy_entities: ["binary_sensor.always_present", "binary_sensor.room_presence"],
+            exclude_entities: ["sensor.hot", "binary_sensor.always_present"],
+          },
+        },
+      },
+    );
+
+    expect(area.allEntities.map((item) => item.entityId)).toEqual(["light.room"]);
+    expect(area.allEntities.some((item) => item.powered)).toBe(false);
+    expect(area.sections.flatMap((section) => section.entities).some((item) => item.powered)).toBe(false);
+    expect(area.sections.every((section) => section.activeCount === 0)).toBe(true);
+    expect(quickActionEntities(area, "switches")).toEqual([]);
+    expect(area.temperature).toBe(22);
+    expect(area.occupancy).toBe("vacant");
+    expect(area.occupancyCount).toBe(0);
+    expect(area.occupancyCountSource).toBe("sensors");
+    expect(area.occupancyEntities).toEqual(["binary_sensor.room_presence"]);
+  });
+
   it("omits hidden areas and marks protected entities from override, list, entity label, or device label", () => {
     const ids = ["light.override", "light.list", "light.entity_label", "light.device_label", "light.normal"];
     const instance = hass({
@@ -549,10 +671,11 @@ describe("temperature and occupancy", () => {
   });
 
   it.each([
-    ["occupied", ["on", "off"]],
-    ["vacant", ["off", "off"]],
-    ["unknown", ["unknown", "off"]],
-  ] as const)("derives %s from matching occupancy sensors", (expected, sensorStates) => {
+    ["occupied", 1, ["on", "off"]],
+    ["occupied", 2, ["present", "detected"]],
+    ["vacant", 0, ["off", "away"]],
+    ["unknown", undefined, ["unknown", "off"]],
+  ] as const)("derives %s and a numeric sensor count from matching occupancy sensors", (expected, count, sensorStates) => {
     const area = discoverArea(
       hass({
         areas: { kids: { area_id: "kids", name: "Kids" } },
@@ -570,7 +693,111 @@ describe("temperature and occupancy", () => {
     );
 
     expect(area.occupancy).toBe(expected);
+    expect(area.occupancyCount).toBe(count);
+    expect(area.occupancyCountSource).toBe("sensors");
     expect(area.occupancyEntities).toEqual(["binary_sensor.motion", "binary_sensor.presence"]);
+  });
+
+  it.each([
+    ["2.4", "occupied", 2],
+    ["0", "vacant", 0],
+    ["-3", "vacant", 0],
+  ] as const)("uses numeric occupancy count %s as the authoritative source", (state, occupancy, count) => {
+    const area = discoverArea(
+      hass({
+        areas: { kids: { area_id: "kids", name: "Kids" } },
+        states: {
+          "sensor.people": entity("sensor.people", state),
+          "binary_sensor.motion": entity("binary_sensor.motion", "off", { device_class: "motion" }),
+        },
+        entities: {
+          "sensor.people": { entity_id: "sensor.people", area_id: "kids" },
+          "binary_sensor.motion": { entity_id: "binary_sensor.motion", area_id: "kids" },
+        },
+      }),
+      { area_overrides: { kids: { occupancy_count_entity: "sensor.people" } } },
+    );
+
+    expect(area.occupancy).toBe(occupancy);
+    expect(area.occupancyCount).toBe(count);
+    expect(area.occupancyCountSource).toBe("entity");
+    expect(area.occupancyEntities).toEqual(["sensor.people"]);
+  });
+
+  it("reports an invalid count entity as unknown instead of falling back to binary sensors", () => {
+    const area = discoverArea(
+      hass({
+        areas: { kids: { area_id: "kids", name: "Kids" } },
+        states: {
+          "sensor.people": entity("sensor.people", "unknown"),
+          "binary_sensor.motion": entity("binary_sensor.motion", "on", { device_class: "motion" }),
+        },
+        entities: {
+          "sensor.people": { entity_id: "sensor.people", area_id: "kids" },
+          "binary_sensor.motion": { entity_id: "binary_sensor.motion", area_id: "kids" },
+        },
+      }),
+      { area_overrides: { kids: { occupancy_count_entity: "sensor.people" } } },
+    );
+
+    expect(area.occupancy).toBe("unknown");
+    expect(area.occupancyCount).toBeUndefined();
+    expect(area.occupancyCountSource).toBe("entity");
+    expect(area.occupancyEntities).toEqual(["sensor.people"]);
+  });
+
+  it("counts explicitly configured people and trackers by their Home Assistant presence states", () => {
+    const area = discoverArea(
+      hass({
+        areas: { kids: { area_id: "kids", name: "Kids" } },
+        states: {
+          "person.alice": entity("person.alice", "home"),
+          "device_tracker.bob": entity("device_tracker.bob", "home"),
+          "person.carol": entity("person.carol", "not_home"),
+        },
+      }),
+      {
+        area_overrides: {
+          kids: {
+            occupancy_entities: ["person.alice", "device_tracker.bob", "person.carol"],
+          },
+        },
+      },
+    );
+
+    expect(area.occupancy).toBe("occupied");
+    expect(area.occupancyCount).toBe(2);
+    expect(area.occupancyCountSource).toBe("sensors");
+    expect(area.occupancyEntities).toEqual(["person.alice", "device_tracker.bob", "person.carol"]);
+  });
+
+  it("lets excluding the configured count entity remove its summary impact", () => {
+    const area = discoverArea(
+      hass({
+        areas: { kids: { area_id: "kids", name: "Kids" } },
+        states: {
+          "sensor.people": entity("sensor.people", "4"),
+          "binary_sensor.motion": entity("binary_sensor.motion", "off", { device_class: "motion" }),
+        },
+        entities: {
+          "sensor.people": { entity_id: "sensor.people", area_id: "kids" },
+          "binary_sensor.motion": { entity_id: "binary_sensor.motion", area_id: "kids" },
+        },
+      }),
+      {
+        area_overrides: {
+          kids: {
+            occupancy_count_entity: "sensor.people",
+            exclude_entities: ["sensor.people"],
+          },
+        },
+      },
+    );
+
+    expect(area.occupancy).toBe("vacant");
+    expect(area.occupancyCount).toBe(0);
+    expect(area.occupancyCountSource).toBe("sensors");
+    expect(area.occupancyEntities).toEqual(["binary_sensor.motion"]);
   });
 
   it("lets explicit occupancy entities override automatic discovery and reports none without candidates", () => {
@@ -591,8 +818,12 @@ describe("temperature and occupancy", () => {
     const none = discoverArea(instance, { occupancy_device_classes: ["occupancy"] });
 
     expect(explicit.occupancy).toBe("vacant");
+    expect(explicit.occupancyCount).toBe(0);
+    expect(explicit.occupancyCountSource).toBe("sensors");
     expect(explicit.occupancyEntities).toEqual(["binary_sensor.explicit"]);
     expect(none.occupancy).toBe("none");
+    expect(none.occupancyCount).toBeUndefined();
+    expect(none.occupancyCountSource).toBe("none");
     expect(none.occupancyEntities).toEqual([]);
   });
 });
@@ -682,6 +913,7 @@ const actionArea = (allEntities: OverviewEntity[]): OverviewArea => ({
   sections: [],
   allEntities,
   occupancy: "none",
+  occupancyCountSource: "none",
   occupancyEntities: [],
 });
 

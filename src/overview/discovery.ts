@@ -5,6 +5,7 @@ import type {
   OverviewArea,
   OverviewDiscovery,
   OverviewEntity,
+  OccupancyCountSource,
   OverviewSectionId,
   OccupancyState,
   ResolvedOverviewConfig,
@@ -133,9 +134,12 @@ const resolveTemperature = (
   area: HassAreaRegistryEntry | undefined,
   entityIds: string[],
   config: ResolvedOverviewConfig,
+  excluded: ReadonlySet<string>,
 ): { temperature?: number; unit?: string } => {
   const override = config.area_overrides[areaId] ?? config.area_overrides[area?.name ?? ""];
-  const configuredCandidates = [...new Set([override?.temperature_entity, area?.temperature_entity_id].filter((item): item is string => Boolean(item)))];
+  const configuredCandidates = [...new Set([override?.temperature_entity, area?.temperature_entity_id]
+    .filter((item): item is string => Boolean(item))
+    .filter((item) => !excluded.has(item)))];
   for (const configured of configuredCandidates) {
     const selected = temperatureFromEntity(hass?.states[configured]);
     if (selected.value !== undefined) return { temperature: selected.value, unit: selected.unit };
@@ -163,19 +167,37 @@ const resolveOccupancy = (
   areaName: string | undefined,
   areaEntityIds: string[],
   config: ResolvedOverviewConfig,
-): { occupancy: OccupancyState; entities: string[] } => {
-  const explicit = (config.area_overrides[areaId] ?? config.area_overrides[areaName ?? ""])?.occupancy_entities ?? [];
+  excluded: ReadonlySet<string>,
+): { occupancy: OccupancyState; count?: number; countSource: OccupancyCountSource; entities: string[] } => {
+  const override = config.area_overrides[areaId] ?? config.area_overrides[areaName ?? ""];
+  const countEntityId = override?.occupancy_count_entity;
+  if (countEntityId && !excluded.has(countEntityId)) {
+    const countEntity = hass?.states[countEntityId];
+    if (countEntity) {
+      const value = finiteNumber(countEntity.state);
+      if (value !== undefined) {
+        const count = Math.max(0, Math.round(value));
+        return { occupancy: count > 0 ? "occupied" : "vacant", count, countSource: "entity", entities: [countEntityId] };
+      }
+      return { occupancy: "unknown", countSource: "entity", entities: [countEntityId] };
+    }
+  }
+
+  const explicit = (override?.occupancy_entities ?? []).filter((entityId) => !excluded.has(entityId));
   const candidates = explicit.length
     ? explicit
     : areaEntityIds.filter((entityId) => {
         const entity = hass?.states[entityId];
         return domainOf(entityId) === "binary_sensor" && config.occupancy_device_classes.includes(String(entity?.attributes.device_class ?? ""));
       });
-  if (!candidates.length) return { occupancy: "none", entities: [] };
+  if (!candidates.length) return { occupancy: "none", countSource: "none", entities: [] };
   const states = candidates.map((entityId) => String(hass?.states[entityId]?.state ?? "unknown").toLowerCase());
-  if (states.some((state) => state === "on")) return { occupancy: "occupied", entities: candidates };
-  if (states.every((state) => state === "off")) return { occupancy: "vacant", entities: candidates };
-  return { occupancy: "unknown", entities: candidates };
+  const activeStates = new Set(["on", "home", "occupied", "present", "detected"]);
+  const inactiveStates = new Set(["off", "not_home", "away", "vacant", "clear"]);
+  const count = states.filter((state) => activeStates.has(state)).length;
+  if (count > 0) return { occupancy: "occupied", count, countSource: "sensors", entities: candidates };
+  if (states.every((state) => inactiveStates.has(state))) return { occupancy: "vacant", count: 0, countSource: "sensors", entities: candidates };
+  return { occupancy: "unknown", countSource: "sensors", entities: candidates };
 };
 
 const createArea = (
@@ -190,6 +212,13 @@ const createArea = (
   const forcedIds = Object.values(override?.include_entities ?? {}).flat();
   const candidateIds = [...new Set([...assignedIds, ...forcedIds])];
   const excluded = new Set([...config.exclude_entities, ...(override?.exclude_entities ?? [])]);
+  for (const [entityId, entityOverride] of Object.entries(config.entity_overrides)) {
+    if (entityOverride.hidden === true) excluded.add(entityId);
+  }
+  for (const entityId of candidateIds) {
+    if (config.entity_overrides[entityId]?.hidden === true) excluded.add(entityId);
+  }
+  const summaryEntityIds = candidateIds.filter((entityId) => !excluded.has(entityId));
   const entities: OverviewEntity[] = [];
 
   for (const entityId of candidateIds) {
@@ -243,8 +272,8 @@ const createArea = (
     })
     .filter((section) => config.show_empty_sections || section.entities.length > 0);
 
-  const temperature = resolveTemperature(hass, areaId, registryArea, assignedIds, config);
-  const occupancy = resolveOccupancy(hass, areaId, registryArea?.name, assignedIds, config);
+  const temperature = resolveTemperature(hass, areaId, registryArea, summaryEntityIds, config, excluded);
+  const occupancy = resolveOccupancy(hass, areaId, registryArea?.name, summaryEntityIds, config, excluded);
   return {
     id: areaId,
     name: override?.name ?? registryArea?.name ?? areaId,
@@ -255,6 +284,8 @@ const createArea = (
     temperature: temperature.temperature,
     temperatureUnit: temperature.unit ?? hass?.config?.unit_system?.temperature ?? "°C",
     occupancy: occupancy.occupancy,
+    occupancyCount: occupancy.count,
+    occupancyCountSource: occupancy.countSource,
     occupancyEntities: occupancy.entities,
   };
 };
@@ -267,13 +298,14 @@ const targetAreaIds = (
   if (config.area) {
     const match = [...registry.entries()].find(([id, area]) => id === config.area || area.name === config.area);
     if (!match) return { ids: [], targetName: config.area, targetIcon: "mdi:map-marker-alert", kind: "area", warnings: [`Area not found: ${config.area}`] };
-    return { ids: [match[0]], targetName: match[1].name, targetIcon: match[1].icon ?? "mdi:floor-plan", kind: "area", warnings: [] };
+    const override = config.area_overrides[match[0]] ?? config.area_overrides[match[1].name];
+    return { ids: [match[0]], targetName: match[1].name, targetIcon: config.target_icon || override?.icon || match[1].icon || "mdi:floor-plan", kind: "area", warnings: [] };
   }
   if (config.floor) {
     const floor = floorEntries(hass).find((item) => item.id === config.floor || item.name === config.floor);
     if (!floor) return { ids: [], targetName: config.floor, targetIcon: "mdi:home-floor-0", kind: "floor", warnings: [`Floor not found: ${config.floor}`] };
     const ids = [...registry.entries()].filter(([, area]) => area.floor_id === floor.id).map(([id]) => id);
-    return { ids, targetName: floor.name, targetIcon: floor.icon ?? "mdi:home-floor-0", kind: "floor", warnings: ids.length ? [] : [`Floor has no areas: ${floor.name}`] };
+    return { ids, targetName: floor.name, targetIcon: config.target_icon || floor.icon || "mdi:home-floor-0", kind: "floor", warnings: ids.length ? [] : [`Floor has no areas: ${floor.name}`] };
   }
   return { ids: [], targetName: "", targetIcon: "mdi:floor-plan", kind: "none", warnings: ["No area or floor configured"] };
 };

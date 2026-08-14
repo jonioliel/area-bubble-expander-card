@@ -48,11 +48,14 @@ const areaOverrides = (value: unknown): Record<string, OverviewAreaOverride> => 
   for (const [areaId, raw] of Object.entries(value)) {
     if (!isRecord(raw)) continue;
     result[areaId] = {
-      ...(typeof raw.name === "string" ? { name: raw.name } : {}),
-      ...(typeof raw.icon === "string" ? { icon: raw.icon } : {}),
+      ...(typeof raw.name === "string" && raw.name.trim() ? { name: raw.name.trim() } : {}),
+      ...(typeof raw.icon === "string" && raw.icon.trim() ? { icon: raw.icon.trim() } : {}),
       ...(typeof raw.hidden === "boolean" ? { hidden: raw.hidden } : {}),
       ...(typeof raw.default_expanded === "boolean" ? { default_expanded: raw.default_expanded } : {}),
-      ...(typeof raw.temperature_entity === "string" ? { temperature_entity: raw.temperature_entity } : {}),
+      ...(typeof raw.temperature_entity === "string" && raw.temperature_entity.trim() ? { temperature_entity: raw.temperature_entity.trim() } : {}),
+      ...(typeof raw.occupancy_count_entity === "string" && raw.occupancy_count_entity.trim()
+        ? { occupancy_count_entity: raw.occupancy_count_entity.trim() }
+        : {}),
       occupancy_entities: stringArray(raw.occupancy_entities),
       ...(Array.isArray(raw.section_order) ? { section_order: sectionArray(raw.section_order) } : {}),
       section_titles: sectionTitles(raw.section_titles),
@@ -71,8 +74,8 @@ const entityOverrides = (value: unknown): Record<string, OverviewEntityOverride>
   for (const [entityId, raw] of Object.entries(value)) {
     if (!isRecord(raw)) continue;
     result[entityId] = {
-      ...(typeof raw.name === "string" ? { name: raw.name } : {}),
-      ...(typeof raw.icon === "string" ? { icon: raw.icon } : {}),
+      ...(typeof raw.name === "string" && raw.name.trim() ? { name: raw.name.trim() } : {}),
+      ...(typeof raw.icon === "string" && raw.icon.trim() ? { icon: raw.icon.trim() } : {}),
       ...(typeof raw.section === "string" && allowed.has(raw.section) ? { section: raw.section as OverviewSectionId } : {}),
       ...(typeof raw.hidden === "boolean" ? { hidden: raw.hidden } : {}),
       ...(typeof raw.protected === "boolean" ? { protected: raw.protected } : {}),
@@ -91,6 +94,7 @@ export const resolveOverviewConfig = (config: AreaBubbleOverviewCardConfig): Res
     area: typeof config.area === "string" && config.area ? config.area : undefined,
     floor: typeof config.floor === "string" && config.floor ? config.floor : undefined,
     title: typeof config.title === "string" ? config.title : "",
+    target_icon: typeof config.target_icon === "string" ? config.target_icon.trim() : "",
     section_order: sectionArray(config.section_order),
     section_titles: Object.fromEntries(
       OVERVIEW_SECTIONS.map((section) => [section, typeof customTitles[section] === "string" ? customTitles[section] : ""]),

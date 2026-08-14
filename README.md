@@ -12,13 +12,15 @@ Both cards are delivered by the same JavaScript resource. Install it once, then 
 ## Highlights
 
 - Automatic Entity → Device → Area → Floor discovery from Home Assistant registries
-- One-room or whole-floor Overview with independently expandable Areas
+- One-room or whole-floor Overview with a collapsible Floor and independently expandable Areas
 - Temperature priority: configured source, HA Area source, median temperature sensors, then climate devices
-- Occupancy from `occupancy`, `presence`, and `motion` binary sensors
+- Numeric occupancy from a count entity, with active presence-sensor count as a fallback
 - Quick off/close actions available while an Area is collapsed
+- Tap controls directly and long-press an entity for Home Assistant More Info
 - Dedicated climate, cover, light/switch, and media controls inside each expanded Area
 - Floor-heating discovery using Labels, explicit entity lists, or per-entity section overrides
-- Custom Area, section, and entity names plus stable priority ordering
+- Custom Floor/Area/entity icons, Area and section names, and stable priority ordering
+- Per-Area entity exclusion that also removes the entity from activity, color, and summary calculations
 - Visual editors in a Home Assistant-style vertical layout
 - Hebrew and English editors, automatic/forced RTL, mobile layouts, and keyboard accessibility
 - Protected Labels/entities are excluded from grouped turn-off actions
@@ -71,9 +73,12 @@ rtl: auto
 type: custom:area-bubble-overview-card
 id: upper-floor-overview
 floor: upper_floor
+target_icon: mdi:home-floor-1
 title: קומה עליונה
 language: he
 rtl: true
+floor_default_expanded: true
+remember_expanded_state: true
 area_order:
   - kids_room
   - library
@@ -81,6 +86,12 @@ area_order:
 ```
 
 Choose exactly one of `area` or `floor`. The visual editor exposes Home Assistant's real names while storing stable IDs.
+
+### Floor collapse and entity interactions
+
+In Floor mode, press the Floor header to collapse or reveal the complete Area list. This does not change the expanded/collapsed state of any individual Area. `floor_default_expanded` controls the initial state, and `remember_expanded_state: true` remembers the Floor and Area states independently for the card's stable `id`.
+
+A normal tap keeps the control's primary behavior. Long-press an entity control for about half a second to open Home Assistant's More Info dialog without accidentally toggling it. Moving the pointer to scroll cancels the hold gesture; entity names remain directly accessible by mouse and keyboard.
 
 ### Default expanded order
 
@@ -107,13 +118,39 @@ Select the preferred source directly in the visual editor when automatic discove
 
 ### Occupancy
 
-The card automatically considers binary sensors with these device classes:
+For a real people count, select a numeric entity for each Area:
+
+```yaml
+area_overrides:
+  kids_room:
+    occupancy_count_entity: sensor.kids_room_people_count
+```
+
+The value is rounded to the nearest whole number and clamped to zero. `0` is vacant and any positive value is occupied. The Area header shows the number beside the occupancy icon (`9+` for values above nine). An unavailable or non-numeric configured count is shown as unknown instead of pretending that the room is empty.
+
+When no numeric count entity is configured, the card counts active binary sensors with these device classes:
 
 - `occupancy`
 - `presence`
 - `motion`
 
-Any sensor that is `on` means occupied; all `off` means vacant; only unavailable/unknown values mean unknown. Override the sensor selection per Area in the editor or YAML.
+Any active sensor means occupied; all inactive sensors means vacant; only unavailable/unknown values mean unknown. In this fallback mode the displayed number is the count of active presence sensors, not an inferred number of people. Override the sensor selection per Area in the editor or YAML with `occupancy_entities`.
+
+### Icons
+
+Floor, Area, and individual entity icons can all be changed from the visual editor or YAML:
+
+```yaml
+target_icon: mdi:home-floor-1
+area_overrides:
+  kids_room:
+    icon: mdi:teddy-bear
+entity_overrides:
+  climate.kids_ac:
+    icon: mdi:air-conditioner
+```
+
+`target_icon` controls the top-level Area/Floor header. `area_overrides.<area>.icon` controls the Area row, and `entity_overrides.<entity>.icon` controls that device. When an override is empty, the Home Assistant registry icon and then the card fallback icon are used.
 
 ### Floor heating
 
@@ -161,12 +198,38 @@ Safety behavior:
 - Buttons are disabled while an action is in flight, and partial failures produce a Home Assistant notification.
 - `protected` applies to group actions; direct controls remain available after intentionally expanding the Area.
 
+### Excluding an entity from one Area
+
+Use an Area exclusion for an always-on or irrelevant entity that should not participate in this card:
+
+```yaml
+area_overrides:
+  kids_room:
+    exclude_entities:
+      - switch.kids_room_always_on
+```
+
+An excluded entity is removed from the Area tiles, active count, active/inactive Area color, quick actions, and automatic temperature/occupancy summaries. This prevents a permanently-on switch from making the room look active. The visual editor keeps excluded entities available in a muted **Removed** list so they can be restored without editing YAML. Top-level `exclude_entities` and `entity_overrides.<entity>.hidden: true` remain available for global removal.
+
+### On/off colors
+
+The Appearance panel provides color swatches, editable CSS values, reset buttons, and a live on/off preview. The main state mapping is:
+
+| State | Style key | Used for |
+| --- | --- | --- |
+| Off / neutral | `style.row_background` | Inactive entity tiles and neutral surfaces. |
+| On / active | `style.active_surface` | Active entity tiles and active Area summaries. |
+| Active indicator | `style.active_color` | Quick-action count badges and active accents. |
+
+The text value can still use Home Assistant CSS variables or `rgba(...)` when a plain picker color is not sufficient.
+
 ### Full example
 
 ```yaml
 type: custom:area-bubble-overview-card
 id: upper-floor-overview
 floor: upper_floor
+target_icon: mdi:home-floor-1
 title: קומה עליונה
 language: he
 rtl: auto
@@ -176,6 +239,7 @@ show_occupancy: true
 show_quick_actions: true
 show_empty_sections: false
 default_expanded: false
+floor_default_expanded: true
 remember_expanded_state: true
 
 section_order:
@@ -212,8 +276,11 @@ area_overrides:
     icon: mdi:teddy-bear
     default_expanded: true
     temperature_entity: sensor.kids_temperature
+    occupancy_count_entity: sensor.kids_room_people_count
     occupancy_entities:
       - binary_sensor.kids_occupancy
+    exclude_entities:
+      - switch.kids_room_always_on
     section_titles:
       lights_switches: תאורה ומפסקים
     entity_order:
@@ -241,6 +308,8 @@ style:
   row_height: 56
   section_gap: 12
   accent_color: var(--primary-color)
+  row_background: rgba(74, 74, 74, 0.88)
+  active_color: var(--state-active-color, #ffd54f)
   active_surface: rgba(174, 215, 219, 0.94)
   climate_surface: rgba(139, 181, 255, 0.94)
   control_surface: rgba(11, 28, 58, 0.94)
@@ -253,13 +322,15 @@ style:
 | `id` | target-derived | Stable key for remembered expansion; recommended for repeated targets. |
 | `area` / `floor` | none | One target is required. IDs and names are accepted; IDs are recommended. |
 | `title` | none | Optional overall title; Floor mode still shows the Floor name by default. |
+| `target_icon` | registry/fallback icon | Overrides the top-level Area or Floor icon. |
 | `language` / `rtl` | `auto` | `he`, `en`; RTL may be `auto`, `true`, or `false`. |
 | `show_temperature` | `true` | Shows the preferred/automatic current temperature. |
-| `show_occupancy` | `true` | Shows occupied, vacant, or unknown when sensors exist. |
+| `show_occupancy` | `true` | Shows a numeric occupancy/count-sensor badge, including zero and unknown. |
 | `show_quick_actions` | `true` | Shows safe group controls on the collapsed header. |
 | `show_empty_sections` | `false` | Keeps the layout compact when a category is absent. |
 | `default_expanded` | `false` | Initial Area expansion. |
-| `remember_expanded_state` | `true` | Stores expansion locally per stable card ID. |
+| `floor_default_expanded` | `true` | Initial visibility of all Areas under a Floor header. |
+| `remember_expanded_state` | `true` | Stores Floor and Area expansion independently per stable card ID. |
 | `section_order` | standard five sections | Priority order; missing built-in sections are appended safely. |
 | `section_titles` | localized | Global section headings. |
 | `quick_actions` | all six | Enabled actions in display order. |
@@ -269,8 +340,15 @@ style:
 | `occupancy_device_classes` | occupancy/presence/motion | Automatic presence classes. |
 | `exclude_entities` | `[]` | Completely removes entities from Overview. |
 | `protected_labels` / `protected_entities` | safe defaults / `[]` | Excluded from quick group actions. |
-| `area_overrides` | `{}` | Area-specific name, icon, sensors, headings, inclusion, exclusion, and order. |
+| `area_overrides` | `{}` | Area name/icon, temperature source, numeric occupancy source, headings, inclusion/exclusion, and order. |
+| `area_overrides.<area>.icon` | registry/fallback icon | Overrides one Area row icon. |
+| `area_overrides.<area>.occupancy_count_entity` | none | Authoritative numeric people-count entity; zero is vacant. |
+| `area_overrides.<area>.occupancy_entities` | automatic | Presence sensors to count when no numeric count entity is selected. |
+| `area_overrides.<area>.exclude_entities` | `[]` | Removes entities from display and every Area state/summary calculation. |
 | `entity_overrides` | `{}` | Entity name, icon, section, visibility, and group-action protection. |
+| `entity_overrides.<entity>.icon` | registry/fallback icon | Overrides one device icon. |
+| `style.row_background` | charcoal | Off/neutral entity tile and surface background. |
+| `style.active_color` | HA active color | Active badge and indicator color. |
 | `style.active_surface` | pale cyan | Active light/switch tile background. |
 | `style.climate_surface` | soft blue | Active climate-controller background. |
 | `style.control_surface` | dark navy | Temperature, mode, fan, and thermostat control pills. |
@@ -322,12 +400,15 @@ Both cards expose `getConfigElement()` and work with Home Assistant's dashboard 
 The Overview editor provides:
 
 - Area/Floor target selection
-- Summary, temperature, occupancy, and quick-action settings
+- Collapsible Floor defaults plus independently remembered Floor/Area expansion
+- Summary, temperature, numeric occupancy, sensor fallback, and quick-action settings
 - Section title and order editing
 - Floor Area order and per-Area overrides
-- Preferred temperature and occupancy entity selection
-- Entity section assignment, names, protection, and priority order
-- Hebrew/English, RTL, responsive appearance, and advanced safety lists
+- Floor/Area/entity icon pickers with registry fallbacks
+- Preferred temperature, occupancy-count, and occupancy sensor selection
+- Entity visibility/removal, restoration, section assignment, names, protection, and priority order
+- Convenient on/off color pickers with CSS-value inputs, reset actions, and a live preview
+- Hebrew/English, RTL, responsive appearance, long-press More Info, and advanced safety lists
 
 The What's-on-now editor provides a Home Assistant-style vertical navigation layout with live Area/Entity/Label pickers, accessible reordering, and local JSON drafts. Invalid JSON is never emitted to Home Assistant; it remains an editor draft with an inline error until corrected or reset.
 

@@ -40,10 +40,18 @@ export class AreaBubbleOverviewCard extends LitElement {
   @property({ attribute: false }) public hass?: HomeAssistant;
   @state() private config?: ResolvedOverviewConfig;
   @state() private expanded: Record<string, boolean> = {};
+  @state() private floorExpanded = true;
   @state() private pendingActions = new Set<string>();
   @state() private pendingEntities = new Set<string>();
   @state() private error?: string;
   private storageId = "overview";
+  private holdTimer?: number;
+  private holdPointerId?: number;
+  private holdEntityId?: string;
+  private holdStart?: { x: number; y: number };
+  private holdTarget?: HTMLElement;
+  private suppressClickEntityId?: string;
+  private suppressClickUntil = 0;
 
   public static getConfigElement(): HTMLElement {
     return document.createElement(OVERVIEW_EDITOR_TAG);
@@ -59,6 +67,9 @@ export class AreaBubbleOverviewCard extends LitElement {
       this.config = resolveOverviewConfig(config);
       this.storageId = this.config.id || `${this.config.floor ? "floor" : "area"}:${this.config.floor ?? this.config.area ?? "unconfigured"}`;
       this.expanded = this.config.remember_expanded_state ? this.readExpanded() : {};
+      this.floorExpanded = this.config.remember_expanded_state
+        ? this.readFloorExpanded() ?? this.config.floor_default_expanded
+        : this.config.floor_default_expanded;
       this.error = undefined;
     } catch (error) {
       this.error = error instanceof Error ? error.message : String(error);
@@ -68,6 +79,7 @@ export class AreaBubbleOverviewCard extends LitElement {
   public getCardSize(): number {
     if (!this.config) return 3;
     const discovery = discoverOverview(this.hass, this.config);
+    if (discovery.targetKind === "floor" && this.config.show_header && this.config.show_floor_header && !this.floorExpanded) return 2;
     return Math.max(
       2,
       discovery.areas.reduce(
@@ -81,6 +93,11 @@ export class AreaBubbleOverviewCard extends LitElement {
     return { columns: 12, min_columns: 6 };
   }
 
+  public override disconnectedCallback(): void {
+    super.disconnectedCallback();
+    this.cancelHold();
+  }
+
   protected override render() {
     if (this.error) return html`<ha-card><div class="root"><div class="warning">${this.error}</div></div></ha-card>`;
     if (!this.config) return nothing;
@@ -90,15 +107,21 @@ export class AreaBubbleOverviewCard extends LitElement {
     this.applyStyleVariables();
 
     const discovery = discoverOverview(this.hass, this.config);
+    const floorContentId = `overview-floor-${this.storageId.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
+    const floorCanCollapse = discovery.targetKind === "floor" && this.config.show_header && this.config.show_floor_header;
     return html`
       <ha-card>
         <div class="root">
-          ${this.renderOverallHeader(discovery)}
+          ${this.renderOverallHeader(discovery, floorContentId)}
           ${discovery.targetKind === "none"
             ? this.renderEmpty(overviewText(this.hass, this.config, "choose_target"), "mdi:map-marker-plus-outline")
-            : discovery.areas.length
-              ? html`<div class="areas">${discovery.areas.map((area) => this.renderArea(area))}</div>`
-              : this.renderEmpty(overviewText(this.hass, this.config, "no_areas"), "mdi:home-search-outline")}
+            : html`
+                <div id=${floorContentId} ?hidden=${floorCanCollapse && !this.floorExpanded}>
+                  ${discovery.areas.length
+                    ? html`<div class="areas">${discovery.areas.map((area) => this.renderArea(area))}</div>`
+                    : this.renderEmpty(overviewText(this.hass, this.config, "no_areas"), "mdi:home-search-outline")}
+                </div>
+              `}
           ${discovery.warnings.length && discovery.targetKind !== "none"
             ? html`<div class="warning">${discovery.warnings.join(" · ")}</div>`
             : nothing}
@@ -108,21 +131,30 @@ export class AreaBubbleOverviewCard extends LitElement {
     `;
   }
 
-  private renderOverallHeader(discovery: OverviewDiscovery) {
+  private renderOverallHeader(discovery: OverviewDiscovery, contentId: string) {
     if (!this.config?.show_header) return nothing;
     const show = discovery.targetKind === "floor" ? this.config.show_floor_header : Boolean(this.config.title);
     if (!show || !discovery.targetName) return nothing;
-    return html`
-      <div class="overview-heading">
-        <span class="icon-bubble small"><ha-icon icon=${discovery.targetIcon}></ha-icon></span>
-        <div class="heading-main">
-          <h2>${discovery.targetName}</h2>
-          ${discovery.targetKind === "floor"
-            ? html`<div class="subtitle">${discovery.areas.length} ${overviewLanguage(this.hass, this.config) === "he" ? "אזורים" : "areas"}</div>`
-            : nothing}
+    if (discovery.targetKind === "floor") {
+      const activeAreas = discovery.areas.filter((area) => area.allEntities.some((item) => item.powered)).length;
+      const occupiedAreas = discovery.areas.filter((area) => area.occupancy === "occupied").length;
+      const summary = [
+        `${discovery.areas.length} ${this.localText("אזורים", "areas")}`,
+        activeAreas ? `${activeAreas} ${this.localText("פעילים", "active")}` : "",
+        this.config.show_occupancy && occupiedAreas ? `${occupiedAreas} ${this.localText("מאוכלסים", "occupied")}` : "",
+      ].filter(Boolean).join(" · ");
+      const label = `${this.floorExpanded ? this.localText("כיווץ קומה", "Collapse floor") : this.localText("פתיחת קומה", "Expand floor")}: ${discovery.targetName}`;
+      return html`
+        <div class="overview-heading floor-heading">
+          <button class="floor-toggle" type="button" aria-expanded=${this.floorExpanded} aria-controls=${contentId} aria-label=${label} @click=${() => this.toggleFloor()}>
+            <span class="icon-bubble small"><ha-icon icon=${discovery.targetIcon}></ha-icon></span>
+            <span class="heading-main"><span class="floor-title">${discovery.targetName}</span><span class="subtitle">${summary}</span></span>
+            <span class="floor-chevron ${this.floorExpanded ? "expanded" : ""}" aria-hidden="true"><ha-icon icon="mdi:chevron-down"></ha-icon></span>
+          </button>
         </div>
-      </div>
-    `;
+      `;
+    }
+    return html`<div class="overview-heading"><span class="icon-bubble small"><ha-icon icon=${discovery.targetIcon}></ha-icon></span><div class="heading-main"><h2>${discovery.targetName}</h2></div></div>`;
   }
 
   private renderArea(area: OverviewArea) {
@@ -190,12 +222,19 @@ export class AreaBubbleOverviewCard extends LitElement {
   private renderOccupancy(area: OverviewArea) {
     if (!this.config?.show_occupancy || area.occupancy === "none") return nothing;
     const occupied = area.occupancy === "occupied";
-    const icon = occupied ? "mdi:account-check" : area.occupancy === "vacant" ? "mdi:account-off-outline" : "mdi:account-question-outline";
-    const label = overviewText(this.hass, this.config, area.occupancy === "occupied" ? "occupied" : area.occupancy === "vacant" ? "vacant" : "unknown");
+    const displayCount = area.occupancyCount === undefined ? "?" : area.occupancyCount > 9 ? "9+" : String(area.occupancyCount);
+    const icon = occupied ? "mdi:account-multiple" : area.occupancy === "vacant" ? "mdi:account-multiple-outline" : "mdi:account-question-outline";
+    const stateLabel = overviewText(this.hass, this.config, area.occupancy === "occupied" ? "occupied" : area.occupancy === "vacant" ? "vacant" : "unknown");
+    const countLabel = area.occupancyCount === undefined
+      ? stateLabel
+      : area.occupancyCountSource === "entity"
+        ? `${area.name}: ${area.occupancyCount} ${this.localText("נוכחים", "occupants")}`
+        : `${area.name}: ${area.occupancyCount} ${this.localText("חיישני נוכחות פעילים", "active presence sensors")}`;
     return html`
-      <span class="summary-chip occupancy ${occupied ? "occupied" : ""}" title=${label} aria-label=${label}>
+      <span class="summary-chip occupancy ${occupied ? "occupied" : area.occupancy === "unknown" ? "unknown" : "vacant"}" title=${countLabel} aria-label=${countLabel}>
         <ha-icon icon=${icon}></ha-icon>
-        <span class="occupancy-label">${label}</span>
+        <span class="occupancy-count" aria-hidden="true">${displayCount}</span>
+        <span class="occupancy-label">${countLabel}</span>
       </span>
     `;
   }
@@ -259,7 +298,17 @@ export class AreaBubbleOverviewCard extends LitElement {
 
   private renderEntityLead(item: OverviewEntity) {
     return html`
-      <button class="entity-lead" type="button" @click=${() => this.moreInfo(item)}>
+      <button
+        class="entity-lead hold-target"
+        type="button"
+        title=${this.localText("לחיצה ארוכה לפרטים נוספים", "Hold for more information")}
+        @pointerdown=${(event: PointerEvent) => this.startHold(event, item)}
+        @pointermove=${(event: PointerEvent) => this.moveHold(event)}
+        @pointerup=${(event: PointerEvent) => this.finishHold(event)}
+        @pointercancel=${() => this.cancelHold()}
+        @pointerleave=${() => this.cancelHold()}
+        @click=${(event: Event) => this.handleMoreInfoClick(event, item)}
+      >
         <span class="icon-bubble small"><ha-icon icon=${item.icon}></ha-icon></span>
         <span class="entity-main">
           <span class="entity-name">${item.name}</span>
@@ -272,15 +321,22 @@ export class AreaBubbleOverviewCard extends LitElement {
   private renderToggle(item: OverviewEntity) {
     const busy = this.pendingEntities.has(item.entityId);
     const powerPlan = entityPowerService(item, !item.powered);
+    const toggleDisabled = !item.available || busy || !powerPlan;
     return html`
       <button
-        class="toggle-tile entity-card ${item.active ? "active" : ""} ${item.available ? "" : "unavailable"}"
+        class="toggle-tile entity-card hold-target ${item.active ? "active" : ""} ${item.available ? "" : "unavailable"}"
         type="button"
         aria-pressed=${item.powered}
         aria-busy=${busy}
-        title=${item.active ? overviewText(this.hass, this.config!, "turn_off") : overviewText(this.hass, this.config!, "on")}
-        ?disabled=${!item.available || busy || !powerPlan}
-        @click=${(event: Event) => this.toggleEntity(event, item)}
+        aria-disabled=${toggleDisabled}
+        aria-label=${`${item.name}: ${this.entitySecondary(item)}. ${this.localText("לחיצה ארוכה לפרטים נוספים", "Hold for more information")}`}
+        title=${`${item.active ? overviewText(this.hass, this.config!, "turn_off") : overviewText(this.hass, this.config!, "on")} · ${this.localText("לחיצה ארוכה לפרטים", "hold for details")}`}
+        @pointerdown=${(event: PointerEvent) => this.startHold(event, item)}
+        @pointermove=${(event: PointerEvent) => this.moveHold(event)}
+        @pointerup=${(event: PointerEvent) => this.finishHold(event)}
+        @pointercancel=${() => this.cancelHold()}
+        @pointerleave=${() => this.cancelHold()}
+        @click=${(event: Event) => this.handleToggleClick(event, item)}
       >
         <span class="icon-bubble small"><ha-icon icon=${busy ? "mdi:loading" : item.icon}></ha-icon></span>
         <span class="entity-main">
@@ -543,6 +599,84 @@ export class AreaBubbleOverviewCard extends LitElement {
     if (this.config?.remember_expanded_state) this.writeExpanded();
   }
 
+  private toggleFloor(): void {
+    this.floorExpanded = !this.floorExpanded;
+    if (this.config?.remember_expanded_state) this.writeFloorExpanded();
+    void this.updateComplete.then(() => this.dispatchEvent(new Event("iron-resize", { bubbles: true, composed: true })));
+  }
+
+  private startHold(event: PointerEvent, item: OverviewEntity): void {
+    if (event.button !== 0) return;
+    this.cancelHold();
+    this.holdPointerId = event.pointerId;
+    this.holdEntityId = item.entityId;
+    this.holdStart = { x: event.clientX, y: event.clientY };
+    this.holdTarget = event.currentTarget as HTMLElement;
+    this.holdTarget.classList.add("holding");
+    this.holdTimer = window.setTimeout(() => {
+      if (this.holdEntityId !== item.entityId) return;
+      this.holdTimer = undefined;
+      this.suppressClickEntityId = item.entityId;
+      this.suppressClickUntil = Date.now() + 1_500;
+      this.holdTarget?.classList.remove("holding");
+      this.moreInfo(item);
+      try {
+        navigator.vibrate?.(18);
+      } catch {
+        // Vibration is optional and may be blocked by the browser.
+      }
+    }, 500);
+  }
+
+  private moveHold(event: PointerEvent): void {
+    if (event.pointerId !== this.holdPointerId || !this.holdStart) return;
+    if (Math.hypot(event.clientX - this.holdStart.x, event.clientY - this.holdStart.y) > 8) this.cancelHold();
+  }
+
+  private finishHold(event: PointerEvent): void {
+    if (event.pointerId !== this.holdPointerId) return;
+    this.clearHoldTracking();
+  }
+
+  private cancelHold(): void {
+    this.clearHoldTracking();
+  }
+
+  private clearHoldTracking(): void {
+    if (this.holdTimer !== undefined) window.clearTimeout(this.holdTimer);
+    this.holdTarget?.classList.remove("holding");
+    this.holdTimer = undefined;
+    this.holdPointerId = undefined;
+    this.holdEntityId = undefined;
+    this.holdStart = undefined;
+    this.holdTarget = undefined;
+  }
+
+  private consumeHeldClick(event: Event, item: OverviewEntity): boolean {
+    const shouldSuppress = this.suppressClickEntityId === item.entityId && Date.now() <= this.suppressClickUntil;
+    this.suppressClickEntityId = undefined;
+    this.suppressClickUntil = 0;
+    if (!shouldSuppress) return false;
+    event.preventDefault();
+    event.stopPropagation();
+    return true;
+  }
+
+  private handleMoreInfoClick(event: Event, item: OverviewEntity): void {
+    event.stopPropagation();
+    if (!this.consumeHeldClick(event, item)) this.moreInfo(item);
+  }
+
+  private handleToggleClick(event: Event, item: OverviewEntity): void {
+    if (this.consumeHeldClick(event, item)) return;
+    if (!item.available || this.pendingEntities.has(item.entityId) || !entityPowerService(item, !item.powered)) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+    this.toggleEntity(event, item);
+  }
+
   private async handleQuickAction(event: Event, area: OverviewArea, action: OverviewQuickActionId): Promise<void> {
     event.stopPropagation();
     if (!this.hass) return;
@@ -635,6 +769,10 @@ export class AreaBubbleOverviewCard extends LitElement {
     return `${OVERVIEW_STORAGE_PREFIX}:${this.storageId}:expanded`;
   }
 
+  private floorStorageKey(): string {
+    return `${OVERVIEW_STORAGE_PREFIX}:${this.storageId}:floor-expanded`;
+  }
+
   private readExpanded(): Record<string, boolean> {
     try {
       const value = localStorage.getItem(this.storageKey());
@@ -647,6 +785,23 @@ export class AreaBubbleOverviewCard extends LitElement {
   private writeExpanded(): void {
     try {
       localStorage.setItem(this.storageKey(), JSON.stringify(this.expanded));
+    } catch {
+      // localStorage can be disabled in kiosk and hardened browser modes.
+    }
+  }
+
+  private readFloorExpanded(): boolean | undefined {
+    try {
+      const value = localStorage.getItem(this.floorStorageKey());
+      return value === null ? undefined : value === "true";
+    } catch {
+      return undefined;
+    }
+  }
+
+  private writeFloorExpanded(): void {
+    try {
+      localStorage.setItem(this.floorStorageKey(), String(this.floorExpanded));
     } catch {
       // localStorage can be disabled in kiosk and hardened browser modes.
     }

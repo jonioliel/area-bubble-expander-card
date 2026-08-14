@@ -61,6 +61,56 @@ export const overviewCardStyles = css`
     padding: 2px 4px 4px;
   }
 
+  .overview-heading.floor-heading {
+    padding: 0;
+  }
+
+  .floor-toggle {
+    direction: ltr;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) 44px;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 58px;
+    padding: 6px 7px;
+    border: 1px solid color-mix(in srgb, var(--divider-color) 70%, transparent);
+    border-radius: calc(var(--aboc-radius) - 4px);
+    background: color-mix(in srgb, var(--secondary-background-color) 78%, transparent);
+    color: var(--primary-text-color);
+    text-align: start;
+    cursor: pointer;
+  }
+
+  .floor-toggle .heading-main {
+    direction: var(--aboc-direction, ltr);
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .floor-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 18px;
+    font-weight: 760;
+  }
+
+  .floor-chevron {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--primary-text-color) 8%, transparent);
+    transition: transform 160ms ease;
+  }
+
+  .floor-chevron.expanded {
+    transform: rotate(180deg);
+  }
+
   .overview-heading .heading-main {
     direction: var(--aboc-direction, ltr);
     min-width: 0;
@@ -305,6 +355,29 @@ export const overviewCardStyles = css`
     color: var(--success-color, #74d680);
   }
 
+  .summary-chip.occupancy {
+    grid-template-columns: auto auto;
+    width: auto;
+    min-width: 44px;
+    padding-inline: 9px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .summary-chip.occupancy.vacant {
+    color: var(--secondary-text-color);
+  }
+
+  .summary-chip.occupancy.unknown {
+    color: var(--warning-color, #ffb74d);
+  }
+
+  .occupancy-count {
+    min-width: 1ch;
+    font-size: 13px;
+    font-weight: 820;
+    line-height: 1;
+  }
+
   .summary-chip ha-icon,
   .quick-action ha-icon {
     --mdc-icon-size: 21px;
@@ -485,6 +558,17 @@ export const overviewCardStyles = css`
     transition: transform 120ms ease, background-color 140ms ease, color 140ms ease;
   }
 
+  .hold-target {
+    touch-action: pan-y;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .hold-target.holding {
+    filter: brightness(1.08);
+    transform: scale(0.98);
+  }
+
   .toggle-tile.active {
     border-color: color-mix(in srgb, var(--aboc-control-surface) 62%, transparent);
     background: var(--aboc-active-surface);
@@ -594,7 +678,7 @@ export const overviewCardStyles = css`
   .select-pill select {
     width: 100%;
     min-width: 0;
-    height: 42px;
+    height: 44px;
     padding: 0;
     border: 0;
     outline: 0;
@@ -745,6 +829,11 @@ export const overviewCardStyles = css`
     opacity: 0.42;
   }
 
+  .toggle-tile[aria-disabled="true"] {
+    cursor: not-allowed;
+    opacity: 0.56;
+  }
+
   .entity-card.unavailable {
     border-style: dashed;
   }
@@ -758,6 +847,7 @@ export const overviewCardStyles = css`
   }
 
   .area-toggle:hover,
+  .floor-toggle:hover,
   .expand-button:hover,
   .entity-lead:hover,
   .quick-action:hover:not([disabled]),
@@ -769,7 +859,7 @@ export const overviewCardStyles = css`
     filter: brightness(1.1);
   }
 
-  .toggle-tile:hover:not([disabled]) {
+  .toggle-tile:hover:not([aria-disabled="true"]) {
     transform: translateY(-1px);
   }
 
@@ -779,7 +869,7 @@ export const overviewCardStyles = css`
   .cover-control:active:not([disabled]),
   .temperature-stepper button:active:not([disabled]),
   .thermostat-power:active:not([disabled]),
-  .toggle-tile:active:not([disabled]) {
+  .toggle-tile:active:not([aria-disabled="true"]) {
     transform: scale(0.96);
   }
 
@@ -932,7 +1022,7 @@ export const overviewCardStyles = css`
     }
 
     .area-summary-pill .area-icon,
-    .area-summary-pill .summary-chip {
+    .area-summary-pill .summary-chip:not(.occupancy) {
       width: 40px;
       height: 40px;
       flex-basis: 40px;
@@ -947,23 +1037,31 @@ export const overviewCardStyles = css`
       max-width: 93px;
     }
 
-    .area-statuses .occupancy {
-      display: none;
+    .area-summary-pill .occupancy {
+      min-height: 40px;
+      height: 40px;
+      padding-inline: 7px;
     }
   }
 
   @container overview-card (max-width: 340px) {
-    .area-summary-pill {
+    .area-summary-pill,
+    .area-summary-pill.dense-actions,
+    .area-summary-pill.responsive-actions {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-columns: auto minmax(0, 1fr);
       grid-template-areas:
-        "area-toggle area-temperature"
+        "area-toggle area-toggle"
+        "occupancy area-temperature"
         "quick-actions quick-actions";
     }
 
-    .area-toggle {
+    .area-summary-pill .area-toggle,
+    .area-summary-pill.dense-actions .area-toggle,
+    .area-summary-pill.responsive-actions .area-toggle {
       grid-area: area-toggle;
       width: 100%;
+      min-width: 0;
     }
 
     .area-statuses {
@@ -972,6 +1070,12 @@ export const overviewCardStyles = css`
 
     .area-temperature {
       grid-area: area-temperature;
+      justify-self: end;
+    }
+
+    .occupancy {
+      grid-area: occupancy;
+      justify-self: start;
     }
 
     .quick-actions {
@@ -1035,10 +1139,12 @@ export const overviewCardStyles = css`
     }
 
     .chevron,
+    .floor-chevron,
     .quick-action,
     .control-button,
     .climate-mode-button,
-    .toggle-tile {
+    .toggle-tile,
+    .hold-target {
       transition: none;
     }
   }

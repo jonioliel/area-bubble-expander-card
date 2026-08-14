@@ -71,6 +71,7 @@ export const OVERVIEW_DEFAULT_STYLE: Required<OverviewStyleConfig> = {
 
 export const OVERVIEW_DEFAULT_CONFIG: AreaBubbleOverviewCardConfig = {
   type: OVERVIEW_CARD_TYPE,
+  target_icon: "",
   language: "auto",
   rtl: "auto",
   show_header: true,
@@ -80,6 +81,7 @@ export const OVERVIEW_DEFAULT_CONFIG: AreaBubbleOverviewCardConfig = {
   show_quick_actions: true,
   show_empty_sections: false,
   default_expanded: false,
+  floor_default_expanded: true,
   remember_expanded_state: true,
   section_order: OVERVIEW_SECTIONS,
   quick_actions: OVERVIEW_QUICK_ACTIONS,

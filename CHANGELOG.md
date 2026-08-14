@@ -2,6 +2,16 @@
 
 All notable changes to Area Bubble Expander Card will be documented in this file.
 
+## 0.3.0 - 2026-08-14
+
+- Added a collapsible Floor header with active/occupied Area summaries, independent remembered state, and responsive Lovelace remeasurement.
+- Added safe 500 ms long-press More Info gestures with movement cancellation, click suppression, keyboard fallbacks, and availability-safe access.
+- Added Home Assistant-style icon pickers with previews and reset controls for the target, every Area, and every entity.
+- Added visual ON/OFF color controls with native color swatches, CSS value input, live previews, and one-click reset to theme-aware defaults.
+- Added per-Area entity removal and restore controls; removed entities no longer affect Area color, counts, temperature, occupancy, or quick actions.
+- Added numeric occupancy-count sources with a visible `0`, compact `9+`, unknown handling, and an explicit active-presence-sensor fallback.
+- Expanded Overview regression coverage to 49 tests, including exclusions, occupancy, icon precedence, floor disclosure, long-press feedback, and narrow RTL layouts.
+
 ## 0.2.2 - 2026-08-14
 
 - Fixed Area summary colors so the cyan active surface is shown only when at least one entity is powered; fully off Areas now remain neutral even while expanded.

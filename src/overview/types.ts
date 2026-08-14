@@ -17,6 +17,7 @@ export type OverviewAreaOverride = {
   hidden?: boolean;
   default_expanded?: boolean;
   temperature_entity?: string;
+  occupancy_count_entity?: string;
   occupancy_entities?: string[];
   section_order?: OverviewSectionId[];
   section_titles?: Partial<Record<OverviewSectionId, string>>;
@@ -44,6 +45,7 @@ export type AreaBubbleOverviewCardConfig = {
   area?: string;
   floor?: string;
   title?: string;
+  target_icon?: string;
   language?: LanguageMode;
   rtl?: RtlMode;
   show_header?: boolean;
@@ -53,6 +55,7 @@ export type AreaBubbleOverviewCardConfig = {
   show_quick_actions?: boolean;
   show_empty_sections?: boolean;
   default_expanded?: boolean;
+  floor_default_expanded?: boolean;
   remember_expanded_state?: boolean;
   section_order?: OverviewSectionId[];
   section_titles?: Partial<Record<OverviewSectionId, string>>;
@@ -116,6 +119,7 @@ export type OverviewSection = {
 };
 
 export type OccupancyState = "occupied" | "vacant" | "unknown" | "none";
+export type OccupancyCountSource = "entity" | "sensors" | "none";
 
 export type OverviewArea = {
   id: string;
@@ -127,6 +131,8 @@ export type OverviewArea = {
   temperature?: number;
   temperatureUnit?: string;
   occupancy: OccupancyState;
+  occupancyCount?: number;
+  occupancyCountSource: OccupancyCountSource;
   occupancyEntities: string[];
 };
 
