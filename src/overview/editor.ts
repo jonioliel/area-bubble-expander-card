@@ -350,6 +350,7 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
     const parentValue = override.parent_area
       ? this.areaOptions().find((candidate) => candidate.id === override.parent_area || candidate.name === override.parent_area)?.id ?? ""
       : "";
+    const parentName = this.areaOptions().find((candidate) => candidate.id === parentValue)?.name ?? parentValue;
     return html`
       <div class="area-card ${override.hidden ? "hidden" : ""} ${parentValue ? "child" : ""}">
         <div class="area-line">
@@ -376,6 +377,18 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
                 </select>
                 <div class="hint">${this.l("הקשר הוא חזותי בלבד; המצב והפעולות של כל אזור נשארים עצמאיים.", "Nesting is visual only; every area's state and actions remain independent.", language)}</div>
               </div>
+              ${parentValue
+                ? this.booleanRow(
+                    this.l("הצג כשהאזור הראשי מכווץ", "Show when parent is collapsed", language),
+                    this.l(
+                      `כבוי כברירת מחדל. כשהאפשרות פעילה, תת־האזור נשאר גלוי בתוך ${parentName} גם כשהוא מכווץ. החצים בשורת האזור קובעים את הסדר רק בין תתי־אזורים של אותו אזור אב.`,
+                      `Off by default. When enabled, this child remains visible inside ${parentName} while the parent is collapsed. The arrows in the area row order only children of the same parent.`,
+                      language,
+                    ),
+                    override.show_when_parent_collapsed ?? false,
+                    (checked) => this.updateAreaOverride(area.id, { show_when_parent_collapsed: checked }),
+                  )
+                : nothing}
               <div class="field">
                 <label>${this.l("מקור טמפרטורה מועדף", "Preferred temperature source", language)}</label>
                 <select .value=${override.temperature_entity ?? ""} @change=${(event: Event) => this.updateAreaOverride(area.id, { temperature_entity: (event.target as HTMLSelectElement).value || undefined })}>

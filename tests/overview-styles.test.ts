@@ -51,7 +51,7 @@ describe("overview header presentation contracts", () => {
       /\.entity-card:not\(\.active\)\s*\{[^}]*background:\s*var\(--aboc-row-bg\)/s,
     );
     expect(cssText).toMatch(
-      /\.area-panel\.has-active\s+\.area-summary-pill\s*\{[^}]*background:\s*var\(--aboc-active-surface\)/s,
+      /\.area-panel\.has-active\s*>\s*\.area-summary\s*>\s*\.area-summary-pill\s*\{[^}]*background:\s*var\(--aboc-active-surface\)/s,
     );
   });
 
@@ -98,6 +98,13 @@ describe("overview header presentation contracts", () => {
     expectCircularActionTarget(".section-off-button");
     expectCircularActionTarget(".cover-control");
     expectCircularActionTarget(".temperature-stepper button");
+  });
+
+  it("scopes active colors and chevrons to each nested Area panel", () => {
+    expect(cssText).toMatch(/\.area-panel\.has-active\s*>\s*\.area-summary\s+\.area-icon\s*\{/);
+    expect(cssText).toMatch(/\.area-panel\.all-off\s*>\s*\.area-summary\s+\.area-icon\s*\{/);
+    expect(cssText).toMatch(/\.area-panel\.expanded\s*>\s*\.area-summary\s+\.chevron\s*\{/);
+    expect(cssText).not.toMatch(/\.expanded\s+\.chevron\s*\{/);
   });
 
   it("styles the floor header as an accessible full-width disclosure target", () => {

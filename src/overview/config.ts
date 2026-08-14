@@ -61,6 +61,9 @@ const areaOverrides = (value: unknown): Record<string, OverviewAreaOverride> => 
       ...(typeof raw.name === "string" && raw.name.trim() ? { name: raw.name.trim() } : {}),
       ...(typeof raw.icon === "string" && raw.icon.trim() ? { icon: raw.icon.trim() } : {}),
       ...(typeof raw.parent_area === "string" && raw.parent_area.trim() ? { parent_area: raw.parent_area.trim() } : {}),
+      ...(typeof raw.show_when_parent_collapsed === "boolean"
+        ? { show_when_parent_collapsed: raw.show_when_parent_collapsed }
+        : {}),
       ...(typeof raw.hidden === "boolean" ? { hidden: raw.hidden } : {}),
       ...(typeof raw.default_expanded === "boolean" ? { default_expanded: raw.default_expanded } : {}),
       ...(typeof raw.temperature_entity === "string" && raw.temperature_entity.trim() ? { temperature_entity: raw.temperature_entity.trim() } : {}),

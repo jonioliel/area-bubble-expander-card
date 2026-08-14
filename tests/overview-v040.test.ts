@@ -14,13 +14,14 @@ type V040ConfigInput = AreaBubbleOverviewCardConfig & {
     string,
     NonNullable<AreaBubbleOverviewCardConfig["area_overrides"]>[string] & {
       parent_area?: unknown;
+      show_when_parent_collapsed?: unknown;
     }
   >;
 };
 
 type V040ResolvedConfig = ReturnType<typeof resolveOverviewConfig> & {
   quick_action_icons: Record<OverviewQuickActionId, string>;
-  area_overrides: Record<string, { parent_area?: string }>;
+  area_overrides: Record<string, { parent_area?: string; show_when_parent_collapsed?: boolean }>;
 };
 
 type V040TemperatureMode = "none" | "off" | "cool" | "heat" | "active";
@@ -103,6 +104,26 @@ describe("Overview v0.4 area hierarchy configuration", () => {
     expect(config.area_overrides.shower.parent_area).toBe("parents_room");
     expect(config.area_overrides.blank).not.toHaveProperty("parent_area");
     expect(config.area_overrides.malformed).not.toHaveProperty("parent_area");
+  });
+
+  it("sanitizes collapsed-parent visibility and defaults it to false", () => {
+    const config = resolveV040({
+      floor: "upstairs",
+      area_overrides: {
+        visible_child: { parent_area: "parent", show_when_parent_collapsed: true },
+        hidden_child: { parent_area: "parent", show_when_parent_collapsed: false },
+        default_child: { parent_area: "parent" },
+        malformed_child: {
+          parent_area: "parent",
+          show_when_parent_collapsed: "yes" as unknown as boolean,
+        },
+      },
+    });
+
+    expect(config.area_overrides.visible_child.show_when_parent_collapsed).toBe(true);
+    expect(config.area_overrides.hidden_child.show_when_parent_collapsed).toBe(false);
+    expect(config.area_overrides.default_child.show_when_parent_collapsed ?? false).toBe(false);
+    expect(config.area_overrides.malformed_child).not.toHaveProperty("show_when_parent_collapsed");
   });
 
   it("exposes the sanitized parent area ID on discovered child areas", () => {

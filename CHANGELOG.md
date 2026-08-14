@@ -2,6 +2,14 @@
 
 All notable changes to Area Bubble Expander Card will be documented in this file.
 
+## 0.4.2 - 2026-08-14
+
+- Nested sub-Areas now render inside their parent disclosure and are hidden by default while the parent is collapsed.
+- Added the per-child `show_when_parent_collapsed` option and a visual-editor switch for keeping selected sub-Areas visible inside a collapsed parent; sibling arrow order remains authoritative.
+- Made Area-tree sizing use the exact visible hierarchy and trigger Lovelace remeasurement after Area expansion changes.
+- Increased the contrast of vacant occupancy icons and numeric zero values on dark summary chips.
+- Added cycle-safe hierarchy helpers and regression coverage for nested visibility, sibling order, deep ancestor gating, card size, and vacant-state contrast.
+
 ## 0.4.1 - 2026-08-14
 
 - Unified the Floor header, powered-off Area summaries, and inactive entity tiles on one theme-aware neutral surface. The visual editor's OFF color now controls all three consistently.

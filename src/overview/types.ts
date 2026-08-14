@@ -15,6 +15,7 @@ export type OverviewAreaOverride = {
   name?: string;
   icon?: string;
   parent_area?: string;
+  show_when_parent_collapsed?: boolean;
   hidden?: boolean;
   default_expanded?: boolean;
   temperature_entity?: string;
@@ -136,6 +137,7 @@ export type OverviewArea = {
   icon: string;
   floorId?: string;
   parentAreaId?: string;
+  showWhenParentCollapsed: boolean;
   sections: OverviewSection[];
   allEntities: OverviewEntity[];
   temperature?: number;

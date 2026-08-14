@@ -155,9 +155,22 @@ export const overviewCardStyles = css`
   }
 
   .subareas {
+    margin-block-end: 8px;
+    margin-inline-end: 8px;
     margin-inline-start: 22px;
+    padding-block-start: 2px;
     padding-inline-start: 9px;
     border-inline-start: 2px solid color-mix(in srgb, var(--aboc-accent) 38%, var(--divider-color));
+  }
+
+  .subareas .subareas {
+    margin-inline-start: 14px;
+    padding-inline-start: 7px;
+  }
+
+  .subareas .subareas .subareas {
+    margin-inline-start: 8px;
+    padding-inline-start: 4px;
   }
 
   .area-panel {
@@ -214,7 +227,7 @@ export const overviewCardStyles = css`
     transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease;
   }
 
-  .area-panel.has-active .area-summary-pill {
+  .area-panel.has-active > .area-summary > .area-summary-pill {
     border-color: color-mix(in srgb, var(--aboc-control-surface) 72%, var(--divider-color));
     background: var(--aboc-active-surface);
     color: var(--aboc-dark-text);
@@ -334,7 +347,7 @@ export const overviewCardStyles = css`
     transition: transform 160ms ease;
   }
 
-  .expanded .chevron {
+  .area-panel.expanded > .area-summary .chevron {
     transform: rotate(180deg);
   }
 
@@ -349,12 +362,12 @@ export const overviewCardStyles = css`
     color: var(--aboc-accent);
   }
 
-  .area-panel.has-active .area-icon {
+  .area-panel.has-active > .area-summary .area-icon {
     background: color-mix(in srgb, var(--aboc-control-surface) 72%, transparent);
     color: var(--aboc-light-text);
   }
 
-  .area-panel.all-off .area-icon {
+  .area-panel.all-off > .area-summary .area-icon {
     background: color-mix(in srgb, var(--primary-text-color) 9%, transparent);
     color: var(--secondary-text-color);
   }
@@ -404,7 +417,7 @@ export const overviewCardStyles = css`
   }
 
   .summary-chip.occupancy.vacant {
-    color: var(--secondary-text-color);
+    color: var(--aboc-light-text);
   }
 
   .summary-chip.occupancy.unknown {
@@ -509,6 +522,10 @@ export const overviewCardStyles = css`
     gap: 13px;
     padding: 0 9px 10px;
     animation: overview-expand 170ms ease both;
+  }
+
+  .area-disclosure[hidden] {
+    display: none;
   }
 
   .device-section {
@@ -1108,6 +1125,16 @@ export const overviewCardStyles = css`
     .subareas {
       margin-inline-start: 10px;
       padding-inline-start: 6px;
+    }
+
+    .subareas .subareas {
+      margin-inline-start: 8px;
+      padding-inline-start: 4px;
+    }
+
+    .subareas .subareas .subareas {
+      margin-inline-start: 6px;
+      padding-inline-start: 3px;
     }
     .area-summary {
       grid-template-columns: minmax(0, 1fr) 40px;

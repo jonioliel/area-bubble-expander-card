@@ -104,9 +104,12 @@ In Floor mode, one Area can be displayed beneath another Area. For example, this
 area_overrides:
   parents_bathroom:
     parent_area: parents_bedroom
+    show_when_parent_collapsed: false
 ```
 
-`parent_area` is a visual relationship only. The child Area keeps its own entity discovery, active color, summaries, expansion state, and actions, and it does not make the parent Area active. The visual editor stores stable Area IDs and prevents self-parenting and cycles. A missing, hidden, or out-of-target parent safely leaves the Area at the Floor root.
+`parent_area` is a visual relationship only. The child Area keeps its own entity discovery, active color, summaries, expansion state, and actions, and it does not make the parent Area active. Sub-Areas are rendered inside the parent and are hidden with it by default. Set `show_when_parent_collapsed: true` on an individual child if it should remain visible inside a collapsed parent.
+
+The Area arrows in the visual editor order roots relative to roots and children relative to siblings that share the same parent. That order is stored in `area_order`; newly discovered Areas still append automatically. The editor stores stable Area IDs and prevents self-parenting and cycles. A missing, hidden, out-of-target, or cycle-detached parent safely leaves the Area at the Floor root, where `show_when_parent_collapsed` has no effect.
 
 ### Default expanded order
 
@@ -351,6 +354,7 @@ area_overrides:
         - switch.kids_night_light
   parents_bathroom:
     parent_area: parents_room
+    show_when_parent_collapsed: false
     icon: mdi:shower
 
 entity_overrides:
@@ -409,6 +413,7 @@ style:
 | `area_overrides` | `{}` | Area name/icon, temperature source, numeric occupancy source, headings, inclusion/exclusion, and order. |
 | `area_overrides.<area>.icon` | registry/fallback icon | Overrides one Area row icon. |
 | `area_overrides.<area>.parent_area` | none | Visually nests one Floor Area under another without combining state, summaries, or actions. |
+| `area_overrides.<area>.show_when_parent_collapsed` | `false` | Keeps this child visible inside its parent while the parent is collapsed. |
 | `area_overrides.<area>.occupancy_count_entity` | none | Authoritative numeric people-count entity; zero is vacant. |
 | `area_overrides.<area>.occupancy_entities` | automatic | Presence sensors to count when no numeric count entity is selected. |
 | `area_overrides.<area>.exclude_entities` | `[]` | Removes entities from display and every Area state/summary calculation. |

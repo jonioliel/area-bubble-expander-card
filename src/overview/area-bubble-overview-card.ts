@@ -13,6 +13,7 @@ import {
   WATER_HEATER_FEATURES,
 } from "./constants";
 import { discoverOverview } from "./discovery";
+import { buildOverviewAreaHierarchy, visibleOverviewAreas } from "./hierarchy";
 import "./editor";
 import { climateModes, entityPowerService, supportsEntityFeature } from "./features";
 import { overviewCardStyles } from "./styles";
@@ -80,9 +81,10 @@ export class AreaBubbleOverviewCard extends LitElement {
     if (!this.config) return 3;
     const discovery = discoverOverview(this.hass, this.config);
     if (discovery.targetKind === "floor" && this.config.show_header && this.config.show_floor_header && !this.floorExpanded) return 2;
+    const visibleAreas = visibleOverviewAreas(discovery.areas, (area) => this.isExpanded(area));
     return Math.max(
       2,
-      discovery.areas.reduce(
+      visibleAreas.reduce(
         (size, area) => size + 2 + (this.isExpanded(area) ? area.sections.reduce((sum, section) => sum + section.entities.length, 0) : 0),
         discovery.targetKind === "floor" ? 1 : 0,
       ),
@@ -158,38 +160,27 @@ export class AreaBubbleOverviewCard extends LitElement {
   }
 
   private renderAreaHierarchy(areas: OverviewArea[]) {
-    const byId = new Map(areas.map((area) => [area.id, area]));
-    const children = new Map<string, OverviewArea[]>();
-    const roots: OverviewArea[] = [];
-    for (const area of areas) {
-      if (area.parentAreaId && byId.has(area.parentAreaId)) {
-        const siblings = children.get(area.parentAreaId) ?? [];
-        siblings.push(area);
-        children.set(area.parentAreaId, siblings);
-      } else {
-        roots.push(area);
-      }
-    }
+    const { roots, children } = buildOverviewAreaHierarchy(areas);
     const visited = new Set<string>();
     const renderNode = (area: OverviewArea): unknown => {
       if (visited.has(area.id)) return nothing;
       visited.add(area.id);
       const nested = children.get(area.id) ?? [];
+      const expanded = this.isExpanded(area);
+      const visibleNested = expanded ? nested : nested.filter((child) => child.showWhenParentCollapsed);
+      const nestedContent = visibleNested.length
+        ? html`<div class="subareas" role="group" aria-label=${`${this.localText("תתי אזורים של", "Sub-areas of")} ${area.name}`}>${visibleNested.map(renderNode)}</div>`
+        : nothing;
       return html`
         <div class="area-tree-node">
-          ${this.renderArea(area)}
-          ${nested.length
-            ? html`<div class="subareas" role="group" aria-label=${`${this.localText("תתי אזורים של", "Sub-areas of")} ${area.name}`}>${nested.map(renderNode)}</div>`
-            : nothing}
+          ${this.renderArea(area, nestedContent)}
         </div>
       `;
     };
-    const renderedRoots = roots.map(renderNode);
-    const renderedOrphans = areas.filter((area) => !visited.has(area.id)).map(renderNode);
-    return html`<div class="areas">${renderedRoots}${renderedOrphans}</div>`;
+    return html`<div class="areas">${roots.map(renderNode)}</div>`;
   }
 
-  private renderArea(area: OverviewArea) {
+  private renderArea(area: OverviewArea, nestedContent: unknown = nothing) {
     if (!this.config) return nothing;
     const expanded = this.isExpanded(area);
     const activeCount = area.allEntities.filter((item) => item.powered).length;
@@ -213,12 +204,15 @@ export class AreaBubbleOverviewCard extends LitElement {
     const responsiveActions =
       (quickActions.length >= 2 && hasTemperature) ||
       (quickActions.length >= 1 && hasOccupancy && hasTemperature);
-    const contentId = `overview-area-${area.id.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
+    const safeAreaId = area.id.replace(/[^a-zA-Z0-9_-]/g, "-");
+    const contentId = `overview-area-${safeAreaId}`;
+    const nameId = `overview-area-name-${safeAreaId}`;
     const toggleLabel = `${overviewText(this.hass, this.config, expanded ? "collapse" : "expand")}: ${area.name}`;
     return html`
       <section
         class="area-panel ${activeCount ? "has-active" : "all-off"} ${expanded ? "expanded" : ""}"
         data-powered=${activeCount ? "true" : "false"}
+        aria-labelledby=${nameId}
       >
         <header class="area-summary">
           <div class="area-summary-pill summary-load-${summaryLoad} ${compactStatuses ? "compact-statuses" : ""} ${responsiveActions ? "responsive-actions" : ""}">
@@ -232,7 +226,7 @@ export class AreaBubbleOverviewCard extends LitElement {
             >
               <span class="icon-bubble area-icon"><ha-icon icon=${area.icon}></ha-icon></span>
               <span class="area-main">
-                <span class="area-name">${area.name}</span>
+                <span class="area-name" id=${nameId}>${area.name}</span>
                 ${activeCount ? html`<span class="active-summary">${activeCount} ${this.localText("פעילים", "active")}</span>` : nothing}
               </span>
             </button>
@@ -253,9 +247,11 @@ export class AreaBubbleOverviewCard extends LitElement {
             @click=${() => this.toggleArea(area)}
           ><span class="chevron" aria-hidden="true"><ha-icon icon="mdi:chevron-down"></ha-icon></span></button>
         </header>
-        ${expanded
-          ? html`<div class="expanded-content" id=${contentId}>${area.sections.map((section) => this.renderSection(section, area.id))}</div>`
-          : nothing}
+        <div class="area-disclosure" id=${contentId} ?hidden=${!expanded}>
+          <div class="expanded-content">${area.sections.map((section) => this.renderSection(section, area.id))}</div>
+          ${expanded ? nestedContent : nothing}
+        </div>
+        ${expanded ? nothing : nestedContent}
       </section>
     `;
   }
@@ -652,6 +648,7 @@ export class AreaBubbleOverviewCard extends LitElement {
   private toggleArea(area: OverviewArea): void {
     this.expanded = { ...this.expanded, [area.id]: !this.isExpanded(area) };
     if (this.config?.remember_expanded_state) this.writeExpanded();
+    void this.updateComplete.then(() => this.dispatchEvent(new Event("iron-resize", { bubbles: true, composed: true })));
   }
 
   private toggleFloor(): void {

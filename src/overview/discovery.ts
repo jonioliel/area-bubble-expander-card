@@ -306,6 +306,7 @@ const createArea = (
     icon: override?.icon ?? registryArea?.icon ?? "mdi:floor-plan",
     floorId: registryArea?.floor_id ?? undefined,
     parentAreaId: override?.parent_area,
+    showWhenParentCollapsed: override?.show_when_parent_collapsed === true,
     sections,
     allEntities: entities,
     temperature: temperature.temperature,
