@@ -120,7 +120,7 @@ describe("vacant occupancy contrast", () => {
       .map((match) => match[2])
       .join("\n");
 
-    expect(vacantRule).toMatch(/color:\s*var\(--aboc-light-text\)/);
+    expect(vacantRule).toMatch(/color:\s*var\(--aboc-occupancy-vacant\)/);
     expect(vacantRule).not.toMatch(/--secondary-text-color|opacity\s*:/);
   });
 });

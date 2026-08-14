@@ -3,10 +3,13 @@ import type { CardStyleConfig, HassEntity, LanguageMode, RtlMode } from "../type
 export type OverviewSectionId = "climate" | "floor_heating" | "covers" | "lights_switches" | "media";
 export type OverviewQuickActionId = "lights" | "climate" | "floor_heating" | "switches" | "covers" | "media";
 export type OverviewSectionActionMode = "toggle" | "dual";
+export type OverviewSectionBorderStyle = "solid" | "dashed" | "dotted";
 
 export type OverviewSectionStyle = {
   background?: string;
   border_color?: string;
+  border_width?: number;
+  border_style?: OverviewSectionBorderStyle;
   show_border?: boolean;
 };
 
@@ -24,6 +27,7 @@ export type OverviewEntityOverride = {
   group?: string;
   hidden?: boolean;
   protected?: boolean;
+  ignore_activity?: boolean;
 };
 
 export type OverviewAreaOverride = {
@@ -62,6 +66,9 @@ export type OverviewStyleConfig = Pick<
   temperature_cool_surface?: string;
   temperature_heat_surface?: string;
   temperature_active_surface?: string;
+  occupancy_active_color?: string;
+  occupancy_vacant_color?: string;
+  occupancy_unknown_color?: string;
   quick_action_size?: number;
   quick_action_icon_size?: number;
   section_action_size?: number;
@@ -149,6 +156,7 @@ export type OverviewEntity = {
   active: boolean;
   powered: boolean;
   protected: boolean;
+  ignoreActivity?: boolean;
   group?: string;
 };
 

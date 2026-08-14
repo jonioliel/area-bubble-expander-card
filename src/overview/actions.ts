@@ -48,7 +48,7 @@ export const activeQuickActionSummaries = (
 ): ActiveQuickActionSummary[] =>
   actions
     .map((action) => ({ action, entities: quickActionMembers(area, action) }))
-    .filter(({ entities }) => entities.some((item) => item.powered));
+    .filter(({ entities }) => entities.some((item) => item.powered && item.ignoreActivity !== true));
 
 /** Directional service for an individual quick-action member. */
 export const quickActionEntityService = (

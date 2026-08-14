@@ -2,6 +2,15 @@
 
 All notable changes to Area Bubble Expander Card will be documented in this file.
 
+## 0.9.0 - 2026-08-15
+
+- Added configurable category-frame thickness and solid/dashed/dotted styles globally and per room, plus extra top spacing before the first expanded category.
+- Added independent occupied, vacant, and unknown presence colors with higher-contrast defaults.
+- Added a per-entity **Ignore in room and floor activity** option. The device remains visible and controllable but no longer changes room/Floor state, temperature mode, or collapsed quick-action badges.
+- Added an active-climate badge to Floor headers; it opens the existing climate popup with individual and grouped controls for all Floor climates.
+- Simplified every icon field to Home Assistant's searchable icon picker and removed the redundant manual text input.
+- Expanded the regression suite to 148 tests.
+
 ## 0.8.0 - 2026-08-15
 
 - Added independent category spacing plus global and per-Area category backgrounds, optional subtle frames, and frame colors through YAML and the visual editor.

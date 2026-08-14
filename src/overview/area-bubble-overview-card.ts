@@ -56,6 +56,8 @@ type QuickPopupState = {
   action: OverviewQuickActionId;
 };
 
+const FLOOR_QUICK_AREA_ID = "__overview_floor__";
+
 @customElement(OVERVIEW_CARD_TAG)
 export class AreaBubbleOverviewCard extends LitElement {
   static override styles = overviewCardStyles;
@@ -176,6 +178,11 @@ export class AreaBubbleOverviewCard extends LitElement {
     if (!show || !discovery.targetName) return nothing;
     if (discovery.targetKind === "floor") {
       const activeAreas = discovery.areas.filter((area) => area.allEntities.some(countsTowardAreaActivity));
+      const floorQuickArea = this.floorQuickArea(discovery);
+      const activeClimates = quickActionMembers(floorQuickArea, "climate")
+        .filter((item) => item.powered && item.ignoreActivity !== true);
+      const floorClimateBusy = this.quickActionPending(FLOOR_QUICK_AREA_ID, "climate")
+        || activeClimates.some((item) => this.pendingEntities.has(item.entityId));
       const occupiedAreas = discovery.areas.filter((area) => area.occupancy === "occupied").length;
       const summary = [
         `${discovery.areas.length} ${this.localText("אזורים", "areas")}`,
@@ -191,6 +198,18 @@ export class AreaBubbleOverviewCard extends LitElement {
               <span class="heading-main"><span class="floor-title">${discovery.targetName}</span><span class="subtitle">${summary}</span></span>
               <span class="floor-chevron ${this.floorExpanded ? "expanded" : ""}" aria-hidden="true"><ha-icon icon="mdi:chevron-down"></ha-icon></span>
             </button>
+            ${activeClimates.length
+              ? html`<button
+                  class="floor-climate-badge"
+                  type="button"
+                  aria-haspopup="dialog"
+                  aria-expanded=${this.quickPopup?.areaId === FLOOR_QUICK_AREA_ID && this.quickPopup.action === "climate"}
+                  aria-busy=${floorClimateBusy}
+                  aria-label=${`${this.localText("פתיחת המזגנים הפעילים בקומה", "Open active floor climate controls")}: ${activeClimates.length}`}
+                  ?disabled=${floorClimateBusy}
+                  @click=${(event: Event) => this.openQuickActionPopup(event, floorQuickArea, "climate")}
+                ><ha-icon icon=${this.config.quick_action_icons.climate}></ha-icon><span>${activeClimates.length}</span></button>`
+              : nothing}
             ${activeAreas.length
               ? html`<button
                   class="floor-active-badge"
@@ -244,7 +263,7 @@ export class AreaBubbleOverviewCard extends LitElement {
     const quickActions = climateTemperatureAction
       ? activeQuickActions.filter(({ action }) => action !== "climate")
       : activeQuickActions;
-    const activeClimateCount = climateTemperatureAction?.entities.filter((item) => item.powered).length ?? 0;
+    const activeClimateCount = climateTemperatureAction?.entities.filter((item) => item.powered && item.ignoreActivity !== true).length ?? 0;
     const formattedTemperature = hasTemperature ? this.formatTemperature(area.temperature!, area.temperatureUnit) : "";
     const temperatureModeLabel = {
       none: this.localText("ללא מצב מיזוג", "No climate mode"),
@@ -395,6 +414,8 @@ export class AreaBubbleOverviewCard extends LitElement {
     const sectionStyleText = [
       `--aboc-section-background:${sectionStyle.background || "transparent"}`,
       `--aboc-section-border-color:${sectionStyle.border_color || "color-mix(in srgb, var(--divider-color) 58%, transparent)"}`,
+      `--aboc-section-border-width:${sectionStyle.border_width ?? 1}px`,
+      `--aboc-section-border-style:${sectionStyle.border_style ?? "solid"}`,
     ].join(";");
     const toggleTurnOn = offTargets.length === 0;
     const toggleTargets = toggleTurnOn ? onTargets : offTargets;
@@ -473,7 +494,9 @@ export class AreaBubbleOverviewCard extends LitElement {
 
   private renderQuickActionPopup(discovery: OverviewDiscovery) {
     if (!this.config || !this.quickPopup) return nothing;
-    const area = discovery.areas.find((candidate) => candidate.id === this.quickPopup?.areaId);
+    const area = this.quickPopup.areaId === FLOOR_QUICK_AREA_ID && discovery.targetKind === "floor"
+      ? this.floorQuickArea(discovery)
+      : discovery.areas.find((candidate) => candidate.id === this.quickPopup?.areaId);
     if (!area) {
       queueMicrotask(() => this.resetQuickPopup());
       return nothing;
@@ -602,6 +625,25 @@ export class AreaBubbleOverviewCard extends LitElement {
         </section>
       </dialog>
     `;
+  }
+
+  private floorQuickArea(discovery: OverviewDiscovery): OverviewArea {
+    const uniqueEntities = new Map<string, OverviewEntity>();
+    for (const area of discovery.areas) {
+      for (const item of area.allEntities) uniqueEntities.set(item.entityId, item);
+    }
+    return {
+      id: FLOOR_QUICK_AREA_ID,
+      name: discovery.targetName,
+      icon: discovery.targetIcon,
+      showWhenParentCollapsed: false,
+      sections: [],
+      allEntities: [...uniqueEntities.values()],
+      temperatureMode: "none",
+      occupancy: "none",
+      occupancyCountSource: "none",
+      occupancyEntities: [],
+    };
   }
 
   private renderQuickPopupEntity(item: OverviewEntity, action: OverviewQuickActionId, groupPending: boolean) {
@@ -1479,6 +1521,9 @@ export class AreaBubbleOverviewCard extends LitElement {
     this.style.setProperty("--area-bubble-overview-temperature-cool-surface", style.temperature_cool_surface);
     this.style.setProperty("--area-bubble-overview-temperature-heat-surface", style.temperature_heat_surface);
     this.style.setProperty("--area-bubble-overview-temperature-active-surface", style.temperature_active_surface);
+    this.style.setProperty("--area-bubble-overview-occupancy-active-color", style.occupancy_active_color);
+    this.style.setProperty("--area-bubble-overview-occupancy-vacant-color", style.occupancy_vacant_color);
+    this.style.setProperty("--area-bubble-overview-occupancy-unknown-color", style.occupancy_unknown_color);
     this.style.setProperty(
       "--area-bubble-overview-shadow",
       style.show_shadows && !style.card_transparent

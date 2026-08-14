@@ -30,6 +30,9 @@ export const overviewCardStyles = css`
     --aboc-temperature-cool: var(--area-bubble-overview-temperature-cool-surface, rgba(34, 113, 196, 0.96));
     --aboc-temperature-heat: var(--area-bubble-overview-temperature-heat-surface, rgba(198, 83, 47, 0.96));
     --aboc-temperature-active: var(--area-bubble-overview-temperature-active-surface, rgba(91, 86, 168, 0.96));
+    --aboc-occupancy-active: var(--area-bubble-overview-occupancy-active-color, #b8f5c2);
+    --aboc-occupancy-vacant: var(--area-bubble-overview-occupancy-vacant-color, #f4f3ec);
+    --aboc-occupancy-unknown: var(--area-bubble-overview-occupancy-unknown-color, #ffcc80);
     --aboc-row-bg: var(
       --area-bubble-overview-row-bg,
       color-mix(in srgb, var(--secondary-background-color) 78%, transparent)
@@ -145,7 +148,8 @@ export const overviewCardStyles = css`
     transform: rotate(180deg);
   }
 
-  .floor-active-badge {
+  .floor-active-badge,
+  .floor-climate-badge {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -162,8 +166,13 @@ export const overviewCardStyles = css`
     cursor: pointer;
   }
 
-  .floor-active-badge ha-icon {
+  .floor-active-badge ha-icon,
+  .floor-climate-badge ha-icon {
     --mdc-icon-size: 19px;
+  }
+
+  .floor-climate-badge {
+    background: var(--aboc-temperature-active);
   }
 
   .overview-heading .heading-main {
@@ -477,7 +486,7 @@ export const overviewCardStyles = css`
   }
 
   .summary-chip.occupied {
-    color: var(--success-color, #74d680);
+    color: var(--aboc-occupancy-active);
   }
 
   .summary-chip.occupancy {
@@ -489,11 +498,11 @@ export const overviewCardStyles = css`
   }
 
   .summary-chip.occupancy.vacant {
-    color: var(--aboc-light-text);
+    color: var(--aboc-occupancy-vacant);
   }
 
   .summary-chip.occupancy.unknown {
-    color: var(--warning-color, #ffb74d);
+    color: var(--aboc-occupancy-unknown);
   }
 
   .occupancy-count {
@@ -940,7 +949,7 @@ export const overviewCardStyles = css`
   .expanded-content {
     display: grid;
     gap: var(--aboc-section-gap);
-    padding: 0 9px 10px;
+    padding: 9px 9px 10px;
     animation: overview-expand 170ms ease both;
   }
 
@@ -959,6 +968,8 @@ export const overviewCardStyles = css`
   }
 
   .device-section.section-framed {
+    border-width: var(--aboc-section-border-width, 1px);
+    border-style: var(--aboc-section-border-style, solid);
     border-color: var(--aboc-section-border-color);
   }
 
@@ -1494,6 +1505,7 @@ export const overviewCardStyles = css`
   .section-off-button:hover:not([disabled]),
   .section-toggle-button:hover:not([disabled]),
   .floor-active-badge:hover:not([disabled]),
+  .floor-climate-badge:hover:not([disabled]),
   .floor-all-off:hover:not([disabled]),
   .floor-room-off:hover:not([disabled]),
   .control-button:hover:not([disabled]),
@@ -1515,6 +1527,7 @@ export const overviewCardStyles = css`
   .section-off-button:active:not([disabled]),
   .section-toggle-button:active:not([disabled]),
   .floor-active-badge:active:not([disabled]),
+  .floor-climate-badge:active:not([disabled]),
   .floor-all-off:active:not([disabled]),
   .floor-room-off:active:not([disabled]),
   .control-button:active:not([disabled]),
@@ -1670,6 +1683,39 @@ export const overviewCardStyles = css`
   }
 
   @container overview-card (max-width: 360px) {
+    .floor-summary-pill {
+      gap: 4px;
+      padding: 4px;
+    }
+
+    .floor-toggle {
+      grid-template-columns: 34px minmax(0, 1fr) 34px;
+      gap: 4px;
+      min-height: 52px;
+      padding: 0;
+    }
+
+    .floor-toggle .icon-bubble.small,
+    .floor-chevron {
+      width: 34px;
+      height: 34px;
+    }
+
+    .floor-toggle .icon-bubble ha-icon,
+    .floor-chevron ha-icon {
+      --mdc-icon-size: 21px;
+    }
+
+    .floor-title {
+      font-size: 16px;
+    }
+
+    .floor-toggle .subtitle {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
     .subareas {
       margin-inline-start: 10px;
       padding-inline-start: 6px;

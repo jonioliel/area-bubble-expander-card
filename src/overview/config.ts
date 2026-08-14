@@ -4,6 +4,7 @@ import type {
   OverviewAreaOverride,
   OverviewEntityOverride,
   OverviewSectionActionIcons,
+  OverviewSectionBorderStyle,
   OverviewSectionId,
   OverviewSectionStyle,
   ResolvedOverviewConfig,
@@ -47,9 +48,18 @@ const sectionStyles = (value: unknown): Partial<Record<OverviewSectionId, Overvi
     if (!isRecord(raw)) continue;
     const background = typeof raw.background === "string" ? raw.background.trim() : "";
     const borderColor = typeof raw.border_color === "string" ? raw.border_color.trim() : "";
+    const borderWidth = typeof raw.border_width === "number" && Number.isFinite(raw.border_width)
+      ? Math.min(8, Math.max(0, raw.border_width))
+      : undefined;
+    const borderStyles = new Set<OverviewSectionBorderStyle>(["solid", "dashed", "dotted"]);
+    const borderStyle = typeof raw.border_style === "string" && borderStyles.has(raw.border_style as OverviewSectionBorderStyle)
+      ? raw.border_style as OverviewSectionBorderStyle
+      : undefined;
     result[section] = {
       ...(background ? { background } : {}),
       ...(borderColor ? { border_color: borderColor } : {}),
+      ...(borderWidth !== undefined ? { border_width: borderWidth } : {}),
+      ...(borderStyle ? { border_style: borderStyle } : {}),
       ...(typeof raw.show_border === "boolean" ? { show_border: raw.show_border } : {}),
     };
   }
@@ -124,6 +134,7 @@ const entityOverrides = (value: unknown): Record<string, OverviewEntityOverride>
       ...(typeof raw.group === "string" && raw.group.trim() ? { group: raw.group.trim() } : {}),
       ...(typeof raw.hidden === "boolean" ? { hidden: raw.hidden } : {}),
       ...(typeof raw.protected === "boolean" ? { protected: raw.protected } : {}),
+      ...(typeof raw.ignore_activity === "boolean" ? { ignore_activity: raw.ignore_activity } : {}),
     };
   }
   return result;
@@ -143,6 +154,10 @@ export const resolveOverviewConfig = (config: AreaBubbleOverviewCardConfig): Res
   const cardTransparent = typeof customStyle.card_transparent === "boolean"
     ? customStyle.card_transparent
     : OVERVIEW_DEFAULT_STYLE.card_transparent;
+  const colorStyle = (key: "occupancy_active_color" | "occupancy_vacant_color" | "occupancy_unknown_color"): string => {
+    const value = customStyle[key];
+    return typeof value === "string" && value.trim() ? value.trim() : OVERVIEW_DEFAULT_STYLE[key];
+  };
   const numberStyle = (key: "quick_action_size" | "quick_action_icon_size" | "section_action_size" | "section_action_icon_size" | "category_gap", min: number, max: number): number => {
     const value = customStyle[key];
     return typeof value === "number" && Number.isFinite(value)
@@ -188,6 +203,9 @@ export const resolveOverviewConfig = (config: AreaBubbleOverviewCardConfig): Res
       area_name_size: areaNameSize,
       card_background: cardBackground,
       card_transparent: cardTransparent,
+      occupancy_active_color: colorStyle("occupancy_active_color"),
+      occupancy_vacant_color: colorStyle("occupancy_vacant_color"),
+      occupancy_unknown_color: colorStyle("occupancy_unknown_color"),
       quick_action_size: numberStyle("quick_action_size", 28, 52),
       quick_action_icon_size: numberStyle("quick_action_icon_size", 14, 34),
       section_action_size: numberStyle("section_action_size", 36, 56),

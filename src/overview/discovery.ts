@@ -275,6 +275,7 @@ const createArea = (
         entityOverride?.protected === true ||
         config.protected_entities.includes(entityId) ||
         labels.some((label) => config.protected_labels.includes(label)),
+      ignoreActivity: entityOverride?.ignore_activity === true,
       group: entityOverride?.group,
     });
   }
@@ -312,7 +313,7 @@ const createArea = (
     allEntities: entities,
     temperature: temperature.temperature,
     temperatureUnit: temperature.unit ?? hass?.config?.unit_system?.temperature ?? "°C",
-    temperatureMode: overviewTemperatureMode(entities),
+    temperatureMode: overviewTemperatureMode(entities.filter((item) => item.ignoreActivity !== true)),
     occupancy: occupancy.occupancy,
     occupancyCount: occupancy.count,
     occupancyCountSource: occupancy.countSource,

@@ -20,6 +20,7 @@ Both cards are delivered by the same JavaScript resource. Install it once, then 
 - Per-category spacing, backgrounds, subtle frames, action icons, and responsive control sizing
 - Named device sub-groups inside a room category without changing Home Assistant Area assignments
 - Active Floor summaries with a room-control popup for one-room or whole-Floor shutdown
+- Active Floor climate badges with a popup for individual or grouped A/C control
 - Tap controls directly and long-press an entity for Home Assistant More Info
 - Dedicated climate, cover, light/switch, and media controls inside each expanded Area
 - Floor-heating discovery using Labels, explicit entity lists, or per-entity section overrides
@@ -286,6 +287,8 @@ section_styles:
     show_border: true
     background: rgba(33, 150, 243, 0.08)
     border_color: var(--state-climate-cool-color)
+    border_width: 2
+    border_style: solid # solid, dashed, or dotted
 
 area_overrides:
   kids_room:
@@ -301,13 +304,13 @@ entity_overrides:
     group: Shower
 ```
 
-`section_styles` supplies the global category appearance. A matching `area_overrides.<area>.section_styles` value overrides only that room. Entities with the same non-empty `group` value are rendered together under a compact sub-heading while retaining their real Home Assistant Area, state, and safe controls.
+`section_styles` supplies the global category appearance, including frame visibility, color, thickness (0–8 px), and solid/dashed/dotted style. A matching `area_overrides.<area>.section_styles` value overrides only that room. Entities with the same non-empty `group` value are rendered together under a compact sub-heading while retaining their real Home Assistant Area, state, and safe controls.
 
 Section actions follow the same safety boundary as header quick actions: hidden or Area-excluded entities never participate, and unavailable, protected, or unsupported entities are skipped. Service calls are grouped by Domain and target only the remaining discovered Entity IDs; one unsupported device does not prevent other valid devices in the section from being controlled.
 
 ### Floor active-room control
 
-When a Floor contains active rooms, its header uses the same active surface as a room and shows an active-room count badge. Tapping that badge opens a popup containing only active rooms, with a safe action for each room and a separate **Turn off all rooms** action. Open covers never color a room or Floor active and are excluded from these power actions; they remain visible and controllable in the cover quick action and cover section.
+When a Floor contains active rooms, its header uses the same active surface as a room and shows an active-room count badge. Tapping that badge opens a popup containing only active rooms, with a safe action for each room and a separate **Turn off all rooms** action. A separate A/C badge appears while Floor climate devices are active; it opens the same detailed climate popup used by rooms, including individual and grouped controls. Open covers never color a room or Floor active and are excluded from these power actions; they remain visible and controllable in the cover quick action and cover section.
 
 ### Excluding an entity from one Area
 
@@ -323,6 +326,16 @@ area_overrides:
 An excluded entity is removed from the Area tiles, active count, active/inactive Area color, section and header quick actions, and automatic temperature/occupancy summaries. This prevents a permanently-on switch or main floor-heating relay from making the room look active. The visual editor gives every discovered device a complete hide action and keeps locally hidden devices as muted, restorable entries so they can be restored without editing YAML.
 
 Hiding from one Area changes only that Area's `exclude_entities` list and preserves configured temperature and occupancy references for later restoration. Top-level `exclude_entities` and `entity_overrides.<entity>.hidden: true` remain available for deliberate global removal; an Area-level restore does not silently override those global safety rules.
+
+If the device should remain visible but must not affect whether the room or Floor looks active, use the separate activity exclusion:
+
+```yaml
+entity_overrides:
+  switch.always_on:
+    ignore_activity: true
+```
+
+The device remains in its category and can still be controlled individually. It is excluded from room/Floor active color and counts, collapsed quick-action activation, Floor climate counts, and climate-driven temperature mode color. This flag is independent of `protected`, which only protects a device from grouped actions.
 
 ### On/off colors
 
@@ -495,7 +508,7 @@ style:
 | `remember_expanded_state` | `true` | Stores Floor and Area expansion independently per stable card ID. |
 | `section_order` | standard five sections | Priority order; missing built-in sections are appended safely. |
 | `section_titles` | localized | Global section headings. |
-| `section_styles` | `{}` | Global background, optional subtle frame, and frame color per category. |
+| `section_styles` | `{}` | Global background plus optional frame visibility, color, 0–8 px thickness, and solid/dashed/dotted style per category. |
 | `section_action_mode` | `dual` | `dual` shows separate directional buttons; `toggle` shows one smart state button. |
 | `section_action_icons` | built-in semantic icons | Optional icons for `on`, `off`, `open`, and `close`. |
 | `quick_actions` | all six | Enabled actions in display order. |
@@ -513,10 +526,11 @@ style:
 | `area_overrides.<area>.occupancy_count_entity` | none | Authoritative numeric people-count entity; zero is vacant. |
 | `area_overrides.<area>.occupancy_entities` | automatic | Presence sensors to count when no numeric count entity is selected. |
 | `area_overrides.<area>.exclude_entities` | `[]` | Removes entities from display and every Area state/summary calculation. |
-| `area_overrides.<area>.section_styles` | inherit global | Per-room category background, frame visibility, and frame color overrides. |
-| `entity_overrides` | `{}` | Entity name, icon, section, visibility, and group-action protection. |
+| `area_overrides.<area>.section_styles` | inherit global | Per-room category background, frame visibility, color, thickness, and style overrides. |
+| `entity_overrides` | `{}` | Entity name, icon, section, visibility, activity influence, and group-action protection. |
 | `entity_overrides.<entity>.icon` | registry/fallback icon | Overrides one device icon. |
 | `entity_overrides.<entity>.group` | none | Places devices with the same group name under a sub-heading inside their category. |
+| `entity_overrides.<entity>.ignore_activity` | `false` | Keeps the device visible but removes its influence from room/Floor active state and quick summaries. |
 | `style.row_background` | theme-aware neutral | Shared Floor-header, powered-off Area, and inactive-entity background. |
 | `style.card_transparent` | `true` | Removes the card surface and border so the dashboard background is visible. |
 | `style.card_background` | HA card background | Card color/CSS value used when transparent mode is disabled. |
@@ -526,6 +540,9 @@ style:
 | `style.section_action_size` / `section_action_icon_size` | `44` / `22` | Expanded category action circle and glyph sizes. |
 | `style.active_color` | HA active color | Active badge and indicator color. |
 | `style.active_surface` | pale cyan | Active light/switch tile background. |
+| `style.occupancy_active_color` | light green | Occupied presence icon/count color. |
+| `style.occupancy_vacant_color` | light neutral | Vacant presence icon/count color. |
+| `style.occupancy_unknown_color` | amber | Unknown presence icon/count color. |
 | `style.climate_surface` | soft blue | Active climate-controller background. |
 | `style.control_surface` | dark navy | Temperature, mode, fan, and thermostat control pills. |
 | `style.temperature_off_surface` | dark navy | Room-temperature chip when every climate device is off. |
@@ -584,12 +601,12 @@ The Overview editor provides:
 - Summary, temperature, numeric occupancy, sensor fallback, active quick-action, and Area-chevron settings
 - Section title/order editing, one-button or paired actions, action icon pickers, spacing, and global category appearance
 - Floor Area order, cycle-safe parent/child nesting, and per-Area overrides
-- Floor/Area/entity icon pickers with registry fallbacks
+- Floor/Area/entity icon pickers with registry fallbacks and built-in search
 - Quick-action icon pickers with built-in fallbacks and one-click reset
 - Preferred temperature, occupancy-count, and occupancy sensor selection
 - Complete per-Area entity hiding/restoration that also excludes hidden devices from state, color, summaries, and group actions
-- Entity section/sub-group assignment, names, icons, protection, and priority order
-- Convenient on/off and HVAC temperature-state color pickers with CSS-value inputs, reset actions, and live previews
+- Entity section/sub-group assignment, names, icons, group protection, activity exclusion, and priority order
+- Convenient on/off, occupancy, and HVAC temperature-state color pickers with CSS-value inputs, reset actions, and live previews
 - Adjustable Area-name size, native Home Assistant HVAC/fan menus, and automatic brightness sliders for dimmable lights
 - Safe Area/category/Floor popups and on/off/open/close controls that honor exclusion, availability, capability, and protection rules
 - Hebrew/English, RTL, responsive appearance, long-press More Info, and advanced safety lists
