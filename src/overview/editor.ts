@@ -655,6 +655,7 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
             ${this.numberField(this.l("גודל אייקון פעולה מהירה בחדר", "Room quick-action icon size", language), resolved.style.quick_action_icon_size, 14, 34, (value) => this.setStyle("quick_action_icon_size", value))}
             ${this.numberField(this.l("גודל כפתור פעולה בקטגוריה", "Category action button size", language), resolved.style.section_action_size, 36, 56, (value) => this.setStyle("section_action_size", value))}
             ${this.numberField(this.l("גודל אייקון פעולה בקטגוריה", "Category action icon size", language), resolved.style.section_action_icon_size, 16, 36, (value) => this.setStyle("section_action_icon_size", value))}
+            ${this.numberField(this.l("עובי מסגרת החדר", "Room frame thickness", language), resolved.style.area_frame_width, 0, 8, (value) => this.setStyle("area_frame_width", value))}
           </div>
           ${this.booleanRow(
             this.l("רקע כרטיס שקוף", "Transparent card background", language),
@@ -665,12 +666,15 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
           <div class="setting-title">${this.l("צבעי מצב", "State colors", language)}</div>
           <div class="state-preview">
             <div class="state-preview-item off" style=${`--preview-surface: ${resolved.style.row_background}`}>${this.l("כבוי", "OFF", language)}</div>
-            <div class="state-preview-item on" style=${`--preview-surface: ${resolved.style.active_surface}`}>${this.l("דלוק", "ON", language)}</div>
+            <div class="state-preview-item on" style=${`--preview-surface: ${resolved.style.active_surface}`}>${this.l("חדר פעיל", "Active room", language)}</div>
+            <div class="state-preview-item on" style=${`--preview-surface: ${resolved.style.entity_active_surface}`}>${this.l("רכיב דלוק", "Active device", language)}</div>
           </div>
           <div class="inline-fields">
             ${this.colorField(this.l("רקע הכרטיס", "Card background", language), "card_background", resolved.style.card_background, "#ffffff", language)}
             ${this.colorField(this.l("רקע כבוי", "OFF surface", language), "row_background", resolved.style.row_background, "#e7e7e7", language)}
-            ${this.colorField(this.l("רקע דלוק", "ON surface", language), "active_surface", resolved.style.active_surface, "#aed7db", language)}
+            ${this.colorField(this.l("רקע חדר או קומה פעילים", "Active room or floor surface", language), "active_surface", resolved.style.active_surface, "#aed7db", language)}
+            ${this.colorField(this.l("רקע רכיב דלוק", "Active device surface", language), "entity_active_surface", resolved.style.entity_active_surface, "#aed7db", language)}
+            ${this.colorField(this.l("צבע מסגרת החדר", "Room frame color", language), "area_frame_color", resolved.style.area_frame_color || "var(--divider-color)", "#607086", language)}
             ${this.colorField(this.l("צבע תג פעיל", "Active count badge", language), "active_color", resolved.style.active_color, "#ffd54f", language)}
             ${this.colorField(this.l("צבע נוכחות פעילה", "Occupied presence color", language), "occupancy_active_color", resolved.style.occupancy_active_color, "#b8f5c2", language)}
             ${this.colorField(this.l("צבע חדר ריק", "Vacant presence color", language), "occupancy_vacant_color", resolved.style.occupancy_vacant_color, "#f4f3ec", language)}

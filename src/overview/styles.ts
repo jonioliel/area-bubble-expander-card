@@ -21,6 +21,8 @@ export const overviewCardStyles = css`
     --aboc-accent: var(--area-bubble-overview-accent, var(--primary-color));
     --aboc-active: var(--area-bubble-overview-active, var(--state-active-color, #ffd54f));
     --aboc-active-surface: var(--area-bubble-overview-active-surface, rgba(174, 215, 219, 0.94));
+    --aboc-entity-active-surface: var(--area-bubble-overview-entity-active-surface, rgba(174, 215, 219, 0.94));
+    --aboc-area-frame-width: var(--area-bubble-overview-area-frame-width, 2px);
     --aboc-climate-surface: var(--area-bubble-overview-climate-surface, rgba(139, 181, 255, 0.94));
     --aboc-control-surface: var(--area-bubble-overview-control-surface, rgba(11, 28, 58, 0.94));
     --aboc-climate: var(--area-bubble-overview-climate-color, var(--state-climate-cool-color, #2196f3));
@@ -231,10 +233,9 @@ export const overviewCardStyles = css`
   }
 
   .area-panel {
-    --aboc-area-frame-color: color-mix(
-      in srgb,
-      var(--divider-color, rgba(127, 127, 127, 0.45)) 72%,
-      transparent
+    --aboc-area-frame-color: var(
+      --area-bubble-overview-area-frame-color,
+      color-mix(in srgb, var(--divider-color, rgba(127, 127, 127, 0.45)) 72%, transparent)
     );
     overflow: visible;
     border: 0;
@@ -244,16 +245,15 @@ export const overviewCardStyles = css`
 
   .area-panel.expanded {
     overflow: hidden;
-    border: 2px solid var(--aboc-area-frame-color);
+    border: var(--aboc-area-frame-width) solid var(--aboc-area-frame-color);
     border-radius: calc(var(--aboc-radius) + 4px);
     background: var(--aboc-row-bg);
   }
 
   .area-panel.has-active {
-    --aboc-area-frame-color: color-mix(
-      in srgb,
-      var(--aboc-control-surface) 72%,
-      var(--divider-color, rgba(127, 127, 127, 0.45))
+    --aboc-area-frame-color: var(
+      --area-bubble-overview-area-frame-color,
+      color-mix(in srgb, var(--aboc-control-surface) 72%, var(--divider-color, rgba(127, 127, 127, 0.45)))
     );
   }
 
@@ -262,9 +262,9 @@ export const overviewCardStyles = css`
   }
 
   .area-panel.expanded > .area-summary {
-    width: calc(100% + 4px);
-    margin-block: -2px 0;
-    margin-inline: -2px;
+    width: calc(100% + var(--aboc-area-frame-width) + var(--aboc-area-frame-width));
+    margin-block: calc(0px - var(--aboc-area-frame-width)) 0;
+    margin-inline: calc(0px - var(--aboc-area-frame-width));
     padding: 0;
   }
 
@@ -294,7 +294,7 @@ export const overviewCardStyles = css`
     min-height: 60px;
     padding-block: 5px;
     padding-inline: 5px 8px;
-    border: 2px solid var(--aboc-area-frame-color);
+    border: var(--aboc-area-frame-width) solid var(--aboc-area-frame-color);
     overflow: hidden;
     border-radius: 999px;
     background: var(--aboc-row-bg);
@@ -370,6 +370,12 @@ export const overviewCardStyles = css`
     cursor: pointer;
   }
 
+  .area-summary-pill.has-statuses .area-toggle {
+    min-width: 72px;
+    max-width: min(42%, 168px);
+    flex: 0 1 auto;
+  }
+
   .area-main,
   .entity-main {
     direction: var(--aboc-direction, ltr);
@@ -397,10 +403,10 @@ export const overviewCardStyles = css`
     direction: var(--aboc-direction, ltr);
     display: flex;
     align-items: center;
-    justify-content: flex-end;
+    justify-content: flex-start;
     gap: 5px;
     min-width: 0;
-    flex: 0 1 auto;
+    flex: 1 1 0;
     overflow: hidden;
   }
 
@@ -831,7 +837,7 @@ export const overviewCardStyles = css`
 
   .quick-popup-entity.active {
     border-color: color-mix(in srgb, var(--aboc-control-surface) 56%, transparent);
-    background: var(--aboc-active-surface);
+    background: var(--aboc-entity-active-surface);
     color: var(--aboc-dark-text);
   }
 
@@ -884,6 +890,15 @@ export const overviewCardStyles = css`
     transition: background-color 180ms ease, box-shadow 180ms ease;
   }
 
+  .temperature-summary {
+    direction: var(--aboc-direction, ltr);
+    display: inline-flex;
+    align-items: center;
+    gap: 1px;
+    min-width: max-content;
+    flex: 0 0 auto;
+  }
+
   .temperature-climate-tag {
     position: relative;
     z-index: 1;
@@ -892,7 +907,7 @@ export const overviewCardStyles = css`
     justify-content: center;
     width: 26px;
     height: 26px;
-    margin-inline-start: -13px;
+    margin-inline-start: 0;
     padding: 0;
     border: 0;
     border-radius: 999px;
@@ -1176,7 +1191,7 @@ export const overviewCardStyles = css`
 
   .toggle-tile.active {
     border-color: color-mix(in srgb, var(--aboc-control-surface) 62%, transparent);
-    background: var(--aboc-active-surface);
+    background: var(--aboc-entity-active-surface);
     color: var(--aboc-dark-text);
   }
 
@@ -1283,7 +1298,7 @@ export const overviewCardStyles = css`
 
   .light-card.active {
     border-color: color-mix(in srgb, var(--aboc-control-surface) 62%, transparent);
-    background: var(--aboc-active-surface);
+    background: var(--aboc-entity-active-surface);
     color: var(--aboc-dark-text);
   }
 
@@ -1386,7 +1401,7 @@ export const overviewCardStyles = css`
 
   .thermostat-card.active {
     border-color: color-mix(in srgb, var(--aboc-control-surface) 52%, transparent);
-    background: color-mix(in srgb, var(--aboc-active-surface) 74%, var(--aboc-row-bg));
+    background: color-mix(in srgb, var(--aboc-entity-active-surface) 74%, var(--aboc-row-bg));
     color: var(--aboc-dark-text);
   }
 
@@ -1602,17 +1617,23 @@ export const overviewCardStyles = css`
       gap: 4px;
     }
 
-    .area-summary-pill .area-toggle,
-    .area-summary-pill.compact-statuses .area-toggle {
-      min-width: 120px;
-      flex: 1 0 120px;
+    .area-summary-pill.has-statuses .area-toggle,
+    .area-summary-pill.has-statuses.compact-statuses .area-toggle {
+      min-width: 68px;
+      max-width: 96px;
+      flex: 0 1 auto;
       gap: 5px;
+    }
+
+    .area-summary-pill.no-statuses .area-toggle {
+      max-width: none;
+      flex: 1 1 auto;
     }
 
     .area-statuses {
       gap: 3px;
-      max-width: calc(100% - 124px);
-      flex: 0 1 auto;
+      max-width: none;
+      flex: 1 1 0;
       padding-block: 5px;
       overflow-x: auto;
       overflow-y: hidden;
@@ -1632,7 +1653,47 @@ export const overviewCardStyles = css`
     }
 
     .area-summary-pill.compact-statuses .quick-actions {
-      gap: 6px;
+      gap: 3px;
+    }
+
+    .area-summary-pill.compact-statuses .quick-action {
+      width: min(var(--aboc-quick-action-size), 34px);
+      height: min(var(--aboc-quick-action-size), 34px);
+      flex-basis: min(var(--aboc-quick-action-size), 34px);
+    }
+
+    .area-summary-pill.compact-statuses .quick-action ha-icon {
+      --mdc-icon-size: min(var(--aboc-quick-action-icon-size), 18px);
+    }
+
+    .area-summary-pill.compact-statuses .quick-action::before {
+      inset: 0;
+    }
+
+    .area-summary-pill.compact-statuses .occupancy {
+      min-width: 42px;
+      width: auto;
+      height: 38px;
+      padding-inline: 4px;
+      gap: 2px;
+    }
+
+    .area-summary-pill.compact-statuses .occupancy ha-icon {
+      --mdc-icon-size: 18px;
+    }
+
+    .area-summary-pill.compact-statuses .occupancy-count {
+      font-size: 12px;
+    }
+
+    .area-summary-pill.compact-statuses .temperature-climate-tag {
+      width: 22px;
+      height: 22px;
+      margin-inline-start: 0;
+    }
+
+    .area-summary-pill.compact-statuses .temperature-climate-tag ha-icon {
+      --mdc-icon-size: 13px;
     }
 
     .quick-action {
@@ -1663,7 +1724,7 @@ export const overviewCardStyles = css`
     }
 
     .area-temperature {
-      padding-inline: 10px;
+      padding-inline: 7px;
       font-size: 13px;
     }
 
@@ -1769,9 +1830,19 @@ export const overviewCardStyles = css`
 
     .area-summary-pill .area-toggle {
       width: auto;
-      min-width: 112px;
-      flex: 1 0 112px;
       gap: 4px;
+    }
+
+    .area-summary-pill.has-statuses .area-toggle {
+      min-width: 64px;
+      max-width: 82px;
+      flex: 0 1 auto;
+    }
+
+    .area-summary-pill.no-statuses .area-toggle {
+      min-width: 112px;
+      max-width: none;
+      flex: 1 1 auto;
     }
 
     .area-summary-pill .area-icon,
@@ -1782,33 +1853,52 @@ export const overviewCardStyles = css`
 
     .area-summary-pill .occupancy,
     .area-summary-pill.compact-statuses .occupancy {
-      min-width: 36px;
-      width: 36px;
+      min-width: 34px;
+      width: auto;
       height: 36px;
       min-height: 36px;
-      flex-basis: 36px;
-      padding-inline: 4px;
-      gap: 2px;
+      flex-basis: auto;
+      padding-inline: 2px;
+      gap: 1px;
     }
 
     .area-summary-pill .occupancy ha-icon {
-      --mdc-icon-size: 18px;
+      --mdc-icon-size: 16px;
     }
 
     .area-summary-pill .occupancy-count {
-      font-size: 12px;
+      font-size: 10px;
     }
 
     .area-summary-pill .area-temperature,
     .area-summary-pill.compact-statuses .area-temperature {
-      padding-inline: 5px;
-      font-size: 12px;
+      padding-inline: 4px;
+      font-size: 11px;
+    }
+
+    .area-summary-pill.compact-statuses .quick-action {
+      width: min(var(--aboc-quick-action-size), 30px);
+      height: min(var(--aboc-quick-action-size), 30px);
+      flex-basis: min(var(--aboc-quick-action-size), 30px);
+    }
+
+    .area-summary-pill.compact-statuses .quick-action ha-icon {
+      --mdc-icon-size: min(var(--aboc-quick-action-icon-size), 16px);
+    }
+
+    .area-summary-pill.compact-statuses .temperature-climate-tag {
+      width: 18px;
+      height: 18px;
+    }
+
+    .area-summary-pill.compact-statuses .temperature-climate-tag ha-icon {
+      --mdc-icon-size: 11px;
     }
 
     .area-statuses {
       display: flex;
       min-width: 0;
-      max-width: calc(100% - 116px);
+      max-width: none;
       overflow-x: auto;
       overflow-y: hidden;
     }
@@ -1822,13 +1912,14 @@ export const overviewCardStyles = css`
       overflow: visible;
     }
 
-    .area-summary.without-expand-button .area-toggle {
-      min-width: 112px;
-      flex: 1 0 112px;
+    .area-summary.without-expand-button .area-summary-pill.has-statuses .area-toggle {
+      min-width: 64px;
+      max-width: 82px;
+      flex: 0 1 auto;
     }
 
     .area-summary.without-expand-button .area-statuses {
-      max-width: calc(100% - 116px);
+      max-width: none;
       flex: 0 1 auto;
     }
 

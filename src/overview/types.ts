@@ -57,6 +57,9 @@ export type OverviewStyleConfig = Pick<
   card_transparent?: boolean;
   active_color?: string;
   active_surface?: string;
+  entity_active_surface?: string;
+  area_frame_color?: string;
+  area_frame_width?: number;
   climate_surface?: string;
   control_surface?: string;
   climate_color?: string;

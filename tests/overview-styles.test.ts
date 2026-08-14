@@ -127,9 +127,9 @@ describe("overview header presentation contracts", () => {
   it("shows no outer frame while collapsed and one enclosing frame while expanded", () => {
     expect(cssText).toMatch(/\.area-panel\s*\{[^}]*overflow:\s*visible;[^}]*border:\s*0;[^}]*background:\s*transparent/s);
     expect(cssText).toMatch(/\.area-panel:not\(\.expanded\)\s*>\s*\.area-summary\s*\{[^}]*padding:\s*0/s);
-    expect(cssText).toMatch(/\.area-panel\.expanded\s*\{[^}]*overflow:\s*hidden;[^}]*border:\s*2px solid var\(--aboc-area-frame-color\);[^}]*background:\s*var\(--aboc-row-bg\)/s);
-    expect(cssText).toMatch(/\.area-panel\.expanded\s*>\s*\.area-summary\s*\{[^}]*margin-block:\s*-2px 0;[^}]*margin-inline:\s*-2px;[^}]*padding:\s*0/s);
-    expect(cssText).toMatch(/\.area-summary-pill\s*\{[^}]*border:\s*2px solid var\(--aboc-area-frame-color\)/s);
+    expect(cssText).toMatch(/\.area-panel\.expanded\s*\{[^}]*overflow:\s*hidden;[^}]*border:\s*var\(--aboc-area-frame-width\) solid var\(--aboc-area-frame-color\);[^}]*background:\s*var\(--aboc-row-bg\)/s);
+    expect(cssText).toMatch(/\.area-panel\.expanded\s*>\s*\.area-summary\s*\{[^}]*margin-block:\s*calc\(0px - var\(--aboc-area-frame-width\)\) 0;[^}]*margin-inline:\s*calc\(0px - var\(--aboc-area-frame-width\)\);[^}]*padding:\s*0/s);
+    expect(cssText).toMatch(/\.area-summary-pill\s*\{[^}]*border:\s*var\(--aboc-area-frame-width\) solid var\(--aboc-area-frame-color\)/s);
     expect(cssText).toMatch(/\.area-panel\.expanded\.has-active\s*\{[^}]*background:\s*var\(--aboc-active-surface\)/s);
   });
 
@@ -148,7 +148,8 @@ describe("overview header presentation contracts", () => {
     expect(regularWidthCss).toMatch(/--aboc-area-name-size:\s*var\(--area-bubble-overview-area-name-size,\s*17px\)/);
     expect(regularWidthCss).toMatch(/\.area-name\s*\{[^}]*font-size:\s*var\(--aboc-area-name-size\)/s);
     expect(containerCssAt(430)).toMatch(/\.area-name\s*\{[^}]*font-size:\s*min\(var\(--aboc-area-name-size\),\s*14px\)/s);
-    expect(containerCssAt(340)).toMatch(/\.area-summary-pill \.area-toggle\s*\{[^}]*min-width:\s*112px/s);
+    expect(containerCssAt(340)).toMatch(/\.area-summary-pill\.has-statuses \.area-toggle\s*\{[^}]*max-width:\s*82px/s);
+    expect(containerCssAt(340)).toMatch(/\.area-summary-pill\.no-statuses \.area-toggle\s*\{[^}]*min-width:\s*112px/s);
   });
 
   it("styles the floor header as an accessible full-width disclosure target", () => {

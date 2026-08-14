@@ -128,7 +128,7 @@ The Area arrows in the visual editor order roots relative to roots and children 
 
 Empty sections are hidden by default. Every discovered device remains visible inside an expanded Area even when it is off; activity is used for highlights and active-count badges. A collapsed-header quick-action category is shown only while at least one of its devices is powered.
 
-The expanded layout is intentionally compact: climate uses a dedicated two-row controller, covers and media keep full-width controls, and lights/switches use a two-column tile grid whenever the card is wide enough. Collapsed Area summaries always remain one physical row. Mobile quick-action circles become visually smaller while retaining a 44 px hit area, and an extreme number of simultaneous active categories scrolls within the action strip instead of increasing the room height. Responsiveness follows the card's own width, so the same layout also works inside narrow desktop dashboard columns.
+The expanded layout is intentionally compact: climate uses a dedicated two-row controller, covers and media keep full-width controls, and lights/switches use a two-column tile grid whenever the card is wide enough. Collapsed Area summaries always remain one physical row. Mobile quick actions, presence, and the climate tag shrink progressively before the action strip falls back to horizontal scrolling, so the controls do not cover the Area name or temperature. Responsiveness follows the card's own width, so the same layout also works inside narrow desktop dashboard columns.
 
 Collapsed Areas use only their summary capsule. Opening an Area adds one surrounding frame that shares its exact color and top edge with the summary capsule, encloses the complete content, and fills the expanded Area with the same ON/OFF state surface. An open cover is counted on the cover quick action but does not make the Area itself active. Active climate devices are folded into a compact A/C icon attached to the climate-colored temperature chip instead of consuming a separate quick-action circle; pressing the icon still opens the climate popup. Climate mode and fan controls use Home Assistant's native anchored menus, and the mode menu is the single climate power control.
 
@@ -140,6 +140,9 @@ style:
   card_background: rgba(255, 255, 255, 0.92)
   row_background: rgba(232, 232, 232, 0.92)
   active_surface: rgba(174, 215, 219, 0.94)
+  entity_active_surface: rgba(174, 215, 219, 0.94)
+  area_frame_color: rgba(63, 81, 107, 0.9)
+  area_frame_width: 2
 ```
 
 Dimmable lights are detected automatically from Home Assistant's light capabilities and receive a compact brightness slider. Dragging updates the visual value immediately and sends one `light.turn_on` action with `brightness_pct` when released; releasing at zero turns the light off. The separate power button remains available for a fast toggle.
@@ -344,7 +347,8 @@ The Appearance panel provides color swatches, editable CSS values, reset buttons
 | State | Style key | Used for |
 | --- | --- | --- |
 | Off / neutral | `style.row_background` | Floor headers, powered-off Area summaries, and inactive entity tiles. |
-| On / active | `style.active_surface` | Active entity tiles and active Area summaries. |
+| Active room / Floor | `style.active_surface` | Active Area summaries, expanded Area surfaces, and active Floor headers. |
+| Active device | `style.entity_active_surface` | Active entity tiles inside expanded categories and quick-action popups. |
 | Active indicator | `style.active_color` | Quick-action count badges and active accents. |
 
 The text value can still use Home Assistant CSS variables or `rgba(...)` when a plain picker color is not sufficient.
@@ -481,6 +485,9 @@ style:
   row_background: color-mix(in srgb, var(--secondary-background-color) 78%, transparent)
   active_color: var(--state-active-color, #ffd54f)
   active_surface: rgba(174, 215, 219, 0.94)
+  entity_active_surface: rgba(174, 215, 219, 0.94)
+  area_frame_color: rgba(63, 81, 107, 0.9)
+  area_frame_width: 2
   climate_surface: rgba(139, 181, 255, 0.94)
   control_surface: rgba(11, 28, 58, 0.94)
   temperature_off_surface: rgba(11, 28, 58, 0.94)
@@ -539,7 +546,10 @@ style:
 | `style.quick_action_size` / `quick_action_icon_size` | `38` / `20` | Collapsed-room quick-action circle and glyph sizes. |
 | `style.section_action_size` / `section_action_icon_size` | `44` / `22` | Expanded category action circle and glyph sizes. |
 | `style.active_color` | HA active color | Active badge and indicator color. |
-| `style.active_surface` | pale cyan | Active light/switch tile background. |
+| `style.active_surface` | pale cyan | Active Area/Floor background, independent of active devices. |
+| `style.entity_active_surface` | pale cyan | Active entity-tile background, independent of the Area/Floor surface. |
+| `style.area_frame_color` | automatic | Optional Area summary/expanded-frame color; empty uses a theme-aware state color. |
+| `style.area_frame_width` | `2` | Area summary/expanded-frame thickness in pixels, clamped to 0–8. |
 | `style.occupancy_active_color` | light green | Occupied presence icon/count color. |
 | `style.occupancy_vacant_color` | light neutral | Vacant presence icon/count color. |
 | `style.occupancy_unknown_color` | amber | Unknown presence icon/count color. |

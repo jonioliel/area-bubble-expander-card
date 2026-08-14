@@ -2,6 +2,14 @@
 
 All notable changes to Area Bubble Expander Card will be documented in this file.
 
+## 0.10.0 - 2026-08-15
+
+- Rebalanced collapsed mobile summaries so the Area name gives priority to presence, active-category, and temperature controls; dense controls now shrink progressively at 430 px and 340 px instead of clipping each other.
+- Grouped the climate popup icon and temperature into one non-overlapping status cluster, eliminating the A/C tag overlap on the temperature text.
+- Split the active Area/Floor surface from the active-device surface, with independent Appearance editor and YAML colors.
+- Added configurable Area-frame color and 0–8 px thickness while retaining the automatic theme-aware frame when no custom color is selected.
+- Added mobile geometry and styling regression coverage, bringing the suite to 153 tests.
+
 ## 0.9.0 - 2026-08-15
 
 - Added configurable category-frame thickness and solid/dashed/dotted styles globally and per room, plus extra top spacing before the first expanded category.

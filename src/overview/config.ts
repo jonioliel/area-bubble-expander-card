@@ -154,9 +154,9 @@ export const resolveOverviewConfig = (config: AreaBubbleOverviewCardConfig): Res
   const cardTransparent = typeof customStyle.card_transparent === "boolean"
     ? customStyle.card_transparent
     : OVERVIEW_DEFAULT_STYLE.card_transparent;
-  const colorStyle = (key: "occupancy_active_color" | "occupancy_vacant_color" | "occupancy_unknown_color"): string => {
+  const colorStyle = (key: "entity_active_surface" | "area_frame_color" | "occupancy_active_color" | "occupancy_vacant_color" | "occupancy_unknown_color"): string => {
     const value = customStyle[key];
-    return typeof value === "string" && value.trim() ? value.trim() : OVERVIEW_DEFAULT_STYLE[key];
+    return typeof value === "string" ? value.trim() || OVERVIEW_DEFAULT_STYLE[key] : OVERVIEW_DEFAULT_STYLE[key];
   };
   const numberStyle = (key: "quick_action_size" | "quick_action_icon_size" | "section_action_size" | "section_action_icon_size" | "category_gap", min: number, max: number): number => {
     const value = customStyle[key];
@@ -203,6 +203,11 @@ export const resolveOverviewConfig = (config: AreaBubbleOverviewCardConfig): Res
       area_name_size: areaNameSize,
       card_background: cardBackground,
       card_transparent: cardTransparent,
+      entity_active_surface: colorStyle("entity_active_surface"),
+      area_frame_color: colorStyle("area_frame_color"),
+      area_frame_width: typeof customStyle.area_frame_width === "number" && Number.isFinite(customStyle.area_frame_width)
+        ? Math.min(8, Math.max(0, customStyle.area_frame_width))
+        : OVERVIEW_DEFAULT_STYLE.area_frame_width,
       occupancy_active_color: colorStyle("occupancy_active_color"),
       occupancy_vacant_color: colorStyle("occupancy_vacant_color"),
       occupancy_unknown_color: colorStyle("occupancy_unknown_color"),
