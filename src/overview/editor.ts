@@ -516,7 +516,7 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
             <div class="state-preview-item on" style=${`--preview-surface: ${resolved.style.active_surface}`}>${this.l("דלוק", "ON", language)}</div>
           </div>
           <div class="inline-fields">
-            ${this.colorField(this.l("רקע כבוי", "OFF surface", language), "row_background", resolved.style.row_background, "#4a4a4a", language)}
+            ${this.colorField(this.l("רקע כבוי", "OFF surface", language), "row_background", resolved.style.row_background, "#e7e7e7", language)}
             ${this.colorField(this.l("רקע דלוק", "ON surface", language), "active_surface", resolved.style.active_surface, "#aed7db", language)}
             ${this.colorField(this.l("צבע תג פעיל", "Active count badge", language), "active_color", resolved.style.active_color, "#ffd54f", language)}
             ${this.colorField(this.l("צבע הדגשה", "Accent color", language), "accent_color", resolved.style.accent_color, "#03a9f4", language)}

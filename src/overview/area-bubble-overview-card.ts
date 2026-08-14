@@ -208,7 +208,8 @@ export class AreaBubbleOverviewCard extends LitElement {
       heat: this.localText("חימום", "Heating"),
       active: this.localText("מצב מיזוג פעיל", "Climate active"),
     }[area.temperatureMode];
-    const denseActions = quickActions.length >= 3 || (quickActions.length >= 2 && hasOccupancy && hasTemperature);
+    const summaryLoad = Math.min(8, quickActions.length + Number(hasOccupancy) + Number(hasTemperature) * 2);
+    const compactStatuses = summaryLoad >= 5;
     const responsiveActions =
       (quickActions.length >= 2 && hasTemperature) ||
       (quickActions.length >= 1 && hasOccupancy && hasTemperature);
@@ -220,7 +221,7 @@ export class AreaBubbleOverviewCard extends LitElement {
         data-powered=${activeCount ? "true" : "false"}
       >
         <header class="area-summary">
-          <div class="area-summary-pill ${denseActions ? "dense-actions" : ""} ${responsiveActions ? "responsive-actions" : ""}">
+          <div class="area-summary-pill summary-load-${summaryLoad} ${compactStatuses ? "compact-statuses" : ""} ${responsiveActions ? "responsive-actions" : ""}">
             <button
               class="area-toggle"
               type="button"

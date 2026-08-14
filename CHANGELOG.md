@@ -2,6 +2,13 @@
 
 All notable changes to Area Bubble Expander Card will be documented in this file.
 
+## 0.4.1 - 2026-08-14
+
+- Unified the Floor header, powered-off Area summaries, and inactive entity tiles on one theme-aware neutral surface. The visual editor's OFF color now controls all three consistently.
+- Kept loaded Area summaries on a compact single row whenever the card has enough room, with smaller decorative icons and spacing but unchanged 44 px action targets.
+- Added load-aware container breakpoints so status chips and quick actions wrap only when their actual combination needs more room, without clipping or overlap.
+- Expanded responsive style coverage for neutral surfaces, adaptive summary loads, and accessible control sizes.
+
 ## 0.4.0 - 2026-08-14
 
 - Added a complete per-entity hide/restore control to every Area editor. A hidden entity is omitted from the layout and no longer affects Area color, active counts, summaries, quick actions, temperature, or occupancy.

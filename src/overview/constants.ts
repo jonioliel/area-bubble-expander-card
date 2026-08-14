@@ -59,7 +59,7 @@ export const OVERVIEW_DEFAULT_STYLE: Required<OverviewStyleConfig> = {
   show_shadows: true,
   shadow_intensity: 0.2,
   accent_color: "var(--primary-color)",
-  row_background: "rgba(74,74,74,0.88)",
+  row_background: "color-mix(in srgb, var(--secondary-background-color) 78%, transparent)",
   active_color: "var(--state-active-color, #ffd54f)",
   active_surface: "rgba(174, 215, 219, 0.94)",
   climate_surface: "rgba(139, 181, 255, 0.94)",

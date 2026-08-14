@@ -95,7 +95,7 @@ describe("overview configuration", () => {
       border_radius: 26,
       row_height: 56,
       active_color: "var(--state-active-color, #ffd54f)",
-      row_background: "rgba(74,74,74,0.88)",
+      row_background: "color-mix(in srgb, var(--secondary-background-color) 78%, transparent)",
       active_surface: "rgba(174, 215, 219, 0.94)",
       climate_surface: "rgba(139, 181, 255, 0.94)",
       control_surface: "rgba(11, 28, 58, 0.94)",

@@ -118,7 +118,7 @@ area_overrides:
 
 Empty sections are hidden by default. Every discovered device remains visible inside an expanded Area even when it is off; activity is used for highlights, counts, and quick actions.
 
-The expanded layout is intentionally compact: climate uses a dedicated two-row controller, covers and media keep full-width controls, and lights/switches use a two-column tile grid whenever the card is wide enough. Responsiveness follows the card's own width, so the same layout also works inside narrow desktop dashboard columns.
+The expanded layout is intentionally compact: climate uses a dedicated two-row controller, covers and media keep full-width controls, and lights/switches use a two-column tile grid whenever the card is wide enough. Collapsed Area summaries remain one consistent row while space permits; icons and gaps become denser under load, and only then wrap at card-width breakpoints. Responsiveness follows the card's own width, so the same layout also works inside narrow desktop dashboard columns.
 
 ### Temperature
 
@@ -262,7 +262,7 @@ The Appearance panel provides color swatches, editable CSS values, reset buttons
 
 | State | Style key | Used for |
 | --- | --- | --- |
-| Off / neutral | `style.row_background` | Inactive entity tiles and neutral surfaces. |
+| Off / neutral | `style.row_background` | Floor headers, powered-off Area summaries, and inactive entity tiles. |
 | On / active | `style.active_surface` | Active entity tiles and active Area summaries. |
 | Active indicator | `style.active_color` | Quick-action count badges and active accents. |
 
@@ -369,7 +369,7 @@ style:
   row_height: 56
   section_gap: 12
   accent_color: var(--primary-color)
-  row_background: rgba(74, 74, 74, 0.88)
+  row_background: color-mix(in srgb, var(--secondary-background-color) 78%, transparent)
   active_color: var(--state-active-color, #ffd54f)
   active_surface: rgba(174, 215, 219, 0.94)
   climate_surface: rgba(139, 181, 255, 0.94)
@@ -414,7 +414,7 @@ style:
 | `area_overrides.<area>.exclude_entities` | `[]` | Removes entities from display and every Area state/summary calculation. |
 | `entity_overrides` | `{}` | Entity name, icon, section, visibility, and group-action protection. |
 | `entity_overrides.<entity>.icon` | registry/fallback icon | Overrides one device icon. |
-| `style.row_background` | charcoal | Off/neutral entity tile and surface background. |
+| `style.row_background` | theme-aware neutral | Shared Floor-header, powered-off Area, and inactive-entity background. |
 | `style.active_color` | HA active color | Active badge and indicator color. |
 | `style.active_surface` | pale cyan | Active light/switch tile background. |
 | `style.climate_surface` | soft blue | Active climate-controller background. |

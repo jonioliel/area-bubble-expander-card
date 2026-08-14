@@ -3,21 +3,101 @@ import { describe, expect, it } from "vitest";
 import { overviewCardStyles } from "../src/overview/styles";
 
 const cssText = overviewCardStyles.cssText;
+const firstContainerIndex = cssText.indexOf("@container overview-card");
+const regularWidthCss = firstContainerIndex >= 0 ? cssText.slice(0, firstContainerIndex) : cssText;
+
+const declarationBodiesFor = (selector: string, source = cssText): string[] =>
+  Array.from(source.matchAll(/([^{}]+)\{([^{}]*)\}/g))
+    .filter((match) =>
+      match[1]
+        .split(",")
+        .map((entry) => entry.trim())
+        .includes(selector),
+    )
+    .map((match) => match[2]);
+
+const containerCssAt = (maxWidth: number): string => {
+  const marker = `@container overview-card (max-width: ${maxWidth}px)`;
+  const start = cssText.indexOf(marker);
+  if (start < 0) return "";
+  const openingBrace = cssText.indexOf("{", start + marker.length);
+  if (openingBrace < 0) return "";
+
+  let depth = 0;
+  for (let index = openingBrace; index < cssText.length; index += 1) {
+    if (cssText[index] === "{") depth += 1;
+    if (cssText[index] === "}") depth -= 1;
+    if (depth === 0) return cssText.slice(start, index + 1);
+  }
+  return "";
+};
+
+const expectCircularActionTarget = (selector: string): void => {
+  expect(declarationBodiesFor(selector)).toEqual(
+    expect.arrayContaining([
+      expect.stringMatching(/width:\s*44px;[\s\S]*height:\s*44px;/),
+    ]),
+  );
+};
 
 describe("overview header presentation contracts", () => {
-  it("uses a neutral surface by default and reserves the active surface for powered areas", () => {
+  it("shares one theme-aware neutral surface between floor headers and powered-off rows", () => {
+    expect(regularWidthCss).toMatch(
+      /--aboc-row-bg:\s*var\(\s*--area-bubble-overview-row-bg,\s*color-mix\(in srgb,\s*var\(--secondary-background-color\)\s+\d+%,\s*transparent\)\s*\);/s,
+    );
+    expect(regularWidthCss).toMatch(/\.floor-toggle\s*\{[^}]*background:\s*var\(--aboc-row-bg\)/s);
     expect(cssText).toMatch(/\.area-summary-pill\s*\{[^}]*background:\s*var\(--aboc-row-bg\)/s);
+    expect(cssText).toMatch(
+      /\.entity-card:not\(\.active\)\s*\{[^}]*background:\s*var\(--aboc-row-bg\)/s,
+    );
     expect(cssText).toMatch(
       /\.area-panel\.has-active\s+\.area-summary-pill\s*\{[^}]*background:\s*var\(--aboc-active-surface\)/s,
     );
   });
 
-  it("reflows dense quick actions without clipping or shrinking their touch targets", () => {
-    expect(cssText).toMatch(/\.area-summary-pill\.dense-actions\s*\{[^}]*grid-template-areas:/s);
-    expect(cssText).toMatch(/\.area-summary-pill\.dense-actions\s+\.quick-actions\s*\{[^}]*flex-wrap:\s*wrap/s);
-    expect(cssText).toMatch(/\.area-summary-pill\.dense-actions\s+\.quick-actions\s*\{[^}]*overflow:\s*visible/s);
-    expect(cssText).toMatch(/@container overview-card \(max-width:\s*380px\)[\s\S]*?\.area-summary-pill\.responsive-actions\s*\{/);
-    expect(cssText).toMatch(/\.quick-action[\s\S]*?width:\s*44px;[\s\S]*?height:\s*44px;/);
+  it("keeps summaries on one row until their measured load reaches a suitable container threshold", () => {
+    expect(regularWidthCss).toMatch(
+      /\.area-summary-pill\s*\{[^}]*--aboc-summary-display:\s*flex;[^}]*--aboc-quick-wrap:\s*nowrap;[^}]*display:\s*var\(--aboc-summary-display\)/s,
+    );
+    expect(regularWidthCss).not.toMatch(/\.area-summary-pill\s*\{[^}]*display:\s*grid/s);
+    expect(regularWidthCss).not.toMatch(/\.area-summary-pill\.summary-load-[5-8]/s);
+    expect(cssText).not.toContain("dense-actions");
+
+    const adaptiveThresholds = [
+      { maxWidth: 400, load: 5 },
+      { maxWidth: 470, load: 6 },
+      { maxWidth: 520, load: 7 },
+      { maxWidth: 620, load: 8 },
+    ];
+
+    for (const { maxWidth, load } of adaptiveThresholds) {
+      const containerCss = containerCssAt(maxWidth);
+      expect(containerCss, `missing ${maxWidth}px adaptive container`).not.toBe("");
+      expect(declarationBodiesFor(`.area-summary-pill.summary-load-${load}`, containerCss)).toEqual(
+        expect.arrayContaining([
+          expect.stringMatching(
+            /--aboc-summary-display:\s*grid;[\s\S]*--aboc-status-display:\s*contents;[\s\S]*--aboc-quick-width:\s*100%;[\s\S]*--aboc-quick-wrap:\s*wrap;/,
+          ),
+        ]),
+      );
+    }
+
+    const narrowContainerCss = containerCssAt(400);
+    expect(declarationBodiesFor(".area-summary-pill.responsive-actions", narrowContainerCss)).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/--aboc-summary-display:\s*grid;[\s\S]*--aboc-quick-wrap:\s*wrap;/),
+      ]),
+    );
+  });
+
+  it("preserves 44px touch targets while compacting dense rows", () => {
+    expectCircularActionTarget(".quick-action");
+    expectCircularActionTarget(".control-button");
+    expectCircularActionTarget(".climate-mode-button");
+    expectCircularActionTarget(".expand-button");
+    expectCircularActionTarget(".section-off-button");
+    expectCircularActionTarget(".cover-control");
+    expectCircularActionTarget(".temperature-stepper button");
   });
 
   it("styles the floor header as an accessible full-width disclosure target", () => {
