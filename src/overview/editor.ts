@@ -527,12 +527,19 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
             ${this.numberField(this.l("גודל שם חדר", "Room name size", language), resolved.style.area_name_size, 11, 24, (value) => this.setStyle("area_name_size", value))}
             ${this.numberField(this.l("מרווח סעיפים", "Section gap", language), resolved.style.section_gap, 4, 30, (value) => this.setStyle("section_gap", value))}
           </div>
+          ${this.booleanRow(
+            this.l("רקע כרטיס שקוף", "Transparent card background", language),
+            this.l("מציג את רקע הדשבורד שמאחורי הכרטיס. כיבוי האפשרות משתמש בצבע שנבחר למטה.", "Shows the dashboard behind the card. Turn it off to use the background color selected below.", language),
+            resolved.style.card_transparent,
+            (checked) => this.setStyle("card_transparent", checked),
+          )}
           <div class="setting-title">${this.l("צבעי מצב", "State colors", language)}</div>
           <div class="state-preview">
             <div class="state-preview-item off" style=${`--preview-surface: ${resolved.style.row_background}`}>${this.l("כבוי", "OFF", language)}</div>
             <div class="state-preview-item on" style=${`--preview-surface: ${resolved.style.active_surface}`}>${this.l("דלוק", "ON", language)}</div>
           </div>
           <div class="inline-fields">
+            ${this.colorField(this.l("רקע הכרטיס", "Card background", language), "card_background", resolved.style.card_background, "#ffffff", language)}
             ${this.colorField(this.l("רקע כבוי", "OFF surface", language), "row_background", resolved.style.row_background, "#e7e7e7", language)}
             ${this.colorField(this.l("רקע דלוק", "ON surface", language), "active_surface", resolved.style.active_surface, "#aed7db", language)}
             ${this.colorField(this.l("צבע תג פעיל", "Active count badge", language), "active_color", resolved.style.active_color, "#ffd54f", language)}

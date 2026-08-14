@@ -61,6 +61,8 @@ export const OVERVIEW_DEFAULT_STYLE: Required<OverviewStyleConfig> = {
   shadow_intensity: 0.2,
   accent_color: "var(--primary-color)",
   row_background: "color-mix(in srgb, var(--secondary-background-color) 78%, transparent)",
+  card_background: "var(--ha-card-background, var(--card-background-color))",
+  card_transparent: true,
   active_color: "var(--state-active-color, #ffd54f)",
   active_surface: "rgba(174, 215, 219, 0.94)",
   climate_surface: "rgba(139, 181, 255, 0.94)",

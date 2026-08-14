@@ -2,6 +2,13 @@
 
 All notable changes to Area Bubble Expander Card will be documented in this file.
 
+## 0.7.0 - 2026-08-15
+
+- Made the Overview card surface transparent by default and added `style.card_transparent` plus `style.card_background` to YAML and the visual Appearance editor.
+- Filled expanded Areas with their ON/OFF state surface, unified the summary and enclosing frame color, and joined their top edges so the expanded Area reads as one continuous card.
+- Simplified the climate temperature tag to one attached A/C icon without a numeric count while preserving its climate-popup action.
+- Corrected cover and media row direction so entity content follows the configured RTL/LTR layout while directional controls retain their stable order.
+
 ## 0.6.2 - 2026-08-14
 
 - Restored a single accent frame only while an Area is expanded, enclosing its complete device content while collapsed Areas remain free of an outer frame.

@@ -268,7 +268,7 @@ export class AreaBubbleOverviewCard extends LitElement {
                 : nothing}
               ${climateTemperatureAction
                 ? html`<button
-                    class="temperature-climate-tag"
+                    class="temperature-climate-tag temperature-${area.temperatureMode}"
                     type="button"
                     title=${`${activeClimateCount} ${this.localText("מזגנים פעילים", "active climate devices")}`}
                     aria-label=${`${this.localText("פתיחת מיזוג אוויר", "Open climate controls")}: ${area.name} (${activeClimateCount}/${climateTemperatureAction.entities.length})`}
@@ -279,7 +279,6 @@ export class AreaBubbleOverviewCard extends LitElement {
                     @click=${(event: Event) => this.openQuickActionPopup(event, area, "climate")}
                   >
                     <ha-icon icon=${this.config.quick_action_icons.climate}></ha-icon>
-                    <span>${activeClimateCount}</span>
                   </button>`
                 : nothing}
             </div>
@@ -1256,6 +1255,14 @@ export class AreaBubbleOverviewCard extends LitElement {
     this.style.setProperty("--area-bubble-overview-accent", style.accent_color);
     this.style.setProperty("--area-bubble-overview-active", style.active_color);
     this.style.setProperty("--area-bubble-overview-row-bg", style.row_background);
+    this.style.setProperty(
+      "--area-bubble-overview-card-bg",
+      style.card_transparent ? "transparent" : style.card_background,
+    );
+    this.style.setProperty(
+      "--area-bubble-overview-card-border",
+      style.card_transparent ? "transparent" : "color-mix(in srgb, var(--divider-color) 58%, transparent)",
+    );
     this.style.setProperty("--area-bubble-overview-active-surface", style.active_surface);
     this.style.setProperty("--area-bubble-overview-climate-surface", style.climate_surface);
     this.style.setProperty("--area-bubble-overview-control-surface", style.control_surface);
@@ -1268,7 +1275,9 @@ export class AreaBubbleOverviewCard extends LitElement {
     this.style.setProperty("--area-bubble-overview-temperature-active-surface", style.temperature_active_surface);
     this.style.setProperty(
       "--area-bubble-overview-shadow",
-      style.show_shadows ? `0 12px 30px rgba(0,0,0,${style.shadow_intensity})` : "none",
+      style.show_shadows && !style.card_transparent
+        ? `0 12px 30px rgba(0,0,0,${style.shadow_intensity})`
+        : "none",
     );
   }
 }

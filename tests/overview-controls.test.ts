@@ -79,7 +79,8 @@ describe("Overview climate menus and typography", () => {
 
     const source = readFileSync(new URL("../src/overview/area-bubble-overview-card.ts", import.meta.url), "utf8");
     expect(source).toContain('activeQuickActions.filter(({ action }) => action !== "climate")');
-    expect(source).toContain('class="temperature-climate-tag"');
+    expect(source).toContain('class="temperature-climate-tag temperature-${area.temperatureMode}"');
+    expect(source).not.toContain('<span>${activeClimateCount}</span>');
     expect(source).toContain('this.openQuickActionPopup(event, area, "climate")');
   });
 
@@ -89,5 +90,19 @@ describe("Overview climate menus and typography", () => {
     expect(resolveOverviewConfig({ type, style: { area_name_size: 14 } }).style.area_name_size).toBe(14);
     expect(resolveOverviewConfig({ type, style: { area_name_size: 2 } }).style.area_name_size).toBe(11);
     expect(resolveOverviewConfig({ type, style: { area_name_size: 99 } }).style.area_name_size).toBe(24);
+  });
+
+  it("defaults to a transparent card and preserves an explicit background mode", () => {
+    const type = "custom:area-bubble-overview-card" as const;
+    expect(resolveOverviewConfig({ type }).style.card_transparent).toBe(true);
+    expect(resolveOverviewConfig({ type, style: { card_transparent: false, card_background: "#123456" } }).style).toMatchObject({
+      card_transparent: false,
+      card_background: "#123456",
+    });
+    expect(resolveOverviewConfig({ type, style: { card_transparent: "yes" as unknown as boolean } }).style.card_transparent).toBe(true);
+
+    const editor = readFileSync(new URL("../src/overview/editor.ts", import.meta.url), "utf8");
+    expect(editor).toContain('"Transparent card background"');
+    expect(editor).toContain('"Card background"');
   });
 });

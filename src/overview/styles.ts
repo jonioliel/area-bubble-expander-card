@@ -29,6 +29,8 @@ export const overviewCardStyles = css`
       --area-bubble-overview-row-bg,
       color-mix(in srgb, var(--secondary-background-color) 78%, transparent)
     );
+    --aboc-card-bg: var(--area-bubble-overview-card-bg, transparent);
+    --aboc-card-border: var(--area-bubble-overview-card-border, transparent);
     --aboc-shadow: var(--area-bubble-overview-shadow, 0 12px 30px rgba(0, 0, 0, 0.2));
     --aboc-dark-text: #111827;
     --aboc-light-text: #f4f3ec;
@@ -45,11 +47,9 @@ export const overviewCardStyles = css`
 
   ha-card {
     overflow: hidden;
-    border: 1px solid color-mix(in srgb, var(--divider-color) 58%, transparent);
+    border: 1px solid var(--aboc-card-border);
     border-radius: var(--aboc-radius);
-    background:
-      linear-gradient(145deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.025)),
-      var(--ha-card-background, var(--card-background-color));
+    background: var(--aboc-card-bg);
     box-shadow: var(--aboc-shadow);
     backdrop-filter: blur(var(--aboc-blur));
     -webkit-backdrop-filter: blur(var(--aboc-blur));
@@ -175,6 +175,11 @@ export const overviewCardStyles = css`
   }
 
   .area-panel {
+    --aboc-area-frame-color: color-mix(
+      in srgb,
+      var(--divider-color, rgba(127, 127, 127, 0.45)) 72%,
+      transparent
+    );
     overflow: visible;
     border: 0;
     border-radius: 0;
@@ -183,12 +188,28 @@ export const overviewCardStyles = css`
 
   .area-panel.expanded {
     overflow: hidden;
-    border: 1px solid color-mix(in srgb, var(--aboc-accent) 46%, var(--divider-color));
+    border: 2px solid var(--aboc-area-frame-color);
     border-radius: calc(var(--aboc-radius) + 4px);
+    background: var(--aboc-row-bg);
+  }
+
+  .area-panel.has-active {
+    --aboc-area-frame-color: color-mix(
+      in srgb,
+      var(--aboc-control-surface) 72%,
+      var(--divider-color, rgba(127, 127, 127, 0.45))
+    );
   }
 
   .area-panel.expanded.has-active {
-    border-color: color-mix(in srgb, var(--aboc-accent) 62%, var(--divider-color));
+    background: var(--aboc-active-surface);
+  }
+
+  .area-panel.expanded > .area-summary {
+    width: calc(100% + 4px);
+    margin-block: -2px 0;
+    margin-inline: -2px;
+    padding: 0;
   }
 
   .area-panel:not(.expanded) > .area-summary {
@@ -217,7 +238,7 @@ export const overviewCardStyles = css`
     min-height: 60px;
     padding-block: 5px;
     padding-inline: 5px 8px;
-    border: 2px solid color-mix(in srgb, var(--divider-color) 72%, transparent);
+    border: 2px solid var(--aboc-area-frame-color);
     overflow: hidden;
     border-radius: 999px;
     background: var(--aboc-row-bg);
@@ -226,7 +247,7 @@ export const overviewCardStyles = css`
   }
 
   .area-panel.has-active > .area-summary > .area-summary-pill {
-    border-color: color-mix(in srgb, var(--aboc-control-surface) 72%, var(--divider-color));
+    border-color: var(--aboc-area-frame-color);
     background: var(--aboc-active-surface);
     color: var(--aboc-dark-text);
   }
@@ -712,30 +733,38 @@ export const overviewCardStyles = css`
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 2px;
-    min-width: 32px;
-    height: 22px;
-    margin-inline-start: -15px;
-    padding-inline: 4px;
-    border: 2px solid var(--aboc-control-surface);
+    width: 26px;
+    height: 26px;
+    margin-inline-start: -13px;
+    padding: 0;
+    border: 0;
     border-radius: 999px;
-    background: var(--aboc-active);
-    color: var(--aboc-dark-text);
-    font-size: 10px;
-    font-weight: 820;
-    line-height: 1;
+    background: var(--aboc-temperature-active);
+    color: var(--aboc-light-text);
     cursor: pointer;
   }
 
   .temperature-climate-tag::before {
     content: "";
     position: absolute;
-    inset: -11px -6px;
+    inset: -9px;
     border-radius: inherit;
   }
 
   .temperature-climate-tag ha-icon {
-    --mdc-icon-size: 12px;
+    --mdc-icon-size: 15px;
+  }
+
+  .temperature-climate-tag.temperature-off {
+    background: var(--aboc-temperature-off);
+  }
+
+  .temperature-climate-tag.temperature-cool {
+    background: var(--aboc-temperature-cool);
+  }
+
+  .temperature-climate-tag.temperature-heat {
+    background: var(--aboc-temperature-heat);
   }
 
   .temperature.temperature-none {
@@ -1183,7 +1212,7 @@ export const overviewCardStyles = css`
 
   .cover-card,
   .media-card {
-    direction: ltr;
+    direction: var(--aboc-direction, ltr);
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;

@@ -106,6 +106,12 @@ export const resolveOverviewConfig = (config: AreaBubbleOverviewCardConfig): Res
   const areaNameSize = typeof requestedAreaNameSize === "number" && Number.isFinite(requestedAreaNameSize)
     ? Math.min(24, Math.max(11, requestedAreaNameSize))
     : OVERVIEW_DEFAULT_STYLE.area_name_size;
+  const cardBackground = typeof customStyle.card_background === "string" && customStyle.card_background.trim()
+    ? customStyle.card_background.trim()
+    : OVERVIEW_DEFAULT_STYLE.card_background;
+  const cardTransparent = typeof customStyle.card_transparent === "boolean"
+    ? customStyle.card_transparent
+    : OVERVIEW_DEFAULT_STYLE.card_transparent;
   return {
     ...merged,
     type: OVERVIEW_CARD_TYPE,
@@ -134,7 +140,13 @@ export const resolveOverviewConfig = (config: AreaBubbleOverviewCardConfig): Res
     protected_entities: stringArray(merged.protected_entities),
     area_overrides: areaOverrides(config.area_overrides),
     entity_overrides: entityOverrides(config.entity_overrides),
-    style: { ...OVERVIEW_DEFAULT_STYLE, ...customStyle, area_name_size: areaNameSize },
+    style: {
+      ...OVERVIEW_DEFAULT_STYLE,
+      ...customStyle,
+      area_name_size: areaNameSize,
+      card_background: cardBackground,
+      card_transparent: cardTransparent,
+    },
   } as ResolvedOverviewConfig;
 };
 

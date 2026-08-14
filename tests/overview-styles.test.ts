@@ -124,12 +124,21 @@ describe("overview header presentation contracts", () => {
   it("shows no outer frame while collapsed and one enclosing frame while expanded", () => {
     expect(cssText).toMatch(/\.area-panel\s*\{[^}]*overflow:\s*visible;[^}]*border:\s*0;[^}]*background:\s*transparent/s);
     expect(cssText).toMatch(/\.area-panel:not\(\.expanded\)\s*>\s*\.area-summary\s*\{[^}]*padding:\s*0/s);
-    expect(cssText).toMatch(/\.area-panel\.expanded\s*\{[^}]*overflow:\s*hidden;[^}]*border:\s*1px solid[^}]*--aboc-accent/s);
+    expect(cssText).toMatch(/\.area-panel\.expanded\s*\{[^}]*overflow:\s*hidden;[^}]*border:\s*2px solid var\(--aboc-area-frame-color\);[^}]*background:\s*var\(--aboc-row-bg\)/s);
+    expect(cssText).toMatch(/\.area-panel\.expanded\s*>\s*\.area-summary\s*\{[^}]*margin-block:\s*-2px 0;[^}]*margin-inline:\s*-2px;[^}]*padding:\s*0/s);
+    expect(cssText).toMatch(/\.area-summary-pill\s*\{[^}]*border:\s*2px solid var\(--aboc-area-frame-color\)/s);
+    expect(cssText).toMatch(/\.area-panel\.expanded\.has-active\s*\{[^}]*background:\s*var\(--aboc-active-surface\)/s);
   });
 
   it("styles the climate count as a compact tag attached to temperature", () => {
-    expect(cssText).toMatch(/\.temperature-climate-tag\s*\{[^}]*display:\s*inline-flex;[^}]*min-width:\s*32px;[^}]*height:\s*22px/s);
-    expect(cssText).toMatch(/\.temperature-climate-tag::before\s*\{[^}]*inset:\s*-11px -6px/s);
+    expect(cssText).toMatch(/\.temperature-climate-tag\s*\{[^}]*display:\s*inline-flex;[^}]*width:\s*26px;[^}]*height:\s*26px/s);
+    expect(cssText).toMatch(/\.temperature-climate-tag::before\s*\{[^}]*inset:\s*-9px/s);
+  });
+
+  it("supports a transparent card surface and mirrors cover rows in RTL", () => {
+    expect(cssText).toMatch(/--aboc-card-bg:\s*var\(--area-bubble-overview-card-bg,\s*transparent\)/s);
+    expect(cssText).toMatch(/ha-card\s*\{[^}]*background:\s*var\(--aboc-card-bg\)/s);
+    expect(cssText).toMatch(/\.cover-card,[\s\S]*?\.media-card\s*\{[^}]*direction:\s*var\(--aboc-direction,\s*ltr\)/s);
   });
 
   it("uses configurable Area-name typography at regular and mobile widths", () => {

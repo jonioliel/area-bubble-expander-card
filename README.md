@@ -126,7 +126,17 @@ Empty sections are hidden by default. Every discovered device remains visible in
 
 The expanded layout is intentionally compact: climate uses a dedicated two-row controller, covers and media keep full-width controls, and lights/switches use a two-column tile grid whenever the card is wide enough. Collapsed Area summaries always remain one physical row. Mobile quick-action circles become visually smaller while retaining a 44 px hit area, and an extreme number of simultaneous active categories scrolls within the action strip instead of increasing the room height. Responsiveness follows the card's own width, so the same layout also works inside narrow desktop dashboard columns.
 
-Collapsed Areas use only their summary capsule. Opening an Area adds one surrounding accent frame that encloses the complete expanded content. An open cover is counted on the cover quick action but does not make the Area itself active. Active climate devices are folded into a compact A/C icon-and-count tag attached to the climate-colored temperature chip instead of consuming a separate quick-action circle; pressing the tag still opens the climate popup. Climate mode and fan controls use Home Assistant's native anchored menus, and the mode menu is the single climate power control.
+Collapsed Areas use only their summary capsule. Opening an Area adds one surrounding frame that shares its exact color and top edge with the summary capsule, encloses the complete content, and fills the expanded Area with the same ON/OFF state surface. An open cover is counted on the cover quick action but does not make the Area itself active. Active climate devices are folded into a compact A/C icon attached to the climate-colored temperature chip instead of consuming a separate quick-action circle; pressing the icon still opens the climate popup. Climate mode and fan controls use Home Assistant's native anchored menus, and the mode menu is the single climate power control.
+
+The card surface is transparent by default so the dashboard background remains visible. Disable `style.card_transparent` to use an editable solid/CSS background:
+
+```yaml
+style:
+  card_transparent: false
+  card_background: rgba(255, 255, 255, 0.92)
+  row_background: rgba(232, 232, 232, 0.92)
+  active_surface: rgba(174, 215, 219, 0.94)
+```
 
 Dimmable lights are detected automatically from Home Assistant's light capabilities and receive a compact brightness slider. Dragging updates the visual value immediately and sends one `light.turn_on` action with `brightness_pct` when released; releasing at zero turns the light off. The separate power button remains available for a fast toggle.
 
@@ -433,6 +443,8 @@ style:
 | `entity_overrides` | `{}` | Entity name, icon, section, visibility, and group-action protection. |
 | `entity_overrides.<entity>.icon` | registry/fallback icon | Overrides one device icon. |
 | `style.row_background` | theme-aware neutral | Shared Floor-header, powered-off Area, and inactive-entity background. |
+| `style.card_transparent` | `true` | Removes the card surface and border so the dashboard background is visible. |
+| `style.card_background` | HA card background | Card color/CSS value used when transparent mode is disabled. |
 | `style.area_name_size` | `17` | Area-name font size in pixels, clamped to 11–24; also editable in Appearance. |
 | `style.active_color` | HA active color | Active badge and indicator color. |
 | `style.active_surface` | pale cyan | Active light/switch tile background. |
