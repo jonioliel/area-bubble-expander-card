@@ -996,18 +996,16 @@ describe("quick area actions", () => {
     expect(quickActionEntities(targetArea, "floor_heating").map((item) => item.entityId)).toEqual(["water_heater.boiler"]);
   });
 
-  it("reports an unsupported section override instead of succeeding silently", async () => {
+  it("keeps an unsupported override visible but skips it in the safe group action", async () => {
     const callService = vi.fn(async () => undefined);
     const instance = hass({ callService });
     const invalidArea = actionArea([actionEntity("sensor.temperature", "floor_heating")]);
 
-    await expect(runQuickAction(instance, invalidArea, "floor_heating")).rejects.toThrow(
-      "Unsupported entities",
-    );
+    await expect(runQuickAction(instance, invalidArea, "floor_heating")).resolves.toBeUndefined();
     expect(callService).not.toHaveBeenCalled();
   });
 
-  it("rejects a mixed valid and invalid override before making partial calls", async () => {
+  it("controls valid targets while safely skipping an unsupported override", async () => {
     const callService = vi.fn(async () => undefined);
     const instance = hass({ callService });
     const invalidArea = actionArea([
@@ -1015,10 +1013,11 @@ describe("quick area actions", () => {
       actionEntity("sensor.temperature", "floor_heating"),
     ]);
 
-    await expect(runQuickAction(instance, invalidArea, "floor_heating")).rejects.toThrow(
-      "sensor.temperature",
-    );
-    expect(callService).not.toHaveBeenCalled();
+    await expect(runQuickAction(instance, invalidArea, "floor_heating")).resolves.toBeUndefined();
+    expect(callService).toHaveBeenCalledOnce();
+    expect(callService).toHaveBeenCalledWith("switch", "turn_off", undefined, {
+      entity_id: ["switch.floor"],
+    });
   });
 
   it("uses close_cover for cover actions", async () => {

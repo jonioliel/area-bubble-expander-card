@@ -1,7 +1,15 @@
 import { LitElement, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type { HomeAssistant } from "../types";
-import { callEntityService, quickActionEntities, runQuickAction, runSectionOffAction, sectionActionEntities } from "./actions";
+import {
+  callEntityService,
+  quickActionActionEntities,
+  quickActionEntityService,
+  quickActionMembers,
+  runQuickActionAction,
+  runSectionAction,
+  sectionActionEntities,
+} from "./actions";
 import { resolveOverviewConfig, validateOverviewConfig } from "./config";
 import {
   CLIMATE_FEATURES,
@@ -33,6 +41,11 @@ const numberAttribute = (item: OverviewEntity, key: string): number | undefined 
   return typeof value === "number" && Number.isFinite(value) ? value : undefined;
 };
 
+type QuickPopupState = {
+  areaId: string;
+  action: OverviewQuickActionId;
+};
+
 @customElement(OVERVIEW_CARD_TAG)
 export class AreaBubbleOverviewCard extends LitElement {
   static override styles = overviewCardStyles;
@@ -44,6 +57,7 @@ export class AreaBubbleOverviewCard extends LitElement {
   @state() private pendingActions = new Set<string>();
   @state() private pendingSections = new Set<string>();
   @state() private pendingEntities = new Set<string>();
+  @state() private quickPopup?: QuickPopupState;
   @state() private error?: string;
   private storageId = "overview";
   private holdTimer?: number;
@@ -53,6 +67,9 @@ export class AreaBubbleOverviewCard extends LitElement {
   private holdTarget?: HTMLElement;
   private suppressClickEntityId?: string;
   private suppressClickUntil = 0;
+  private quickPopupTrigger?: HTMLElement;
+  private quickPopupMoreInfo?: OverviewEntity;
+  private restoreQuickPopupFocus = true;
 
   public static getConfigElement(): HTMLElement {
     return document.createElement(OVERVIEW_EDITOR_TAG);
@@ -63,6 +80,7 @@ export class AreaBubbleOverviewCard extends LitElement {
   }
 
   public setConfig(config: AreaBubbleOverviewCardConfig): void {
+    this.resetQuickPopup();
     try {
       validateOverviewConfig(config);
       this.config = resolveOverviewConfig(config);
@@ -98,6 +116,7 @@ export class AreaBubbleOverviewCard extends LitElement {
   public override disconnectedCallback(): void {
     super.disconnectedCallback();
     this.cancelHold();
+    this.resetQuickPopup();
   }
 
   protected override render() {
@@ -130,6 +149,7 @@ export class AreaBubbleOverviewCard extends LitElement {
           ${this.config.debug ? html`<pre class="debug">${JSON.stringify(discovery, null, 2)}</pre>` : nothing}
         </div>
       </ha-card>
+      ${this.renderQuickActionPopup(discovery)}
     `;
   }
 
@@ -186,7 +206,7 @@ export class AreaBubbleOverviewCard extends LitElement {
     const activeCount = area.allEntities.filter((item) => item.powered).length;
     const quickActions = this.config.show_quick_actions
       ? this.config.quick_actions
-          .map((action) => ({ action, entities: quickActionEntities(area, action) }))
+          .map((action) => ({ action, entities: quickActionMembers(area, action) }))
           .filter((item) => item.entities.length > 0)
       : [];
     const hasOccupancy = this.config.show_occupancy && area.occupancy !== "none";
@@ -284,22 +304,25 @@ export class AreaBubbleOverviewCard extends LitElement {
     return html`
       <div class="quick-actions" role="group" aria-label=${`${this.localText("פעולות מהירות", "Quick actions")}: ${area.name}`}>
         ${actions.map(({ action, entities }) => {
-          const key = `${area.id}:${action}`;
-          const pending = this.pendingActions.has(key);
+          const activeCount = entities.filter((item) => item.powered).length;
+          const pending = this.quickActionPending(area.id, action) || entities.some((item) => this.pendingEntities.has(item.entityId));
           const label = quickActionLabel(this.hass, this.config!, action);
-          const accessibleLabel = `${label}: ${area.name} (${entities.length})`;
+          const accessibleLabel = `${this.localText("פתיחת", "Open")} ${label}: ${area.name} (${activeCount}/${entities.length})`;
+          const popupOpen = this.quickPopup?.areaId === area.id && this.quickPopup.action === action;
           return html`
             <button
-              class="quick-action active"
+              class="quick-action ${activeCount ? "active" : "inactive"}"
               type="button"
               title=${accessibleLabel}
               aria-label=${accessibleLabel}
+              aria-haspopup="dialog"
+              aria-expanded=${popupOpen}
               aria-busy=${pending}
               ?disabled=${pending}
-              @click=${(event: Event) => this.handleQuickAction(event, area, action)}
+              @click=${(event: Event) => this.openQuickActionPopup(event, area, action)}
             >
               <ha-icon icon=${pending ? "mdi:loading" : this.config!.quick_action_icons[action]}></ha-icon>
-              ${entities.length ? html`<span class="count-badge">${entities.length}</span>` : nothing}
+              ${activeCount ? html`<span class="count-badge">${activeCount}</span>` : nothing}
             </button>
           `;
         })}
@@ -309,26 +332,41 @@ export class AreaBubbleOverviewCard extends LitElement {
 
   private renderSection(section: OverviewSection, areaId: string) {
     const headingId = `overview-section-${section.id}-${areaId.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
-    const actionKey = `${areaId}:${section.id}`;
-    const targets = sectionActionEntities(section);
-    const pending = this.pendingSections.has(actionKey);
-    const actionVerb = section.id === "covers" ? this.localText("סגירת כל התריסים", "Close all covers") : this.localText("כיבוי כללי", "Turn everything off");
-    const actionLabel = `${actionVerb}: ${section.title} (${targets.length})`;
+    const onTargets = sectionActionEntities(section, true);
+    const offTargets = sectionActionEntities(section, false);
+    const pendingOn = this.pendingSections.has(`${areaId}:${section.id}:on`);
+    const pendingOff = this.pendingSections.has(`${areaId}:${section.id}:off`);
+    const pending = pendingOn || pendingOff || section.entities.some((item) => this.pendingEntities.has(item.entityId));
+    const onVerb = section.id === "covers" ? this.localText("פתיחת כל התריסים", "Open all covers") : this.localText("הפעלת הכל", "Turn everything on");
+    const offVerb = section.id === "covers" ? this.localText("סגירת כל התריסים", "Close all covers") : this.localText("כיבוי הכל", "Turn everything off");
+    const onLabel = `${onVerb}: ${section.title} (${onTargets.length})`;
+    const offLabel = `${offVerb}: ${section.title} (${offTargets.length})`;
     return html`
       <section class="device-section section-${section.id}" aria-labelledby=${headingId}>
         <h3 class="section-heading" id=${headingId}>
           <ha-icon icon=${section.icon}></ha-icon>
           <span class="section-title" title=${section.title}>${section.title}</span>
           <span class="section-count">${section.activeCount}/${section.entities.length}</span>
-          <button
-            class="section-off-button"
-            type="button"
-            title=${actionLabel}
-            aria-label=${actionLabel}
-            aria-busy=${pending}
-            ?disabled=${pending || targets.length === 0}
-            @click=${(event: Event) => this.handleSectionOff(event, section, areaId)}
-          ><ha-icon icon=${pending ? "mdi:loading" : section.id === "covers" ? "mdi:window-shutter-alert" : "mdi:power"}></ha-icon></button>
+          <span class="section-actions" role="group" aria-label=${`${this.localText("שליטה כללית", "Group controls")}: ${section.title}`}>
+            <button
+              class="section-on-button"
+              type="button"
+              title=${onLabel}
+              aria-label=${onLabel}
+              aria-busy=${pendingOn}
+              ?disabled=${pending || onTargets.length === 0}
+              @click=${(event: Event) => this.handleSectionAction(event, section, areaId, true)}
+            ><ha-icon icon=${pendingOn ? "mdi:loading" : section.id === "covers" ? "mdi:arrow-up" : "mdi:power-on"}></ha-icon></button>
+            <button
+              class="section-off-button"
+              type="button"
+              title=${offLabel}
+              aria-label=${offLabel}
+              aria-busy=${pendingOff}
+              ?disabled=${pending || offTargets.length === 0}
+              @click=${(event: Event) => this.handleSectionAction(event, section, areaId, false)}
+            ><ha-icon icon=${pendingOff ? "mdi:loading" : section.id === "covers" ? "mdi:arrow-down" : "mdi:power-off"}></ha-icon></button>
+          </span>
         </h3>
         <div class="section-entities">
           ${section.entities.length
@@ -336,6 +374,125 @@ export class AreaBubbleOverviewCard extends LitElement {
             : html`<div class="secondary section-empty">${this.config && overviewLanguage(this.hass, this.config) === "he" ? "אין רכיבים בסעיף" : "No devices in this section"}</div>`}
         </div>
       </section>
+    `;
+  }
+
+  private renderQuickActionPopup(discovery: OverviewDiscovery) {
+    if (!this.config || !this.quickPopup) return nothing;
+    const area = discovery.areas.find((candidate) => candidate.id === this.quickPopup?.areaId);
+    if (!area) {
+      queueMicrotask(() => this.resetQuickPopup());
+      return nothing;
+    }
+    const action = this.quickPopup.action;
+    const entities = quickActionMembers(area, action);
+    if (!entities.length) {
+      queueMicrotask(() => this.resetQuickPopup());
+      return nothing;
+    }
+    const label = quickActionLabel(this.hass, this.config, action);
+    const activeCount = entities.filter((item) => item.powered).length;
+    const onTargets = quickActionActionEntities(area, action, true);
+    const offTargets = quickActionActionEntities(area, action, false);
+    const pendingOn = this.pendingActions.has(`${area.id}:${action}:on`);
+    const pendingOff = this.pendingActions.has(`${area.id}:${action}:off`);
+    const pending = pendingOn || pendingOff;
+    const entityPending = entities.some((item) => this.pendingEntities.has(item.entityId));
+    const categoryBusy = pending || entityPending;
+    const safeId = `${area.id}-${action}`.replace(/[^a-zA-Z0-9_-]/g, "-");
+    const titleId = `overview-quick-popup-title-${safeId}`;
+    const onVerb = action === "covers" ? this.localText("פתיחת הכל", "Open all") : this.localText("הפעלת הכל", "Turn all on");
+    const offVerb = action === "covers" ? this.localText("סגירת הכל", "Close all") : this.localText("כיבוי הכל", "Turn all off");
+    return html`
+      <dialog
+        class="quick-action-dialog"
+        aria-modal="true"
+        aria-labelledby=${titleId}
+        @cancel=${(event: Event) => this.handleQuickPopupCancel(event)}
+        @close=${() => this.handleQuickPopupClosed()}
+        @click=${(event: MouseEvent) => this.handleQuickPopupBackdrop(event)}
+        @keydown=${(event: KeyboardEvent) => this.handleQuickPopupKeydown(event)}
+      >
+        <section class="quick-popup" aria-busy=${categoryBusy}>
+          <header class="quick-popup-header">
+            <span class="icon-bubble popup-icon"><ha-icon icon=${this.config.quick_action_icons[action]}></ha-icon></span>
+            <span class="quick-popup-heading">
+              <span class="quick-popup-title" id=${titleId}>${label} · ${area.name}</span>
+              <span class="quick-popup-summary">${activeCount} ${this.localText("דלוקים מתוך", "on of")} ${entities.length}</span>
+            </span>
+            <button class="quick-popup-close" type="button" aria-label=${this.localText("סגירת חלון", "Close dialog")} @click=${() => this.closeQuickActionPopup()}>
+              <ha-icon icon="mdi:close"></ha-icon>
+            </button>
+          </header>
+          <div class="quick-popup-group-actions" role="group" aria-label=${`${this.localText("שליטה כללית", "Group controls")}: ${label}`}>
+            <button
+              class="quick-popup-group-button turn-on"
+              type="button"
+              aria-label=${`${onVerb}: ${label} (${onTargets.length})`}
+              aria-busy=${pendingOn}
+              ?disabled=${categoryBusy || onTargets.length === 0}
+              @click=${(event: Event) => this.handleQuickPopupGroupAction(event, area, action, true)}
+            ><ha-icon icon=${pendingOn ? "mdi:loading" : action === "covers" ? "mdi:arrow-up" : "mdi:power-on"}></ha-icon><span>${onVerb}</span><small>${onTargets.length}</small></button>
+            <button
+              class="quick-popup-group-button turn-off"
+              type="button"
+              aria-label=${`${offVerb}: ${label} (${offTargets.length})`}
+              aria-busy=${pendingOff}
+              ?disabled=${categoryBusy || offTargets.length === 0}
+              @click=${(event: Event) => this.handleQuickPopupGroupAction(event, area, action, false)}
+            ><ha-icon icon=${pendingOff ? "mdi:loading" : action === "covers" ? "mdi:arrow-down" : "mdi:power-off"}></ha-icon><span>${offVerb}</span><small>${offTargets.length}</small></button>
+          </div>
+          <div class="quick-popup-list" role="list" aria-label=${label}>
+            ${entities.map((item) => this.renderQuickPopupEntity(item, action, pending))}
+          </div>
+        </section>
+      </dialog>
+    `;
+  }
+
+  private renderQuickPopupEntity(item: OverviewEntity, action: OverviewQuickActionId, groupPending: boolean) {
+    const busy = this.entityBusy(item);
+    const turnOn = !item.powered;
+    const plan = quickActionEntityService(action, item, turnOn);
+    const disabled = !item.available || busy || groupPending || !plan;
+    const actionLabel = action === "covers"
+      ? turnOn ? this.localText("פתיחה", "Open") : this.localText("סגירה", "Close")
+      : turnOn ? this.localText("הפעלה", "Turn on") : this.localText("כיבוי", "Turn off");
+    const disabledReason = !item.available
+        ? overviewText(this.hass, this.config!, "unavailable")
+        : !plan
+          ? this.localText("אין פעולת שליטה נתמכת", "No supported control action")
+          : "";
+    return html`
+      <article class="quick-popup-entity ${item.powered ? "active" : "inactive"} ${item.available ? "" : "unavailable"}" role="listitem">
+        <button
+          class="quick-popup-entity-main hold-target"
+          type="button"
+          title=${this.localText("לחיצה או לחיצה ארוכה לפרטים נוספים", "Tap or hold for more information")}
+          @pointerdown=${(event: PointerEvent) => this.startHold(event, item)}
+          @pointermove=${(event: PointerEvent) => this.moveHold(event)}
+          @pointerup=${(event: PointerEvent) => this.finishHold(event)}
+          @pointercancel=${() => this.cancelHold()}
+          @pointerleave=${() => this.cancelHold()}
+          @click=${(event: Event) => this.handleMoreInfoClick(event, item)}
+        >
+          <span class="icon-bubble small"><ha-icon icon=${item.icon}></ha-icon></span>
+          <span class="entity-main">
+            <span class="entity-name">${item.name}</span>
+            <span class="state-text">${this.entitySecondary(item)}${item.protected ? ` · ${this.localText("מוגן מקבוצה", "group protected")}` : ""}</span>
+          </span>
+        </button>
+        <button
+          class="quick-popup-entity-toggle ${item.powered ? "active" : ""}"
+          type="button"
+          aria-pressed=${item.powered}
+          aria-busy=${busy}
+          aria-label=${disabledReason || `${actionLabel}: ${item.name}`}
+          title=${disabledReason || `${actionLabel}: ${item.name}`}
+          ?disabled=${disabled}
+          @click=${(event: Event) => this.handleQuickPopupEntityAction(event, item, action)}
+        ><ha-icon icon=${busy ? "mdi:loading" : action === "covers" ? turnOn ? "mdi:arrow-up" : "mdi:arrow-down" : "mdi:power"}></ha-icon></button>
+      </article>
     `;
   }
 
@@ -370,7 +527,7 @@ export class AreaBubbleOverviewCard extends LitElement {
   }
 
   private renderToggle(item: OverviewEntity) {
-    const busy = this.pendingEntities.has(item.entityId);
+    const busy = this.entityBusy(item);
     const powerPlan = entityPowerService(item, !item.powered);
     const toggleDisabled = !item.available || busy || !powerPlan;
     return html`
@@ -415,7 +572,7 @@ export class AreaBubbleOverviewCard extends LitElement {
     const fanModes = supportsEntityFeature(item.entity, CLIMATE_FEATURES.FAN_MODE) && Array.isArray(item.entity.attributes.fan_modes)
       ? item.entity.attributes.fan_modes.map(String)
       : [];
-    const busy = this.pendingEntities.has(item.entityId);
+    const busy = this.entityBusy(item);
     const modeIcon = this.climateModeIcon(item);
     const powerPlan = entityPowerService(item, !item.powered);
     return html`
@@ -494,7 +651,7 @@ export class AreaBubbleOverviewCard extends LitElement {
     const current = numberAttribute(item, "current_temperature");
     if (target === undefined && current === undefined) return this.renderToggle(item);
     const step = numberAttribute(item, "target_temp_step") ?? 0.5;
-    const busy = this.pendingEntities.has(item.entityId);
+    const busy = this.entityBusy(item);
     const powerPlan = entityPowerService(item, !item.powered);
     return html`
       <article class="thermostat-card entity-card full-span ${item.active ? "active" : ""} ${item.available ? "" : "unavailable"}" aria-busy=${busy}>
@@ -521,7 +678,7 @@ export class AreaBubbleOverviewCard extends LitElement {
   }
 
   private renderCover(item: OverviewEntity) {
-    const busy = this.pendingEntities.has(item.entityId);
+    const busy = this.entityBusy(item);
     const supportedFeatures = numberAttribute(item, "supported_features");
     const position = numberAttribute(item, "current_position");
     const state = item.entity.state;
@@ -554,7 +711,7 @@ export class AreaBubbleOverviewCard extends LitElement {
   }
 
   private renderMedia(item: OverviewEntity) {
-    const busy = this.pendingEntities.has(item.entityId);
+    const busy = this.entityBusy(item);
     const playing = item.entity.state === "playing";
     const volume = numberAttribute(item, "volume_level");
     const canSetVolume = volume !== undefined && supportsEntityFeature(item.entity, MEDIA_FEATURES.VOLUME_SET);
@@ -671,7 +828,7 @@ export class AreaBubbleOverviewCard extends LitElement {
       this.suppressClickEntityId = item.entityId;
       this.suppressClickUntil = Date.now() + 1_500;
       this.holdTarget?.classList.remove("holding");
-      this.moreInfo(item);
+      this.showMoreInfo(item);
       try {
         navigator.vibrate?.(18);
       } catch {
@@ -716,12 +873,12 @@ export class AreaBubbleOverviewCard extends LitElement {
 
   private handleMoreInfoClick(event: Event, item: OverviewEntity): void {
     event.stopPropagation();
-    if (!this.consumeHeldClick(event, item)) this.moreInfo(item);
+    if (!this.consumeHeldClick(event, item)) this.showMoreInfo(item);
   }
 
   private handleToggleClick(event: Event, item: OverviewEntity): void {
     if (this.consumeHeldClick(event, item)) return;
-    if (!item.available || this.pendingEntities.has(item.entityId) || !entityPowerService(item, !item.powered)) {
+    if (!item.available || this.entityBusy(item) || !entityPowerService(item, !item.powered)) {
       event.preventDefault();
       event.stopPropagation();
       return;
@@ -729,38 +886,149 @@ export class AreaBubbleOverviewCard extends LitElement {
     this.toggleEntity(event, item);
   }
 
-  private async handleQuickAction(event: Event, area: OverviewArea, action: OverviewQuickActionId): Promise<void> {
+  private quickActionPending(areaId: string, action: OverviewQuickActionId): boolean {
+    return this.pendingActions.has(`${areaId}:${action}:on`) || this.pendingActions.has(`${areaId}:${action}:off`);
+  }
+
+  private openQuickActionPopup(event: Event, area: OverviewArea, action: OverviewQuickActionId): void {
+    event.stopPropagation();
+    this.quickPopupTrigger = event.currentTarget as HTMLElement;
+    this.quickPopupMoreInfo = undefined;
+    this.restoreQuickPopupFocus = true;
+    this.quickPopup = { areaId: area.id, action };
+    void this.updateComplete.then(() => {
+      const dialog = this.renderRoot.querySelector<HTMLDialogElement>(".quick-action-dialog");
+      if (!dialog || dialog.open || !dialog.isConnected) return;
+      if (typeof dialog.showModal === "function") dialog.showModal();
+      else dialog.setAttribute("open", "");
+    });
+  }
+
+  private closeQuickActionPopup(restoreFocus = true, moreInfo?: OverviewEntity): void {
+    this.restoreQuickPopupFocus = restoreFocus;
+    this.quickPopupMoreInfo = moreInfo;
+    const dialog = this.renderRoot.querySelector<HTMLDialogElement>(".quick-action-dialog");
+    if (dialog?.open && typeof dialog.close === "function") dialog.close();
+    else this.handleQuickPopupClosed();
+  }
+
+  private handleQuickPopupClosed(): void {
+    const moreInfo = this.quickPopupMoreInfo;
+    const restoreFocus = this.restoreQuickPopupFocus;
+    this.quickPopup = undefined;
+    const trigger = this.quickPopupTrigger;
+    this.quickPopupTrigger = undefined;
+    this.quickPopupMoreInfo = undefined;
+    this.restoreQuickPopupFocus = true;
+    void this.updateComplete.then(() => {
+      if (moreInfo) this.moreInfo(moreInfo);
+      else if (restoreFocus && trigger?.isConnected) trigger.focus();
+    });
+  }
+
+  private resetQuickPopup(): void {
+    const dialog = this.renderRoot?.querySelector<HTMLDialogElement>(".quick-action-dialog");
+    if (dialog?.open && typeof dialog.close === "function") dialog.close();
+    this.quickPopup = undefined;
+    this.quickPopupTrigger = undefined;
+    this.quickPopupMoreInfo = undefined;
+    this.restoreQuickPopupFocus = true;
+  }
+
+  private showMoreInfo(item: OverviewEntity): void {
+    if (this.quickPopup) this.closeQuickActionPopup(false, item);
+    else this.moreInfo(item);
+  }
+
+  private handleQuickPopupBackdrop(event: MouseEvent): void {
+    if (event.target === event.currentTarget) this.closeQuickActionPopup();
+  }
+
+  private handleQuickPopupCancel(event: Event): void {
+    event.preventDefault();
+    this.closeQuickActionPopup();
+  }
+
+  private handleQuickPopupKeydown(event: KeyboardEvent): void {
+    if (event.key !== "Escape") return;
+    event.preventDefault();
+    event.stopPropagation();
+    this.closeQuickActionPopup();
+  }
+
+  private async handleQuickPopupGroupAction(
+    event: Event,
+    area: OverviewArea,
+    action: OverviewQuickActionId,
+    turnOn: boolean,
+  ): Promise<void> {
     event.stopPropagation();
     if (!this.hass) return;
-    const key = `${area.id}:${action}`;
-    if (this.pendingActions.has(key)) return;
+    const key = `${area.id}:${action}:${turnOn ? "on" : "off"}`;
+    const members = quickActionMembers(area, action);
+    const targets = quickActionActionEntities(area, action, turnOn);
+    if (this.quickActionPending(area.id, action) || members.some((item) => this.pendingEntities.has(item.entityId)) || targets.length === 0) return;
     this.pendingActions = new Set([...this.pendingActions, key]);
+    this.lockPendingEntities(targets);
     try {
-      await runQuickAction(this.hass, area, action);
+      await runQuickActionAction(this.hass, area, action, turnOn);
     } catch (error) {
       this.reportError(error);
     } finally {
       const next = new Set(this.pendingActions);
       next.delete(key);
       this.pendingActions = next;
+      this.unlockPendingEntities(targets);
     }
   }
 
-  private async handleSectionOff(event: Event, section: OverviewSection, areaId: string): Promise<void> {
+  private handleQuickPopupEntityAction(event: Event, item: OverviewEntity, action: OverviewQuickActionId): void {
+    event.stopPropagation();
+    const plan = quickActionEntityService(action, item, !item.powered);
+    if (!this.hass || !item.available || this.entityBusy(item) || (this.quickPopup && this.quickActionPending(this.quickPopup.areaId, action)) || !plan) return;
+    void this.performEntityCall(item, () => callEntityService(this.hass!, item.entityId, plan.service, plan.data));
+  }
+
+  private async handleSectionAction(
+    event: Event,
+    section: OverviewSection,
+    areaId: string,
+    turnOn: boolean,
+  ): Promise<void> {
     event.stopPropagation();
     if (!this.hass) return;
-    const key = `${areaId}:${section.id}`;
-    if (this.pendingSections.has(key) || sectionActionEntities(section).length === 0) return;
+    const key = `${areaId}:${section.id}:${turnOn ? "on" : "off"}`;
+    const oppositeKey = `${areaId}:${section.id}:${turnOn ? "off" : "on"}`;
+    const targets = sectionActionEntities(section, turnOn);
+    if (this.pendingSections.has(key) || this.pendingSections.has(oppositeKey) || section.entities.some((item) => this.pendingEntities.has(item.entityId)) || targets.length === 0) return;
     this.pendingSections = new Set([...this.pendingSections, key]);
+    this.lockPendingEntities(targets);
     try {
-      await runSectionOffAction(this.hass, section);
+      await runSectionAction(this.hass, section, turnOn);
     } catch (error) {
       this.reportError(error);
     } finally {
       const next = new Set(this.pendingSections);
       next.delete(key);
       this.pendingSections = next;
+      this.unlockPendingEntities(targets);
     }
+  }
+
+  private lockPendingEntities(targets: OverviewEntity[]): void {
+    this.pendingEntities = new Set([...this.pendingEntities, ...targets.map((item) => item.entityId)]);
+  }
+
+  private unlockPendingEntities(targets: OverviewEntity[]): void {
+    const next = new Set(this.pendingEntities);
+    for (const item of targets) next.delete(item.entityId);
+    this.pendingEntities = next;
+  }
+
+  private entityBusy(item: OverviewEntity): boolean {
+    return this.pendingEntities.has(item.entityId)
+      || this.pendingSections.has(`${item.areaId}:${item.section}:on`)
+      || this.pendingSections.has(`${item.areaId}:${item.section}:off`);
   }
 
   private toggleEntity(event: Event, item: OverviewEntity): void {
@@ -811,7 +1079,7 @@ export class AreaBubbleOverviewCard extends LitElement {
   }
 
   private async performEntityCall(item: OverviewEntity, call: () => Promise<unknown>): Promise<void> {
-    if (!this.hass || this.pendingEntities.has(item.entityId)) return;
+    if (!this.hass || this.entityBusy(item)) return;
     this.pendingEntities = new Set([...this.pendingEntities, item.entityId]);
     try {
       await call();

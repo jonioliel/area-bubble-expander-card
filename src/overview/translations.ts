@@ -81,20 +81,20 @@ const SECTIONS: Record<OverviewLanguage, Record<OverviewSectionId, string>> = {
 
 const QUICK_ACTIONS: Record<OverviewLanguage, Record<OverviewQuickActionId, string>> = {
   he: {
-    lights: "כיבוי תאורה",
-    climate: "כיבוי מיזוג",
-    floor_heating: "כיבוי חימום רצפתי",
-    switches: "כיבוי מפסקים",
-    covers: "סגירת תריסים",
-    media: "כיבוי מוזיקה",
+    lights: "תאורה",
+    climate: "מיזוג אוויר",
+    floor_heating: "חימום רצפתי",
+    switches: "מפסקים",
+    covers: "תריסים",
+    media: "מוזיקה",
   },
   en: {
-    lights: "Turn off lights",
-    climate: "Turn off climate",
-    floor_heating: "Turn off floor heating",
-    switches: "Turn off switches",
-    covers: "Close covers",
-    media: "Turn off music",
+    lights: "Lights",
+    climate: "Climate",
+    floor_heating: "Floor heating",
+    switches: "Switches",
+    covers: "Covers",
+    media: "Music",
   },
 };
 

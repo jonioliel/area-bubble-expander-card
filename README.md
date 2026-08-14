@@ -15,8 +15,8 @@ Both cards are delivered by the same JavaScript resource. Install it once, then 
 - One-room or whole-floor Overview with a collapsible Floor and independently expandable Areas
 - Temperature priority: configured source, HA Area source, median temperature sensors, then climate devices
 - Numeric occupancy from a count entity, with active presence-sensor count as a fallback
-- Quick off/close actions available while an Area is collapsed
-- Safe off/close actions on every expanded section heading
+- Quick-action popups on collapsed Areas with live status, individual controls, and safe all-on/all-off actions
+- Safe on/off controls on every expanded section heading; cover sections use open/close
 - Tap controls directly and long-press an entity for Home Assistant More Info
 - Dedicated climate, cover, light/switch, and media controls inside each expanded Area
 - Floor-heating discovery using Labels, explicit entity lists, or per-entity section overrides
@@ -119,7 +119,7 @@ The Area arrows in the visual editor order roots relative to roots and children 
 4. Lights and switches
 5. Music
 
-Empty sections are hidden by default. Every discovered device remains visible inside an expanded Area even when it is off; activity is used for highlights, counts, and quick actions.
+Empty sections are hidden by default. Every discovered device remains visible inside an expanded Area even when it is off; activity is used for highlights and active-count badges, while a configured quick-action category remains accessible even when all of its devices are off.
 
 The expanded layout is intentionally compact: climate uses a dedicated two-row controller, covers and media keep full-width controls, and lights/switches use a two-column tile grid whenever the card is wide enough. Collapsed Area summaries remain one consistent row while space permits; icons and gaps become denser under load, and only then wrap at card-width breakpoints. Responsiveness follows the card's own width, so the same layout also works inside narrow desktop dashboard columns.
 
@@ -206,7 +206,9 @@ The visual editor can move an automatically discovered switch or climate entity 
 
 ### Quick actions
 
-Quick actions are shown beside the Area header, so lights, climate, heating, covers, switches, or music can be turned off without drilling down.
+Quick actions are shown beside the Area header. Tapping one opens a responsive Home Assistant-style popup for that category without expanding the Area. The popup shows every included device and its current state, allows individual on/off control, and provides safe **Turn all on** and **Turn all off** actions. Covers use **Open all** and **Close all**.
+
+The badge on an action icon is the number currently powered. The icon stays available with no badge when the category exists but everything is off, so the popup can still be used to turn devices on. Tapping a device name opens Home Assistant More Info after safely closing the category popup; Escape, the close button, and tapping outside the popup all close it.
 
 ```yaml
 show_quick_actions: true
@@ -231,16 +233,16 @@ quick_action_icons:
 
 Safety behavior:
 
-- Quick actions are off-only; pressing an inactive group never turns it on.
-- Cover actions close active/open covers.
+- Quick-action group controls are directional; covers open or close instead of toggling.
 - Calls are grouped by Domain and target only discovered Entity IDs.
-- Hidden, excluded, unavailable, and protected entities are omitted.
+- Hidden and excluded entities are absent. Unavailable or unsupported members remain visible but disabled.
+- Protected entities are omitted from group actions but retain deliberate individual control in the popup and expanded Area.
 - Buttons are disabled while an action is in flight, and partial failures produce a Home Assistant notification.
-- `protected` applies to group actions; direct controls remain available after intentionally expanding the Area.
+- Group and individual operations share pending locks, preventing conflicting service calls to the same category.
 
-### Section-wide off and close actions
+### Section-wide on and off actions
 
-Every expanded section heading has a group action, so a complete category can be stopped without operating each tile. Climate, floor heating, lights/switches, and media use their safe off service; covers use close. The button is disabled when the section has no controllable targets and while its request is running.
+Every expanded section heading has two group controls, so a complete category can be started or stopped without operating each tile. Climate, floor heating, lights/switches, and media use their safe on/off services; covers use open/close. Each direction is disabled when no device needs that state and both controls are locked while a request is running.
 
 Section actions follow the same safety boundary as header quick actions: hidden or Area-excluded entities never participate, and unavailable, protected, or unsupported entities are skipped. Service calls are grouped by Domain and target only the remaining discovered Entity IDs; one unsupported device does not prevent other valid devices in the section from being controlled.
 
@@ -395,7 +397,7 @@ style:
 | `language` / `rtl` | `auto` | `he`, `en`; RTL may be `auto`, `true`, or `false`. |
 | `show_temperature` | `true` | Shows the preferred/automatic current temperature. |
 | `show_occupancy` | `true` | Shows a numeric occupancy/count-sensor badge, including zero and unknown. |
-| `show_quick_actions` | `true` | Shows safe group controls on the collapsed header. |
+| `show_quick_actions` | `true` | Shows category popup triggers on the collapsed header, including when every member is off. |
 | `show_empty_sections` | `false` | Keeps the layout compact when a category is absent. |
 | `default_expanded` | `false` | Initial Area expansion. |
 | `floor_default_expanded` | `true` | Initial visibility of all Areas under a Floor header. |
@@ -486,7 +488,7 @@ The Overview editor provides:
 - Complete per-Area entity hiding/restoration that also excludes hidden devices from state, color, summaries, and group actions
 - Entity section assignment, names, icons, protection, and priority order
 - Convenient on/off and HVAC temperature-state color pickers with CSS-value inputs, reset actions, and live previews
-- Safe section-heading off/close controls that honor exclusion, availability, capability, and protection rules
+- Safe popup and section-heading on/off/open/close controls that honor exclusion, availability, capability, and protection rules
 - Hebrew/English, RTL, responsive appearance, long-press More Info, and advanced safety lists
 
 The What's-on-now editor provides a Home Assistant-style vertical navigation layout with live Area/Entity/Label pickers, accessible reordering, and local JSON drafts. Invalid JSON is never emitted to Home Assistant; it remains an editor draft with an inline error until corrected or reset.

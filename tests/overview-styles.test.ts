@@ -96,8 +96,32 @@ describe("overview header presentation contracts", () => {
     expectCircularActionTarget(".climate-mode-button");
     expectCircularActionTarget(".expand-button");
     expectCircularActionTarget(".section-off-button");
+    expectCircularActionTarget(".section-on-button");
+    expectCircularActionTarget(".quick-popup-close");
+    expectCircularActionTarget(".quick-popup-entity-toggle");
     expectCircularActionTarget(".cover-control");
     expectCircularActionTarget(".temperature-stepper button");
+  });
+
+  it("mirrors structural room controls in RTL while keeping numeric chips isolated", () => {
+    for (const selector of [".overview-heading", ".floor-toggle", ".area-summary", ".area-summary-pill", ".area-toggle", ".area-statuses", ".quick-actions", ".section-heading"]) {
+      const declarations = declarationBodiesFor(selector, regularWidthCss).join("\n");
+      expect(declarations, `${selector} must follow the card direction`).toMatch(/direction:\s*var\(--aboc-direction,\s*ltr\)/);
+      expect(declarations, `${selector} must not force a physical LTR layout`).not.toMatch(/direction:\s*ltr/);
+    }
+    expect(declarationBodiesFor(".temperature", regularWidthCss).join("\n")).toMatch(/direction:\s*ltr/);
+    expect(declarationBodiesFor(".temperature", regularWidthCss).join("\n")).toMatch(/unicode-bidi:\s*isolate/);
+  });
+
+  it("provides a viewport-safe modal quick-action surface with internal scrolling", () => {
+    const dialog = declarationBodiesFor(".quick-action-dialog").join("\n");
+    expect(dialog).toMatch(/width:\s*min\(/);
+    expect(dialog).toMatch(/max-height:\s*min\([^;]*100dvh/);
+    expect(dialog).toMatch(/direction:\s*var\(--aboc-direction,\s*ltr\)/);
+    expect(cssText).toMatch(/\.quick-action-dialog::backdrop\s*\{[^}]*background:/s);
+    expect(cssText).toMatch(/\.quick-popup-list\s*\{[^}]*overflow:\s*auto/s);
+    expect(cssText).toMatch(/\.quick-popup-group-actions\s*\{[^}]*grid-template-columns:\s*repeat\(2/s);
+    expect(cssText).toMatch(/@media \(max-width:\s*480px\)[\s\S]*safe-area-inset-bottom/);
   });
 
   it("scopes active colors and chevrons to each nested Area panel", () => {

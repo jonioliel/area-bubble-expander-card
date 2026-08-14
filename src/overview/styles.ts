@@ -61,7 +61,7 @@ export const overviewCardStyles = css`
   }
 
   .overview-heading {
-    direction: ltr;
+    direction: var(--aboc-direction, ltr);
     display: flex;
     align-items: center;
     gap: 10px;
@@ -73,7 +73,7 @@ export const overviewCardStyles = css`
   }
 
   .floor-toggle {
-    direction: ltr;
+    direction: var(--aboc-direction, ltr);
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) 44px;
     align-items: center;
@@ -194,7 +194,7 @@ export const overviewCardStyles = css`
   }
 
   .area-summary {
-    direction: ltr;
+    direction: var(--aboc-direction, ltr);
     display: grid;
     grid-template-columns: minmax(0, 1fr) 44px;
     align-items: center;
@@ -211,6 +211,7 @@ export const overviewCardStyles = css`
     --aboc-quick-justify: auto;
     --aboc-quick-wrap: nowrap;
     display: var(--aboc-summary-display);
+    direction: var(--aboc-direction, ltr);
     grid-template-columns: minmax(0, 1fr) auto auto;
     grid-template-areas:
       "area-toggle occupancy area-temperature"
@@ -219,7 +220,8 @@ export const overviewCardStyles = css`
     gap: 6px;
     min-width: 0;
     min-height: 60px;
-    padding: 5px 8px 5px 5px;
+    padding-block: 5px;
+    padding-inline: 5px 8px;
     border: 2px solid color-mix(in srgb, var(--divider-color) 72%, transparent);
     border-radius: var(--aboc-summary-radius);
     background: var(--aboc-row-bg);
@@ -279,7 +281,7 @@ export const overviewCardStyles = css`
   }
 
   .area-toggle {
-    direction: ltr;
+    direction: var(--aboc-direction, ltr);
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
     align-items: center;
@@ -320,7 +322,7 @@ export const overviewCardStyles = css`
   }
 
   .area-statuses {
-    direction: ltr;
+    direction: var(--aboc-direction, ltr);
     display: var(--aboc-status-display);
     align-items: center;
     justify-content: flex-end;
@@ -446,7 +448,7 @@ export const overviewCardStyles = css`
   }
 
   .quick-actions {
-    direction: ltr;
+    direction: var(--aboc-direction, ltr);
     display: flex;
     align-items: center;
     gap: 5px;
@@ -456,12 +458,17 @@ export const overviewCardStyles = css`
     max-width: none;
     flex-wrap: var(--aboc-quick-wrap);
     justify-self: var(--aboc-quick-justify);
+    justify-content: flex-end;
     overflow: visible;
   }
 
   .quick-action {
     cursor: pointer;
     transition: transform 120ms ease, filter 120ms ease;
+  }
+
+  .quick-action.inactive {
+    filter: saturate(0.35);
   }
 
   .quick-action .count-badge {
@@ -479,6 +486,205 @@ export const overviewCardStyles = css`
     color: #111;
     font-size: 9px;
     font-weight: 850;
+  }
+
+  .quick-action-dialog {
+    inset: 0;
+    width: min(520px, calc(100vw - 24px));
+    max-width: none;
+    max-height: min(720px, calc(100dvh - 24px));
+    margin: auto;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--divider-color) 72%, transparent);
+    border-radius: calc(var(--aboc-radius) + 2px);
+    outline: 0;
+    background: var(--ha-card-background, var(--card-background-color));
+    color: var(--primary-text-color);
+    box-shadow: 0 24px 72px rgba(0, 0, 0, 0.42);
+    direction: var(--aboc-direction, ltr);
+  }
+
+  .quick-action-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.54);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+
+  .quick-popup {
+    display: grid;
+    grid-template-rows: auto auto minmax(0, 1fr);
+    max-height: min(720px, calc(100dvh - 24px));
+    overflow: hidden;
+    background:
+      linear-gradient(145deg, rgba(255, 255, 255, 0.065), transparent),
+      var(--ha-card-background, var(--card-background-color));
+    direction: var(--aboc-direction, ltr);
+  }
+
+  .quick-popup-header {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) 44px;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    padding: 14px 14px 10px;
+    border-bottom: 1px solid color-mix(in srgb, var(--divider-color) 64%, transparent);
+  }
+
+  .popup-icon {
+    width: 44px;
+    height: 44px;
+    background: var(--aboc-control-surface);
+    color: var(--aboc-light-text);
+  }
+
+  .quick-popup-heading {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+    text-align: start;
+  }
+
+  .quick-popup-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 19px;
+    font-weight: 800;
+  }
+
+  .quick-popup-summary {
+    color: var(--secondary-text-color);
+    font-size: 12px;
+    font-weight: 650;
+  }
+
+  .quick-popup-close,
+  .quick-popup-entity-toggle {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--primary-text-color) 9%, transparent);
+    color: var(--primary-text-color);
+    cursor: pointer;
+  }
+
+  .quick-popup-group-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    padding: 10px 14px;
+    border-bottom: 1px solid color-mix(in srgb, var(--divider-color) 58%, transparent);
+    direction: var(--aboc-direction, ltr);
+  }
+
+  .quick-popup-group-button {
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+    min-height: 48px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--aboc-control-surface);
+    color: var(--aboc-light-text);
+    text-align: start;
+    cursor: pointer;
+  }
+
+  .quick-popup-group-button.turn-on {
+    background: color-mix(in srgb, var(--success-color, #4caf50) 24%, var(--aboc-control-surface));
+  }
+
+  .quick-popup-group-button span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+    font-weight: 760;
+  }
+
+  .quick-popup-group-button small {
+    min-width: 20px;
+    padding: 2px 6px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.14);
+    text-align: center;
+    font-size: 10px;
+    font-weight: 800;
+  }
+
+  .quick-popup-list {
+    display: grid;
+    align-content: start;
+    gap: 8px;
+    min-height: 0;
+    padding: 12px 14px 16px;
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+
+  .quick-popup-entity {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 44px;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    min-height: 62px;
+    padding: 7px 8px;
+    border: 1px solid color-mix(in srgb, var(--divider-color) 64%, transparent);
+    border-radius: calc(var(--aboc-radius) - 4px);
+    background: var(--aboc-row-bg);
+    direction: var(--aboc-direction, ltr);
+  }
+
+  .quick-popup-entity.active {
+    border-color: color-mix(in srgb, var(--aboc-control-surface) 56%, transparent);
+    background: var(--aboc-active-surface);
+    color: var(--aboc-dark-text);
+  }
+
+  .quick-popup-entity.active .state-text {
+    color: color-mix(in srgb, var(--aboc-dark-text) 70%, transparent);
+  }
+
+  .quick-popup-entity-main {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 9px;
+    min-width: 0;
+    min-height: 48px;
+    padding: 0;
+    border: 0;
+    border-radius: calc(var(--aboc-radius) - 8px);
+    background: transparent;
+    color: inherit;
+    direction: var(--aboc-direction, ltr);
+    text-align: start;
+    cursor: pointer;
+  }
+
+  .quick-popup-entity.active .quick-popup-entity-main .icon-bubble {
+    background: color-mix(in srgb, var(--aboc-control-surface) 74%, transparent);
+    color: var(--aboc-light-text);
+  }
+
+  .quick-popup-entity-toggle {
+    background: var(--aboc-control-surface);
+    color: var(--aboc-light-text);
+  }
+
+  .quick-popup-entity-toggle.active {
+    color: var(--aboc-active);
   }
 
   .temperature {
@@ -535,7 +741,7 @@ export const overviewCardStyles = css`
   }
 
   .section-heading {
-    direction: ltr;
+    direction: var(--aboc-direction, ltr);
     display: flex;
     align-items: center;
     gap: 7px;
@@ -570,6 +776,15 @@ export const overviewCardStyles = css`
     font-variant-numeric: tabular-nums;
   }
 
+  .section-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 0 0 auto;
+    direction: var(--aboc-direction, ltr);
+  }
+
+  .section-on-button,
   .section-off-button {
     display: grid;
     place-items: center;
@@ -584,6 +799,11 @@ export const overviewCardStyles = css`
     cursor: pointer;
   }
 
+  .section-on-button {
+    background: color-mix(in srgb, var(--success-color, #4caf50) 24%, var(--aboc-control-surface));
+  }
+
+  .section-on-button ha-icon,
   .section-off-button ha-icon {
     --mdc-icon-size: 21px;
   }
@@ -962,6 +1182,11 @@ export const overviewCardStyles = css`
   .expand-button:hover,
   .entity-lead:hover,
   .quick-action:hover:not([disabled]),
+  .quick-popup-close:hover:not([disabled]),
+  .quick-popup-group-button:hover:not([disabled]),
+  .quick-popup-entity-main:hover,
+  .quick-popup-entity-toggle:hover:not([disabled]),
+  .section-on-button:hover:not([disabled]),
   .section-off-button:hover:not([disabled]),
   .control-button:hover:not([disabled]),
   .climate-mode-button:hover:not([disabled]),
@@ -976,6 +1201,10 @@ export const overviewCardStyles = css`
   }
 
   .quick-action:active:not([disabled]),
+  .quick-popup-close:active:not([disabled]),
+  .quick-popup-group-button:active:not([disabled]),
+  .quick-popup-entity-toggle:active:not([disabled]),
+  .section-on-button:active:not([disabled]),
   .section-off-button:active:not([disabled]),
   .control-button:active:not([disabled]),
   .climate-mode-button:active:not([disabled]),
@@ -1260,6 +1489,31 @@ export const overviewCardStyles = css`
     }
   }
 
+  @media (max-width: 480px) {
+    .quick-action-dialog {
+      width: calc(100vw - 12px);
+      max-height: calc(100dvh - 12px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      margin-block: auto max(6px, env(safe-area-inset-bottom));
+      margin-inline: auto;
+    }
+
+    .quick-popup {
+      max-height: calc(100dvh - 12px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    }
+
+    .quick-popup-header {
+      padding: 12px 10px 9px;
+    }
+
+    .quick-popup-group-actions {
+      padding: 9px 10px;
+    }
+
+    .quick-popup-list {
+      padding: 10px 10px max(14px, env(safe-area-inset-bottom));
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .expanded-content,
     ha-icon[icon="mdi:loading"] {
@@ -1269,7 +1523,11 @@ export const overviewCardStyles = css`
     .chevron,
     .floor-chevron,
     .section-off-button,
+    .section-on-button,
     .quick-action,
+    .quick-popup-close,
+    .quick-popup-group-button,
+    .quick-popup-entity-toggle,
     .control-button,
     .climate-mode-button,
     .toggle-tile,

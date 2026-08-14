@@ -2,6 +2,15 @@
 
 All notable changes to Area Bubble Expander Card will be documented in this file.
 
+## 0.5.0 - 2026-08-14
+
+- Mirrored Floor and Area summary structure in RTL so icons, Hebrew names, status chips, quick actions, and disclosure controls follow the correct logical order at every card-width breakpoint.
+- Changed collapsed-header quick actions into responsive category popups that show all included devices, current powered counts, individual controls, and safe all-on/all-off actions; covers use open/close.
+- Kept quick-action categories available when all members are off, while unavailable and unsupported members remain visible as disabled rows and protected members remain excluded only from group actions.
+- Added paired on/off controls to every expanded section heading, including open/close controls for cover sections.
+- Serialized group and individual service calls through shared pending-entity locks, with Escape, backdrop, focus restoration, More Info handoff, mobile safe-area, and internal-scroll handling for the native dialog.
+- Expanded directional-action and visual contract coverage to 110 tests and verified the complete flow in 320 px and 390 px RTL browser layouts.
+
 ## 0.4.2 - 2026-08-14
 
 - Nested sub-Areas now render inside their parent disclosure and are hidden by default while the parent is collapsed.
