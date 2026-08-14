@@ -2,6 +2,13 @@
 
 All notable changes to Area Bubble Expander Card will be documented in this file.
 
+## 0.5.1 - 2026-08-14
+
+- Changed collapsed Area quick actions to show only powered categories; off lights, off climate devices, and fully closed covers no longer consume summary space, while an active category popup still lists all of its members.
+- Kept every collapsed Area on one physical row at mobile card widths, with 38 px quick-action visuals, preserved 44 px hit areas, compact occupancy/temperature chips, and contained horizontal scrolling only for extreme active-category counts.
+- Added `show_area_expand_button` to YAML and the Home Assistant-style visual editor. Its backwards-compatible default is `true`; disabling it removes the redundant circular chevron while the Area name remains a fully accessible disclosure control.
+- Added active-category, cover-state, single-row, touch-target, and expand-button regression coverage; the suite now contains 119 tests and the final layout was browser-verified at 320 px and 390 px in RTL.
+
 ## 0.5.0 - 2026-08-14
 
 - Mirrored Floor and Area summary structure in RTL so icons, Hebrew names, status chips, quick actions, and disclosure controls follow the correct logical order at every card-width breakpoint.

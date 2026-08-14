@@ -2,6 +2,7 @@ import { LitElement, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type { HomeAssistant } from "../types";
 import {
+  activeQuickActionSummaries,
   callEntityService,
   quickActionActionEntities,
   quickActionEntityService,
@@ -205,9 +206,7 @@ export class AreaBubbleOverviewCard extends LitElement {
     const expanded = this.isExpanded(area);
     const activeCount = area.allEntities.filter((item) => item.powered).length;
     const quickActions = this.config.show_quick_actions
-      ? this.config.quick_actions
-          .map((action) => ({ action, entities: quickActionMembers(area, action) }))
-          .filter((item) => item.entities.length > 0)
+      ? activeQuickActionSummaries(area, this.config.quick_actions)
       : [];
     const hasOccupancy = this.config.show_occupancy && area.occupancy !== "none";
     const hasTemperature = this.config.show_temperature && area.temperature !== undefined;
@@ -221,9 +220,6 @@ export class AreaBubbleOverviewCard extends LitElement {
     }[area.temperatureMode];
     const summaryLoad = Math.min(8, quickActions.length + Number(hasOccupancy) + Number(hasTemperature) * 2);
     const compactStatuses = summaryLoad >= 5;
-    const responsiveActions =
-      (quickActions.length >= 2 && hasTemperature) ||
-      (quickActions.length >= 1 && hasOccupancy && hasTemperature);
     const safeAreaId = area.id.replace(/[^a-zA-Z0-9_-]/g, "-");
     const contentId = `overview-area-${safeAreaId}`;
     const nameId = `overview-area-name-${safeAreaId}`;
@@ -234,8 +230,8 @@ export class AreaBubbleOverviewCard extends LitElement {
         data-powered=${activeCount ? "true" : "false"}
         aria-labelledby=${nameId}
       >
-        <header class="area-summary">
-          <div class="area-summary-pill summary-load-${summaryLoad} ${compactStatuses ? "compact-statuses" : ""} ${responsiveActions ? "responsive-actions" : ""}">
+        <header class="area-summary ${this.config.show_area_expand_button ? "" : "without-expand-button"}">
+          <div class="area-summary-pill summary-load-${summaryLoad} ${compactStatuses ? "compact-statuses" : ""}">
             <button
               class="area-toggle"
               type="button"
@@ -258,14 +254,16 @@ export class AreaBubbleOverviewCard extends LitElement {
                 : nothing}
             </div>
           </div>
-          <button
-            class="expand-button"
-            type="button"
-            aria-expanded=${expanded}
-            aria-controls=${contentId}
-            aria-label=${toggleLabel}
-            @click=${() => this.toggleArea(area)}
-          ><span class="chevron" aria-hidden="true"><ha-icon icon="mdi:chevron-down"></ha-icon></span></button>
+          ${this.config.show_area_expand_button
+            ? html`<button
+                class="expand-button"
+                type="button"
+                aria-expanded=${expanded}
+                aria-controls=${contentId}
+                aria-label=${toggleLabel}
+                @click=${() => this.toggleArea(area)}
+              ><span class="chevron" aria-hidden="true"><ha-icon icon="mdi:chevron-down"></ha-icon></span></button>`
+            : nothing}
         </header>
         <div class="area-disclosure" id=${contentId} ?hidden=${!expanded}>
           <div class="expanded-content">${area.sections.map((section) => this.renderSection(section, area.id))}</div>

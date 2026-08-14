@@ -15,7 +15,7 @@ Both cards are delivered by the same JavaScript resource. Install it once, then 
 - One-room or whole-floor Overview with a collapsible Floor and independently expandable Areas
 - Temperature priority: configured source, HA Area source, median temperature sensors, then climate devices
 - Numeric occupancy from a count entity, with active presence-sensor count as a fallback
-- Quick-action popups on collapsed Areas with live status, individual controls, and safe all-on/all-off actions
+- Active-only quick-action popups on collapsed Areas with live status, individual controls, and safe all-on/all-off actions
 - Safe on/off controls on every expanded section heading; cover sections use open/close
 - Tap controls directly and long-press an entity for Home Assistant More Info
 - Dedicated climate, cover, light/switch, and media controls inside each expanded Area
@@ -82,6 +82,7 @@ language: he
 rtl: true
 floor_default_expanded: true
 remember_expanded_state: true
+show_area_expand_button: false
 area_order:
   - kids_room
   - library
@@ -93,6 +94,8 @@ Choose exactly one of `area` or `floor`. The visual editor exposes Home Assistan
 ### Floor collapse and entity interactions
 
 In Floor mode, press the Floor header to collapse or reveal the complete Area list. This does not change the expanded/collapsed state of any individual Area. `floor_default_expanded` controls the initial state, and `remember_expanded_state: true` remembers the Floor and Area states independently for the card's stable `id`.
+
+Each Area name is itself a complete disclosure button. Set `show_area_expand_button: false` to remove the separate circular chevron and give the name, temperature, occupancy, and active quick actions the full row width. The visual editor exposes the same option under the summary settings.
 
 A normal tap keeps the control's primary behavior. Long-press an entity control for about half a second to open Home Assistant's More Info dialog without accidentally toggling it. Moving the pointer to scroll cancels the hold gesture; entity names remain directly accessible by mouse and keyboard.
 
@@ -119,9 +122,9 @@ The Area arrows in the visual editor order roots relative to roots and children 
 4. Lights and switches
 5. Music
 
-Empty sections are hidden by default. Every discovered device remains visible inside an expanded Area even when it is off; activity is used for highlights and active-count badges, while a configured quick-action category remains accessible even when all of its devices are off.
+Empty sections are hidden by default. Every discovered device remains visible inside an expanded Area even when it is off; activity is used for highlights and active-count badges. A collapsed-header quick-action category is shown only while at least one of its devices is powered.
 
-The expanded layout is intentionally compact: climate uses a dedicated two-row controller, covers and media keep full-width controls, and lights/switches use a two-column tile grid whenever the card is wide enough. Collapsed Area summaries remain one consistent row while space permits; icons and gaps become denser under load, and only then wrap at card-width breakpoints. Responsiveness follows the card's own width, so the same layout also works inside narrow desktop dashboard columns.
+The expanded layout is intentionally compact: climate uses a dedicated two-row controller, covers and media keep full-width controls, and lights/switches use a two-column tile grid whenever the card is wide enough. Collapsed Area summaries always remain one physical row. Mobile quick-action circles become visually smaller while retaining a 44 px hit area, and an extreme number of simultaneous active categories scrolls within the action strip instead of increasing the room height. Responsiveness follows the card's own width, so the same layout also works inside narrow desktop dashboard columns.
 
 ### Temperature
 
@@ -206,12 +209,13 @@ The visual editor can move an automatically discovered switch or climate entity 
 
 ### Quick actions
 
-Quick actions are shown beside the Area header. Tapping one opens a responsive Home Assistant-style popup for that category without expanding the Area. The popup shows every included device and its current state, allows individual on/off control, and provides safe **Turn all on** and **Turn all off** actions. Covers use **Open all** and **Close all**.
+Quick actions are shown beside the Area header only when their category currently has a powered device. Tapping one opens a responsive Home Assistant-style popup for that category without expanding the Area. The popup shows every included device in that active category, including its currently off members, allows individual on/off control, and provides safe **Turn all on** and **Turn all off** actions. Covers use **Open all** and **Close all**; a fully closed cover category is hidden from the collapsed header.
 
-The badge on an action icon is the number currently powered. The icon stays available with no badge when the category exists but everything is off, so the popup can still be used to turn devices on. Tapping a device name opens Home Assistant More Info after safely closing the category popup; Escape, the close button, and tapping outside the popup all close it.
+The badge on an action icon is the number currently powered. When a complete category is off it is omitted from the collapsed header; expand the Area and use the section-wide **Turn all on** or **Open all** control to start it. Tapping a device name opens Home Assistant More Info after safely closing the category popup; Escape, the close button, and tapping outside the popup all close it.
 
 ```yaml
 show_quick_actions: true
+show_area_expand_button: false
 quick_actions:
   - lights
   - climate
@@ -287,6 +291,7 @@ show_header: true
 show_temperature: true
 show_occupancy: true
 show_quick_actions: true
+show_area_expand_button: false
 show_empty_sections: false
 default_expanded: false
 floor_default_expanded: true
@@ -397,7 +402,8 @@ style:
 | `language` / `rtl` | `auto` | `he`, `en`; RTL may be `auto`, `true`, or `false`. |
 | `show_temperature` | `true` | Shows the preferred/automatic current temperature. |
 | `show_occupancy` | `true` | Shows a numeric occupancy/count-sensor badge, including zero and unknown. |
-| `show_quick_actions` | `true` | Shows category popup triggers on the collapsed header, including when every member is off. |
+| `show_quick_actions` | `true` | Shows popup triggers only for categories that currently have a powered member. |
+| `show_area_expand_button` | `true` | Shows the separate Area chevron. Set `false` to use the Area name as the sole disclosure control and reclaim row width. |
 | `show_empty_sections` | `false` | Keeps the layout compact when a category is absent. |
 | `default_expanded` | `false` | Initial Area expansion. |
 | `floor_default_expanded` | `true` | Initial visibility of all Areas under a Floor header. |
@@ -479,7 +485,7 @@ The Overview editor provides:
 
 - Area/Floor target selection
 - Collapsible Floor defaults plus independently remembered Floor/Area expansion
-- Summary, temperature, numeric occupancy, sensor fallback, and quick-action settings
+- Summary, temperature, numeric occupancy, sensor fallback, active quick-action, and Area-chevron settings
 - Section title and order editing
 - Floor Area order, cycle-safe parent/child nesting, and per-Area overrides
 - Floor/Area/entity icon pickers with registry fallbacks

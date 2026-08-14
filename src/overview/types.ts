@@ -59,6 +59,7 @@ export type AreaBubbleOverviewCardConfig = {
   show_temperature?: boolean;
   show_occupancy?: boolean;
   show_quick_actions?: boolean;
+  show_area_expand_button?: boolean;
   show_empty_sections?: boolean;
   default_expanded?: boolean;
   floor_default_expanded?: boolean;

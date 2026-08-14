@@ -140,7 +140,9 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
   @state() private candidateSection: OverviewSectionId = "floor_heating";
 
   public setConfig(config: AreaBubbleOverviewCardConfig): void {
-    this.config = { ...config, type: OVERVIEW_CARD_TYPE };
+    const sanitized: AreaBubbleOverviewCardConfig = { ...config, type: OVERVIEW_CARD_TYPE };
+    if (typeof config.show_area_expand_button !== "boolean") delete sanitized.show_area_expand_button;
+    this.config = sanitized;
     this.targetMode = config.floor ? "floor" : "area";
     if (config.area) this.activeAreaId = config.area;
   }
@@ -235,7 +237,8 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
       ["show_header", this.l("הצג כותרת", "Show header", language), this.l("כותרת קומה או כותרת מותאמת", "Floor or custom card heading", language), resolved.show_header],
       ["show_temperature", this.l("הצג טמפרטורה", "Show temperature", language), this.l("חיישן מועדף, חיישני טמפרטורה או מזגן", "Preferred sensor, temperature sensors, or climate", language), resolved.show_temperature],
       ["show_occupancy", this.l("הצג נוכחות", "Show occupancy", language), this.l("מאוכלס, ריק או לא ידוע", "Occupied, vacant, or unknown", language), resolved.show_occupancy],
-      ["show_quick_actions", this.l("הצג פעולות מהירות", "Show quick actions", language), this.l("כיבוי ישירות מהכרטיס הסגור", "Turn devices off without opening the area", language), resolved.show_quick_actions],
+      ["show_quick_actions", this.l("הצג פעולות מהירות", "Show quick actions", language), this.l("פתח שליטה רק לקטגוריות פעילות", "Open control popups only for active categories", language), resolved.show_quick_actions],
+      ["show_area_expand_button", this.l("הצג חץ פתיחה לאזורים", "Show area expand buttons", language), this.l("ניתן לפתוח ולכווץ גם בלחיצה על שם האזור", "Areas can still be expanded and collapsed by clicking their name", language), resolved.show_area_expand_button],
       ["default_expanded", this.l("פתוח כברירת מחדל", "Expanded by default", language), "", resolved.default_expanded],
       ["floor_default_expanded", this.l("פתח קומה כברירת מחדל", "Floor expanded by default", language), this.l("חל רק כאשר היעד הוא קומה", "Used only when the target is a floor", language), resolved.floor_default_expanded],
       ["remember_expanded_state", this.l("זכור מצב פתיחה", "Remember expansion", language), this.l("שומר בנפרד את מצב הקומה ואת מצב כל אזור", "Remembers the floor and each area separately", language), resolved.remember_expanded_state],

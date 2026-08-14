@@ -32,6 +32,24 @@ const isQuickActionMember = (item: OverviewEntity, action: OverviewQuickActionId
 export const quickActionMembers = (area: OverviewArea, action: OverviewQuickActionId): OverviewEntity[] =>
   area.allEntities.filter((item) => isQuickActionMember(item, action));
 
+export type ActiveQuickActionSummary = {
+  action: OverviewQuickActionId;
+  entities: OverviewEntity[];
+};
+
+/**
+ * Categories shown in the collapsed Area summary. A category is useful there
+ * only while at least one of its members is powered; the popup still receives
+ * the complete member list once the active category is opened.
+ */
+export const activeQuickActionSummaries = (
+  area: OverviewArea,
+  actions: OverviewQuickActionId[],
+): ActiveQuickActionSummary[] =>
+  actions
+    .map((action) => ({ action, entities: quickActionMembers(area, action) }))
+    .filter(({ entities }) => entities.some((item) => item.powered));
+
 /** Directional service for an individual quick-action member. */
 export const quickActionEntityService = (
   action: OverviewQuickActionId,

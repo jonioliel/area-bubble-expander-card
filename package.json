@@ -1,6 +1,6 @@
 {
   "name": "area-bubble-expander-card",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Two polished Home Assistant Lovelace cards for active-device monitoring and complete Area or Floor overviews, with safe controls, RTL support, and visual editors.",
   "type": "module",
   "main": "dist/area-bubble-expander-card.js",

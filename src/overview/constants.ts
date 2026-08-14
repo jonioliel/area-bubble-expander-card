@@ -83,6 +83,7 @@ export const OVERVIEW_DEFAULT_CONFIG: AreaBubbleOverviewCardConfig = {
   show_temperature: true,
   show_occupancy: true,
   show_quick_actions: true,
+  show_area_expand_button: true,
   show_empty_sections: false,
   default_expanded: false,
   floor_default_expanded: true,

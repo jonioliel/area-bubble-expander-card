@@ -109,6 +109,10 @@ export const resolveOverviewConfig = (config: AreaBubbleOverviewCardConfig): Res
     floor: typeof config.floor === "string" && config.floor ? config.floor : undefined,
     title: typeof config.title === "string" ? config.title : "",
     target_icon: typeof config.target_icon === "string" ? config.target_icon.trim() : "",
+    show_area_expand_button:
+      typeof config.show_area_expand_button === "boolean"
+        ? config.show_area_expand_button
+        : (OVERVIEW_DEFAULT_CONFIG.show_area_expand_button ?? true),
     section_order: sectionArray(config.section_order),
     section_titles: Object.fromEntries(
       OVERVIEW_SECTIONS.map((section) => [section, typeof customTitles[section] === "string" ? customTitles[section] : ""]),

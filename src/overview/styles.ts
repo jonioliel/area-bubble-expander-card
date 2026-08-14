@@ -202,20 +202,13 @@ export const overviewCardStyles = css`
     padding: 8px;
   }
 
+  .area-summary.without-expand-button {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .area-summary-pill {
-    --aboc-summary-display: flex;
-    --aboc-summary-radius: 999px;
-    --aboc-status-display: flex;
-    --aboc-area-toggle-width: auto;
-    --aboc-quick-width: max-content;
-    --aboc-quick-justify: auto;
-    --aboc-quick-wrap: nowrap;
-    display: var(--aboc-summary-display);
+    display: flex;
     direction: var(--aboc-direction, ltr);
-    grid-template-columns: minmax(0, 1fr) auto auto;
-    grid-template-areas:
-      "area-toggle occupancy area-temperature"
-      "quick-actions quick-actions quick-actions";
     align-items: center;
     gap: 6px;
     min-width: 0;
@@ -223,7 +216,8 @@ export const overviewCardStyles = css`
     padding-block: 5px;
     padding-inline: 5px 8px;
     border: 2px solid color-mix(in srgb, var(--divider-color) 72%, transparent);
-    border-radius: var(--aboc-summary-radius);
+    overflow: hidden;
+    border-radius: 999px;
     background: var(--aboc-row-bg);
     color: var(--primary-text-color);
     transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease;
@@ -268,8 +262,7 @@ export const overviewCardStyles = css`
   }
 
   .area-summary-pill .area-toggle {
-    grid-area: area-toggle;
-    width: var(--aboc-area-toggle-width);
+    width: auto;
   }
 
   .area-summary-pill .occupancy {
@@ -323,11 +316,13 @@ export const overviewCardStyles = css`
 
   .area-statuses {
     direction: var(--aboc-direction, ltr);
-    display: var(--aboc-status-display);
+    display: flex;
     align-items: center;
     justify-content: flex-end;
     gap: 5px;
     min-width: 0;
+    flex: 0 1 auto;
+    overflow: hidden;
   }
 
   .expand-button {
@@ -452,14 +447,23 @@ export const overviewCardStyles = css`
     display: flex;
     align-items: center;
     gap: 5px;
-    grid-area: quick-actions;
-    width: var(--aboc-quick-width);
-    flex: 0 0 auto;
-    max-width: none;
-    flex-wrap: var(--aboc-quick-wrap);
-    justify-self: var(--aboc-quick-justify);
+    width: max-content;
+    min-width: 0;
+    max-width: 100%;
+    flex: 0 1 auto;
+    flex-wrap: nowrap;
+    padding-inline: 3px;
     justify-content: flex-end;
-    overflow: visible;
+    padding-block: 3px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-inline: contain;
+    scroll-padding-inline: 3px;
+    scrollbar-width: none;
+  }
+
+  .quick-actions::-webkit-scrollbar {
+    display: none;
   }
 
   .quick-action {
@@ -1264,42 +1268,6 @@ export const overviewCardStyles = css`
     to { transform: rotate(360deg); }
   }
 
-  @container overview-card (max-width: 620px) {
-    .area-summary-pill.summary-load-8 {
-      --aboc-summary-display: grid;
-      --aboc-summary-radius: calc(var(--aboc-radius) - 2px);
-      --aboc-status-display: contents;
-      --aboc-area-toggle-width: 100%;
-      --aboc-quick-width: 100%;
-      --aboc-quick-justify: stretch;
-      --aboc-quick-wrap: wrap;
-    }
-  }
-
-  @container overview-card (max-width: 520px) {
-    .area-summary-pill.summary-load-7 {
-      --aboc-summary-display: grid;
-      --aboc-summary-radius: calc(var(--aboc-radius) - 2px);
-      --aboc-status-display: contents;
-      --aboc-area-toggle-width: 100%;
-      --aboc-quick-width: 100%;
-      --aboc-quick-justify: stretch;
-      --aboc-quick-wrap: wrap;
-    }
-  }
-
-  @container overview-card (max-width: 470px) {
-    .area-summary-pill.summary-load-6 {
-      --aboc-summary-display: grid;
-      --aboc-summary-radius: calc(var(--aboc-radius) - 2px);
-      --aboc-status-display: contents;
-      --aboc-area-toggle-width: 100%;
-      --aboc-quick-width: 100%;
-      --aboc-quick-justify: stretch;
-      --aboc-quick-wrap: wrap;
-    }
-  }
-
   @container overview-card (max-width: 430px) {
     .root {
       padding: 8px;
@@ -1312,11 +1280,47 @@ export const overviewCardStyles = css`
     .area-summary-pill {
       min-height: 58px;
       padding-inline-end: 6px;
+      gap: 4px;
     }
 
     .area-toggle {
-      min-width: 98px;
-      flex-basis: 112px;
+      min-width: 82px;
+      flex-basis: 104px;
+      gap: 6px;
+    }
+
+    .area-statuses {
+      gap: 3px;
+    }
+
+    .quick-actions {
+      gap: 6px;
+    }
+
+    .area-summary-pill.compact-statuses .quick-actions {
+      gap: 6px;
+    }
+
+    .quick-action {
+      width: 38px;
+      height: 38px;
+      flex-basis: 38px;
+    }
+
+    .quick-action::before {
+      content: "";
+      position: absolute;
+      inset: -3px;
+      border-radius: inherit;
+    }
+
+    .quick-action ha-icon {
+      --mdc-icon-size: 19px;
+    }
+
+    .quick-action .count-badge {
+      inset-block-start: -2px;
+      inset-inline-end: -2px;
     }
 
     .active-summary {
@@ -1337,16 +1341,19 @@ export const overviewCardStyles = css`
     }
   }
 
-  @container overview-card (max-width: 400px) {
-    .area-summary-pill.summary-load-5,
-    .area-summary-pill.responsive-actions {
-      --aboc-summary-display: grid;
-      --aboc-summary-radius: calc(var(--aboc-radius) - 2px);
-      --aboc-status-display: contents;
-      --aboc-area-toggle-width: 100%;
-      --aboc-quick-width: 100%;
-      --aboc-quick-justify: stretch;
-      --aboc-quick-wrap: wrap;
+  @container overview-card (min-width: 341px) and (max-width: 430px) {
+    .area-summary-pill.summary-load-5 .area-toggle {
+      min-width: 78px;
+      flex-basis: 78px;
+    }
+
+    .area-summary-pill.summary-load-5 .area-statuses,
+    .area-summary-pill.summary-load-5 .quick-actions {
+      flex-shrink: 0;
+    }
+
+    .area-summary-pill.summary-load-5 .area-temperature {
+      padding-inline: 5px;
     }
   }
 
@@ -1392,8 +1399,8 @@ export const overviewCardStyles = css`
     }
 
     .area-summary-pill .area-icon {
-      width: 44px;
-      height: 44px;
+      width: 40px;
+      height: 40px;
     }
 
     .area-summary-pill .occupancy {
@@ -1404,46 +1411,80 @@ export const overviewCardStyles = css`
   }
 
   @container overview-card (max-width: 340px) {
-    .area-summary-pill,
-    .area-summary-pill.responsive-actions {
-      display: grid;
-      grid-template-columns: auto minmax(0, 1fr);
-      grid-template-areas:
-        "area-toggle area-toggle"
-        "occupancy area-temperature"
-        "quick-actions quick-actions";
+    .area-summary-pill {
+      display: flex;
+      min-height: 52px;
+      padding-block: 4px;
+      padding-inline: 4px 5px;
+      border-radius: 999px;
     }
 
-    .area-summary-pill .area-toggle,
-    .area-summary-pill.responsive-actions .area-toggle {
-      grid-area: area-toggle;
-      width: 100%;
-      min-width: 0;
+    .area-summary-pill .area-toggle {
+      width: auto;
+      min-width: 64px;
+      flex-basis: 82px;
+      gap: 4px;
+    }
+
+    .area-summary-pill .area-icon,
+    .area-summary-pill.compact-statuses .area-icon {
+      width: 36px;
+      height: 36px;
+    }
+
+    .area-summary-pill .occupancy,
+    .area-summary-pill.compact-statuses .occupancy {
+      min-width: 36px;
+      width: 36px;
+      height: 36px;
+      min-height: 36px;
+      flex-basis: 36px;
+      padding-inline: 4px;
+      gap: 2px;
+    }
+
+    .area-summary-pill .occupancy ha-icon {
+      --mdc-icon-size: 18px;
+    }
+
+    .area-summary-pill .occupancy-count {
+      font-size: 12px;
+    }
+
+    .area-summary-pill .area-temperature,
+    .area-summary-pill.compact-statuses .area-temperature {
+      padding-inline: 5px;
+      font-size: 12px;
     }
 
     .area-statuses {
-      display: contents;
-    }
-
-    .area-temperature {
-      grid-area: area-temperature;
-      justify-self: end;
-    }
-
-    .occupancy {
-      grid-area: occupancy;
-      justify-self: start;
+      display: flex;
+      min-width: 0;
+      overflow: hidden;
     }
 
     .quick-actions {
-      grid-area: quick-actions;
-      justify-self: stretch;
-      justify-content: flex-end;
-      width: 100%;
+      width: max-content;
+      min-width: 0;
       max-width: 100%;
-      flex-basis: auto;
-      overflow: visible;
-      flex-wrap: wrap;
+      flex: 0 1 auto;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      overflow-y: hidden;
+    }
+
+    .area-summary.without-expand-button .area-toggle {
+      min-width: 64px;
+      flex-basis: 72px;
+    }
+
+    .area-summary.without-expand-button .area-statuses {
+      max-width: calc(100% - 68px);
+      flex: 0 0 auto;
+    }
+
+    .area-summary.without-expand-button .quick-actions {
+      flex: 0 0 auto;
     }
 
     .climate-primary {

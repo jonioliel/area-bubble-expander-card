@@ -55,43 +55,33 @@ describe("overview header presentation contracts", () => {
     );
   });
 
-  it("keeps summaries on one row until their measured load reaches a suitable container threshold", () => {
+  it("keeps every collapsed Area summary on one physical row at every container width", () => {
     expect(regularWidthCss).toMatch(
-      /\.area-summary-pill\s*\{[^}]*--aboc-summary-display:\s*flex;[^}]*--aboc-quick-wrap:\s*nowrap;[^}]*display:\s*var\(--aboc-summary-display\)/s,
+      /\.area-summary-pill\s*\{[^}]*display:\s*flex/s,
     );
-    expect(regularWidthCss).not.toMatch(/\.area-summary-pill\s*\{[^}]*display:\s*grid/s);
-    expect(regularWidthCss).not.toMatch(/\.area-summary-pill\.summary-load-[5-8]/s);
-    expect(cssText).not.toContain("dense-actions");
+    expect(declarationBodiesFor(".quick-actions", regularWidthCss).join("\n")).toMatch(/flex-wrap:\s*nowrap/);
+    expect(cssText).not.toMatch(/--aboc-summary-display:\s*grid/);
+    expect(cssText).not.toMatch(/--aboc-quick-wrap:\s*wrap/);
+    expect(cssText).not.toMatch(/\.area-summary-pill(?:\.responsive-actions)?\s*\{[^}]*display:\s*grid/s);
+    expect(cssText).not.toMatch(/\.quick-actions\s*\{[^}]*flex-wrap:\s*wrap/s);
+  });
 
-    const adaptiveThresholds = [
-      { maxWidth: 400, load: 5 },
-      { maxWidth: 470, load: 6 },
-      { maxWidth: 520, load: 7 },
-      { maxWidth: 620, load: 8 },
-    ];
-
-    for (const { maxWidth, load } of adaptiveThresholds) {
-      const containerCss = containerCssAt(maxWidth);
-      expect(containerCss, `missing ${maxWidth}px adaptive container`).not.toBe("");
-      expect(declarationBodiesFor(`.area-summary-pill.summary-load-${load}`, containerCss)).toEqual(
-        expect.arrayContaining([
-          expect.stringMatching(
-            /--aboc-summary-display:\s*grid;[\s\S]*--aboc-status-display:\s*contents;[\s\S]*--aboc-quick-width:\s*100%;[\s\S]*--aboc-quick-wrap:\s*wrap;/,
-          ),
-        ]),
-      );
-    }
-
-    const narrowContainerCss = containerCssAt(400);
-    expect(declarationBodiesFor(".area-summary-pill.responsive-actions", narrowContainerCss)).toEqual(
+  it("uses smaller mobile quick-action visuals while preserving a 44px hit target", () => {
+    const mobileCss = containerCssAt(430);
+    expect(declarationBodiesFor(".quick-action", mobileCss)).toEqual(
       expect.arrayContaining([
-        expect.stringMatching(/--aboc-summary-display:\s*grid;[\s\S]*--aboc-quick-wrap:\s*wrap;/),
+        expect.stringMatching(/width:\s*38px;[\s\S]*height:\s*38px;[\s\S]*flex-basis:\s*38px;/),
       ]),
+    );
+    expect(declarationBodiesFor(".quick-action::before").join("\n")).toMatch(
+      /content:\s*["']{2};[\s\S]*position:\s*absolute;[\s\S]*inset:\s*-3px;/,
+    );
+    expect(declarationBodiesFor(".quick-actions", regularWidthCss).join("\n")).toMatch(
+      /padding-inline:\s*3px;[\s\S]*scroll-padding-inline:\s*3px;/,
     );
   });
 
-  it("preserves 44px touch targets while compacting dense rows", () => {
-    expectCircularActionTarget(".quick-action");
+  it("preserves 44px touch targets for the remaining controls", () => {
     expectCircularActionTarget(".control-button");
     expectCircularActionTarget(".climate-mode-button");
     expectCircularActionTarget(".expand-button");
@@ -142,9 +132,7 @@ describe("overview header presentation contracts", () => {
     expect(cssText).toMatch(/\.summary-chip\.occupancy\s*\{[^}]*font-variant-numeric:\s*tabular-nums/s);
     expect(cssText).toMatch(/\.occupancy-count\s*\{[^}]*font-weight:\s*\d+/s);
     expect(cssText).not.toMatch(/\.area-statuses\s+\.occupancy\s*\{[^}]*display:\s*none/s);
-    expect(cssText).toMatch(
-      /@container overview-card \(max-width:\s*340px\)[\s\S]*?grid-template-areas:\s*[^;]*area-toggle area-toggle[^;]*occupancy area-temperature/s,
-    );
+    expect(containerCssAt(340)).not.toMatch(/grid-template-areas:\s*[\s\S]*?quick-actions quick-actions/);
     expect(cssText).toMatch(/\.select-pill select\s*\{[^}]*height:\s*44px/s);
   });
 
