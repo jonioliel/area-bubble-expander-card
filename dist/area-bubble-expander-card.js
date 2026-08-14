@@ -3914,7 +3914,7 @@ window.customCards.some((e) => e.type === "area-bubble-expander-card") || window
   documentationURL: "https://github.com/jonioliel/area-bubble-expander-card"
 });
 console.info(
-  `%c AREA-BUBBLE-CARDS %c 0.6.0 ${pe(void 0, "auto")}`,
+  `%c AREA-BUBBLE-CARDS %c 0.6.1 ${pe(void 0, "auto")}`,
   "color: white; background: #03a9f4; font-weight: 700;",
   "color: #03a9f4; font-weight: 700;"
 );
@@ -5468,23 +5468,10 @@ const Ua = $e`
   }
 
   .area-panel {
-    overflow: hidden;
-    border: 1px solid transparent;
-    border-radius: calc(var(--aboc-radius) + 4px);
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
     background: transparent;
-    transition: border-color 160ms ease, background-color 160ms ease;
-  }
-
-  .area-panel.expanded {
-    background: transparent;
-  }
-
-  .area-panel.expanded.has-active {
-    border-color: color-mix(in srgb, var(--aboc-accent) 62%, var(--divider-color));
-  }
-
-  .area-panel.expanded.all-off {
-    border-color: color-mix(in srgb, var(--aboc-accent) 46%, var(--divider-color));
   }
 
   .area-panel:not(.expanded) > .area-summary {
@@ -5678,8 +5665,7 @@ const Ua = $e`
 
   .summary-chip,
   .quick-action,
-  .control-button,
-  .climate-mode-button {
+  .control-button {
     position: relative;
     display: inline-grid;
     place-items: center;
@@ -6532,7 +6518,6 @@ const Ua = $e`
   .section-on-button:hover:not([disabled]),
   .section-off-button:hover:not([disabled]),
   .control-button:hover:not([disabled]),
-  .climate-mode-button:hover:not([disabled]),
   .cover-control:hover:not([disabled]),
   .temperature-stepper button:hover:not([disabled]),
   .thermostat-power:hover:not([disabled]) {
@@ -6550,7 +6535,6 @@ const Ua = $e`
   .section-on-button:active:not([disabled]),
   .section-off-button:active:not([disabled]),
   .control-button:active:not([disabled]),
-  .climate-mode-button:active:not([disabled]),
   .cover-control:active:not([disabled]),
   .temperature-stepper button:active:not([disabled]),
   .thermostat-power:active:not([disabled]),
@@ -6622,18 +6606,33 @@ const Ua = $e`
       gap: 4px;
     }
 
-    .area-toggle {
-      min-width: 82px;
-      flex-basis: 104px;
-      gap: 6px;
+    .area-summary-pill .area-toggle,
+    .area-summary-pill.compact-statuses .area-toggle {
+      min-width: 120px;
+      flex: 1 0 120px;
+      gap: 5px;
     }
 
     .area-statuses {
       gap: 3px;
+      max-width: calc(100% - 124px);
+      flex: 0 1 auto;
+      padding-block: 5px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      overscroll-behavior-inline: contain;
+      scrollbar-width: none;
+    }
+
+    .area-statuses::-webkit-scrollbar {
+      display: none;
     }
 
     .quick-actions {
       gap: 6px;
+      flex: 0 0 auto;
+      padding-block: 0;
+      overflow: visible;
     }
 
     .area-summary-pill.compact-statuses .quick-actions {
@@ -6641,15 +6640,15 @@ const Ua = $e`
     }
 
     .quick-action {
-      width: 38px;
-      height: 38px;
-      flex-basis: 38px;
+      width: 34px;
+      height: 34px;
+      flex-basis: 34px;
     }
 
     .quick-action::before {
       content: "";
       position: absolute;
-      inset: -3px;
+      inset: -5px;
       border-radius: inherit;
     }
 
@@ -6664,6 +6663,10 @@ const Ua = $e`
 
     .active-summary {
       display: none;
+    }
+
+    .area-name {
+      font-size: min(var(--aboc-area-name-size), 14px);
     }
 
     .area-temperature {
@@ -6681,16 +6684,6 @@ const Ua = $e`
   }
 
   @container overview-card (min-width: 341px) and (max-width: 430px) {
-    .area-summary-pill.summary-load-5 .area-toggle {
-      min-width: 78px;
-      flex-basis: 78px;
-    }
-
-    .area-summary-pill.summary-load-5 .area-statuses,
-    .area-summary-pill.summary-load-5 .quick-actions {
-      flex-shrink: 0;
-    }
-
     .area-summary-pill.summary-load-5 .area-temperature {
       padding-inline: 5px;
     }
@@ -6718,16 +6711,6 @@ const Ua = $e`
 
     .area-summary-pill {
       gap: 4px;
-    }
-
-    .area-toggle {
-      min-width: 84px;
-      flex-basis: 96px;
-      gap: 6px;
-    }
-
-    .area-name {
-      font-size: min(var(--aboc-area-name-size), 15px);
     }
 
     .area-summary-pill .area-icon,
@@ -6760,8 +6743,8 @@ const Ua = $e`
 
     .area-summary-pill .area-toggle {
       width: auto;
-      min-width: 64px;
-      flex-basis: 82px;
+      min-width: 112px;
+      flex: 1 0 112px;
       gap: 4px;
     }
 
@@ -6799,7 +6782,9 @@ const Ua = $e`
     .area-statuses {
       display: flex;
       min-width: 0;
-      overflow: hidden;
+      max-width: calc(100% - 116px);
+      overflow-x: auto;
+      overflow-y: hidden;
     }
 
     .quick-actions {
@@ -6808,18 +6793,17 @@ const Ua = $e`
       max-width: 100%;
       flex: 0 1 auto;
       flex-wrap: nowrap;
-      overflow-x: auto;
-      overflow-y: hidden;
+      overflow: visible;
     }
 
     .area-summary.without-expand-button .area-toggle {
-      min-width: 64px;
-      flex-basis: 72px;
+      min-width: 112px;
+      flex: 1 0 112px;
     }
 
     .area-summary.without-expand-button .area-statuses {
-      max-width: calc(100% - 68px);
-      flex: 0 0 auto;
+      max-width: calc(100% - 116px);
+      flex: 0 1 auto;
     }
 
     .area-summary.without-expand-button .quick-actions {
@@ -6909,7 +6893,6 @@ const Ua = $e`
     .quick-popup-group-button,
     .quick-popup-entity-toggle,
     .control-button,
-    .climate-mode-button,
     .toggle-tile,
     .hold-target {
       transition: none;

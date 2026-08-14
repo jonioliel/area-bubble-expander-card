@@ -70,11 +70,11 @@ describe("overview header presentation contracts", () => {
     const mobileCss = containerCssAt(430);
     expect(declarationBodiesFor(".quick-action", mobileCss)).toEqual(
       expect.arrayContaining([
-        expect.stringMatching(/width:\s*38px;[\s\S]*height:\s*38px;[\s\S]*flex-basis:\s*38px;/),
+        expect.stringMatching(/width:\s*34px;[\s\S]*height:\s*34px;[\s\S]*flex-basis:\s*34px;/),
       ]),
     );
     expect(declarationBodiesFor(".quick-action::before").join("\n")).toMatch(
-      /content:\s*["']{2};[\s\S]*position:\s*absolute;[\s\S]*inset:\s*-3px;/,
+      /content:\s*["']{2};[\s\S]*position:\s*absolute;[\s\S]*inset:\s*-5px;/,
     );
     expect(declarationBodiesFor(".quick-actions", regularWidthCss).join("\n")).toMatch(
       /padding-inline:\s*3px;[\s\S]*scroll-padding-inline:\s*3px;/,
@@ -121,16 +121,17 @@ describe("overview header presentation contracts", () => {
     expect(cssText).not.toMatch(/\.expanded\s+\.chevron\s*\{/);
   });
 
-  it("removes the outer gray frame while keeping one accent frame for expanded Areas", () => {
-    expect(cssText).toMatch(/\.area-panel\s*\{[^}]*border:\s*1px solid transparent;[^}]*background:\s*transparent/s);
+  it("removes the outer Area frame in both collapsed and expanded states", () => {
+    expect(cssText).toMatch(/\.area-panel\s*\{[^}]*overflow:\s*visible;[^}]*border:\s*0;[^}]*background:\s*transparent/s);
     expect(cssText).toMatch(/\.area-panel:not\(\.expanded\)\s*>\s*\.area-summary\s*\{[^}]*padding:\s*0/s);
-    expect(cssText).toMatch(/\.area-panel\.expanded\.has-active\s*\{[^}]*border-color:\s*color-mix\([^}]*--aboc-accent/s);
+    expect(cssText).not.toMatch(/\.area-panel\.expanded(?:\.has-active|\.all-off)\s*\{[^}]*border-color:/s);
   });
 
   it("uses configurable Area-name typography at regular and mobile widths", () => {
     expect(regularWidthCss).toMatch(/--aboc-area-name-size:\s*var\(--area-bubble-overview-area-name-size,\s*17px\)/);
     expect(regularWidthCss).toMatch(/\.area-name\s*\{[^}]*font-size:\s*var\(--aboc-area-name-size\)/s);
-    expect(containerCssAt(360)).toMatch(/\.area-name\s*\{[^}]*font-size:\s*min\(var\(--aboc-area-name-size\),\s*15px\)/s);
+    expect(containerCssAt(430)).toMatch(/\.area-name\s*\{[^}]*font-size:\s*min\(var\(--aboc-area-name-size\),\s*14px\)/s);
+    expect(containerCssAt(340)).toMatch(/\.area-summary-pill \.area-toggle\s*\{[^}]*min-width:\s*112px/s);
   });
 
   it("styles the floor header as an accessible full-width disclosure target", () => {

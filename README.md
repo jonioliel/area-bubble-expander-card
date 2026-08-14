@@ -126,7 +126,7 @@ Empty sections are hidden by default. Every discovered device remains visible in
 
 The expanded layout is intentionally compact: climate uses a dedicated two-row controller, covers and media keep full-width controls, and lights/switches use a two-column tile grid whenever the card is wide enough. Collapsed Area summaries always remain one physical row. Mobile quick-action circles become visually smaller while retaining a 44 px hit area, and an extreme number of simultaneous active categories scrolls within the action strip instead of increasing the room height. Responsiveness follows the card's own width, so the same layout also works inside narrow desktop dashboard columns.
 
-Collapsed Areas use only their summary capsule, without an extra outer frame. Expanded Areas retain one accent outline around the complete Area content. Climate mode and fan controls use Home Assistant's native anchored menus; the mode menu is also the single power control, so there is no duplicate power button above it.
+Every Area uses only its summary capsule, without a second outer panel outline in either the collapsed or expanded state. Expanded controls flow directly beneath that capsule. Climate mode and fan controls use Home Assistant's native anchored menus; the mode menu is also the single power control, so there is no duplicate power button beside the entity name or target temperature.
 
 Dimmable lights are detected automatically from Home Assistant's light capabilities and receive a compact brightness slider. Dragging updates the visual value immediately and sends one `light.turn_on` action with `brightness_pct` when released; releasing at zero turns the light off. The separate power button remains available for a fast toggle.
 

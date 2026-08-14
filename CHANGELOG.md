@@ -2,6 +2,12 @@
 
 All notable changes to Area Bubble Expander Card will be documented in this file.
 
+## 0.6.1 - 2026-08-14
+
+- Removed the outer Area outline in both collapsed and expanded states, leaving the summary capsule as the only room frame.
+- Reserved a stable mobile width for the Area name, reduced active quick-action visuals to 34 px with preserved 44 px hit areas, and made the status strip horizontally scrollable only when its contents cannot fit.
+- Removed the last legacy climate power-button styling and strengthened regression coverage so the HVAC mode menu is the only climate power control.
+
 ## 0.6.0 - 2026-08-14
 
 - Removed the redundant outer Area frame from collapsed rooms and kept a single accent outline around expanded Area content.

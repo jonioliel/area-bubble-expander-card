@@ -68,6 +68,8 @@ describe("Overview climate menus and typography", () => {
     expect(source).toContain("@wa-select=${(event: Event) => this.setClimateMode(item, event)}");
     expect(source).toContain("@wa-select=${(event: Event) => this.setFanMode(item, event)}");
     expect(source).not.toContain('class="climate-mode-button');
+    const styles = readFileSync(new URL("../src/overview/styles.ts", import.meta.url), "utf8");
+    expect(styles).not.toContain(".climate-mode-button");
   });
 
   it("defaults, clamps, and preserves the room-name font size", () => {
