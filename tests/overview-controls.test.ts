@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import { resolveOverviewConfig } from "../src/overview/config";
-import { countsTowardAreaActivity, lightBrightnessPercentage, supportsLightBrightness } from "../src/overview/features";
+import { coverControlDisabled, countsTowardAreaActivity, lightBrightnessPercentage, supportsLightBrightness } from "../src/overview/features";
 import type { OverviewEntity } from "../src/overview/types";
 import type { HassEntity } from "../src/types";
 
@@ -61,11 +61,25 @@ describe("Overview dimmer controls", () => {
     expect(source).toContain("@value-changed=${(event: Event) => this.setLightBrightness(item, event)}");
     expect(source).toContain('{ brightness_pct: brightness }');
     expect(source).toMatch(/brightness === 0[\s\S]*?"turn_off"/);
-    expect(styles).toMatch(/\.light-card\.dimmer-on\s*\{[^}]*grid-template-columns:\s*minmax\(118px,\s*0\.92fr\)\s*minmax\(124px,\s*1\.08fr\)/s);
+    expect(styles).toMatch(/\.light-card\.dimmer-on\s*\{[^}]*grid-template-columns:\s*minmax\(168px,\s*1\.15fr\)\s*minmax\(112px,\s*0\.85fr\)/s);
     expect(styles).toMatch(/\.light-card\.dimmer-off\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/s);
-    expect(styles).toMatch(/@container overview-card \(max-width:\s*340px\)[\s\S]*?\.light-card\.dimmer-on\s*\{[^}]*grid-template-columns:\s*minmax\(128px,\s*1fr\)\s*minmax\(70px,\s*0\.55fr\)/s);
+    expect(styles).toMatch(/@container overview-card \(max-width:\s*340px\)[\s\S]*?\.light-card\.dimmer-on\s*\{[^}]*grid-template-columns:\s*minmax\(156px,\s*1fr\)\s*minmax\(72px,\s*0\.45fr\)/s);
     expect(styles).toMatch(/\.light-card\.dimmer-on \.brightness-value\s*\{[^}]*display:\s*none/s);
     expect(styles).not.toContain("--aboc-light-card-min-height");
+  });
+
+  it("keeps partially open cover directions enabled and dims Stop only while idle", () => {
+    expect(coverControlDisabled("open_cover", "open", 17)).toBe(false);
+    expect(coverControlDisabled("close_cover", "open", 17)).toBe(false);
+    expect(coverControlDisabled("stop_cover", "open", 17)).toBe(true);
+    expect(coverControlDisabled("stop_cover", "opening", 17)).toBe(false);
+    expect(coverControlDisabled("open_cover", "open", 100)).toBe(true);
+    expect(coverControlDisabled("close_cover", "closed", 0)).toBe(true);
+  });
+
+  it("lets a lone final switch use the complete row after a three-column grid or dimmer", () => {
+    const styles = readFileSync(new URL("../src/overview/styles.ts", import.meta.url), "utf8");
+    expect(styles).toMatch(/\.section-lights_switches\.columns-3 \.section-entities > \.toggle-tile:last-child:nth-child\(3n \+ 1\),[\s\S]*?\.light-card:nth-last-child\(2\) \+ \.toggle-tile:last-child\s*\{[^}]*grid-column:\s*1 \/ -1/s);
   });
 });
 

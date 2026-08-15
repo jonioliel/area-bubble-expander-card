@@ -31,6 +31,7 @@ import { buildOverviewAreaContentLayout } from "./presentation";
 import "./editor";
 import {
   climateModes,
+  coverControlDisabled,
   countsTowardAreaActivity,
   entityPowerService,
   lightBrightnessPercentage,
@@ -1222,11 +1223,6 @@ export class AreaBubbleOverviewCard extends LitElement {
       { service: "stop_cover", icon: "mdi:stop", feature: 8 },
       { service: "close_cover", icon: "mdi:arrow-down", feature: 2 },
     ].filter(({ feature }) => supportedFeatures === undefined || (supportedFeatures & feature) !== 0);
-    const stateDisables = (service: string): boolean => {
-      if (service === "open_cover") return state === "open" || (position !== undefined && position >= 100);
-      if (service === "close_cover") return state === "closed" || (position !== undefined && position <= 0);
-      return service === "stop_cover" && !["opening", "closing"].includes(state);
-    };
     return html`
       <article class="cover-card entity-card ${item.active ? "active" : ""} ${item.available ? "" : "unavailable"}" aria-busy=${busy}>
         ${this.renderEntityLead(item)}
@@ -1235,7 +1231,7 @@ export class AreaBubbleOverviewCard extends LitElement {
             <button
               class="cover-control"
               type="button"
-              ?disabled=${!item.available || busy || stateDisables(service)}
+              ?disabled=${!item.available || busy || coverControlDisabled(service as "open_cover" | "stop_cover" | "close_cover", state, position)}
               @click=${(event: Event) => this.runEntityService(event, item, service)}
               aria-label=${`${this.coverServiceLabel(service)}: ${item.name}`}
             ><ha-icon icon=${icon}></ha-icon></button>

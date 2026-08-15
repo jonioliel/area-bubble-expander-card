@@ -1713,7 +1713,7 @@ export const overviewCardStyles = css`
   }
 
   .light-card.dimmer-on {
-    grid-template-columns: minmax(118px, 0.92fr) minmax(124px, 1.08fr);
+    grid-template-columns: minmax(168px, 1.15fr) minmax(112px, 0.85fr);
     align-items: center;
   }
 
@@ -1723,6 +1723,13 @@ export const overviewCardStyles = css`
   }
 
   .section-lights_switches .light-card {
+    grid-column: 1 / -1;
+  }
+
+  /* Redistribute a lone final switch after complete three-column rows or a
+     full-width dimmer instead of leaving two empty columns beside it. */
+  .section-lights_switches.columns-3 .section-entities > .toggle-tile:last-child:nth-child(3n + 1),
+  .section-lights_switches.columns-3 .section-entities > .light-card:nth-last-child(2) + .toggle-tile:last-child {
     grid-column: 1 / -1;
   }
 
@@ -2430,7 +2437,22 @@ export const overviewCardStyles = css`
     }
 
     .light-card.dimmer-on {
-      grid-template-columns: minmax(128px, 1fr) minmax(70px, 0.55fr);
+      grid-template-columns: minmax(156px, 1fr) minmax(72px, 0.45fr);
+    }
+
+    .light-card.dimmer-on .light-primary {
+      grid-template-columns: minmax(0, 1fr) 40px;
+      gap: 4px;
+    }
+
+    .light-card.dimmer-on .entity-lead {
+      gap: 4px;
+    }
+
+    .light-card.dimmer-on .entity-name {
+      overflow-wrap: normal;
+      font-size: min(var(--aboc-entity-font-size, 15px), 13px);
+      -webkit-line-clamp: 2;
     }
 
     .light-card.dimmer-on .brightness-control {

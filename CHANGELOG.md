@@ -2,6 +2,13 @@
 
 All notable changes to Area Bubble Expander Card will be documented in this file.
 
+## 0.19.2 - 2026-08-15
+
+- Widened the active dimmer's identity area on narrow cards so names such as `שידת איפור` remain readable beside the inline brightness slider.
+- Expanded a lone final switch across the complete row after three-column lighting rows or a full-width dimmer, avoiding a narrow orphan tile such as `פן`.
+- Corrected cover controls for partially open covers: Open and Close remain available, while Stop is dimmed only when the cover is not moving.
+- Added regression coverage for dimmer proportions, orphan-row distribution, and position-aware cover controls; the suite now contains 259 tests.
+
 ## 0.19.1 - 2026-08-15
 
 - Prevented ordinary room names such as `שירותים` and `חדר הורים` from being prematurely truncated on narrow cards by sizing the room-name control to its content before the scrollable status region.

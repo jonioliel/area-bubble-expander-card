@@ -41,6 +41,23 @@ export const lightBrightnessPercentage = (item: OverviewEntity): number => {
   return Math.min(100, Math.max(0, Math.round((brightness / 255) * 100)));
 };
 
+export type CoverControlService = "open_cover" | "stop_cover" | "close_cover";
+
+/**
+ * A cover can report `open` while it is only partially open. Prefer its
+ * numeric position when available so both directional controls remain usable;
+ * Stop is useful only while the cover is moving.
+ */
+export const coverControlDisabled = (
+  service: CoverControlService,
+  state: string,
+  position?: number,
+): boolean => {
+  if (service === "open_cover") return position !== undefined ? position >= 100 : state === "open";
+  if (service === "close_cover") return position !== undefined ? position <= 0 : state === "closed";
+  return !["opening", "closing"].includes(state);
+};
+
 /** Covers report their open state in the cover quick action, not as room activity. */
 export const countsTowardAreaActivity = (item: OverviewEntity): boolean =>
   item.powered && item.domain !== "cover" && item.ignoreActivity !== true;
