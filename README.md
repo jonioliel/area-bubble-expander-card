@@ -312,11 +312,13 @@ quick_action_icons:
   media: mdi:music
 
 section_action_mode: dual
+section_action_presentation: icon # icon, text, or both
+climate_mode_presentation: both # icon, text, or both
 section_action_icons:
-  on: mdi:toggle-switch
-  off: mdi:toggle-switch-off-outline
-  open: mdi:arrow-up-bold-circle-outline
-  close: mdi:arrow-down-bold-circle-outline
+  on: mdi:power
+  off: mdi:power-off
+  open: mdi:window-shutter-open
+  close: mdi:window-shutter
 ```
 
 `quick_action_icons` is optional and may contain only the actions you want to customize. Empty or invalid values fall back to the card's built-in icon. The visual editor provides an icon picker and reset action for every enabled quick action.
@@ -332,15 +334,17 @@ Safety behavior:
 
 ### Section-wide actions, appearance, and sub-groups
 
-Every expanded section heading can use either two directional controls or one smart state button, so a complete category can be started or stopped without operating each tile. Climate, floor heating, lights/switches, and media use their safe on/off services; covers use open/close. Each direction is disabled when no device needs that state and controls are locked while a request is running.
+Every expanded section heading can use either two directional controls or one smart state button, so a complete category can be started or stopped without operating each tile. The controls can show an icon, a short localized label, or both. Climate, floor heating, lights/switches, and media use their safe on/off services; covers use open/close. Each direction is disabled when no device needs that state and controls are locked while a request is running.
 
 ```yaml
 section_action_mode: dual # dual or toggle
+section_action_presentation: both # icon, text, or both
+climate_mode_presentation: both # show HVAC and fan mode names
 section_action_icons:
-  on: mdi:toggle-switch
-  off: mdi:toggle-switch-off-outline
-  open: mdi:arrow-up-bold-circle-outline
-  close: mdi:arrow-down-bold-circle-outline
+  on: mdi:power
+  off: mdi:power-off
+  open: mdi:window-shutter-open
+  close: mdi:window-shutter
 
 section_styles:
   climate:
@@ -349,6 +353,14 @@ section_styles:
     border_color: var(--state-climate-cool-color)
     border_width: 2
     border_style: solid # solid, dashed, or dotted
+    entity_height: 108
+    action_presentation: both
+  covers:
+    columns: 2 # one or two covers per row
+    entity_height: 56
+  lights_switches:
+    columns: 3 # one, two, or three tiles per row
+    entity_height: 52
 
 area_overrides:
   kids_room:
@@ -364,7 +376,7 @@ entity_overrides:
     group: Shower
 ```
 
-`section_styles` supplies the global category appearance, including frame visibility, color, thickness (0–8 px), and solid/dashed/dotted style. A matching `area_overrides.<area>.section_styles` value overrides only that room. Entities with the same non-empty `group` value are rendered together under a compact sub-heading while retaining their real Home Assistant Area, state, and safe controls.
+`section_styles` supplies the global category appearance, including frame visibility, color, thickness (0–8 px), solid/dashed/dotted style, equipment height, column count, and an optional action-button presentation override. Covers accept one or two columns; lights/switches accept one, two, or three. A matching `area_overrides.<area>.section_styles` value overrides only that room. Entities with the same non-empty `group` value are rendered together under a compact sub-heading while retaining their real Home Assistant Area, state, and safe controls.
 
 Section actions follow the same safety boundary as header quick actions: hidden or Area-excluded entities never participate, and unavailable, protected, or unsupported entities are skipped. Service calls are grouped by Domain and target only the remaining discovered Entity IDs; one unsupported device does not prevent other valid devices in the section from being controlled.
 
@@ -443,11 +455,13 @@ quick_action_icons:
   climate: mdi:air-conditioner
 
 section_action_mode: dual
+section_action_presentation: icon
+climate_mode_presentation: both
 section_action_icons:
-  on: mdi:toggle-switch
-  off: mdi:toggle-switch-off-outline
-  open: mdi:arrow-up-bold-circle-outline
-  close: mdi:arrow-down-bold-circle-outline
+  on: mdi:power
+  off: mdi:power-off
+  open: mdi:window-shutter-open
+  close: mdi:window-shutter
 
 section_order:
   - climate
@@ -581,8 +595,10 @@ style:
 | `remember_expanded_state` | `true` | Stores Floor and Area expansion independently per stable card ID. |
 | `section_order` | standard five sections | Priority order; missing built-in sections are appended safely. |
 | `section_titles` | localized | Global section headings. |
-| `section_styles` | `{}` | Global background plus optional frame visibility, color, 0–8 px thickness, solid/dashed/dotted style, and `columns: 1..3` per category. |
+| `section_styles` | `{}` | Per-category background/frame plus `entity_height`, `action_presentation`, 1–2 cover columns, or 1–3 light/switch columns. |
 | `section_action_mode` | `dual` | `dual` shows separate directional buttons; `toggle` shows one smart state button. |
+| `section_action_presentation` | `icon` | Category controls show `icon`, `text`, or `both`; each `section_styles` entry may override it. |
+| `climate_mode_presentation` | `both` | HVAC and fan selectors show `icon`, `text`, or `both`. |
 | `section_action_icons` | built-in semantic icons | Optional icons for `on`, `off`, `open`, and `close`. |
 | `quick_actions` | all six | Enabled actions in display order. |
 | `quick_action_icons` | built-in action icons | Optional icon map for `lights`, `switches`, `climate`, `floor_heating`, `covers`, and `media`. |
@@ -600,7 +616,7 @@ style:
 | `area_overrides.<area>.occupancy_count_entity` | none | Authoritative numeric people-count entity; zero is vacant. |
 | `area_overrides.<area>.occupancy_entities` | automatic | Presence sensors to count when no numeric count entity is selected. |
 | `area_overrides.<area>.exclude_entities` | `[]` | Removes entities from display and every Area state/summary calculation. |
-| `area_overrides.<area>.section_styles` | inherit global | Per-room category background, frame visibility, color, thickness, and style overrides. |
+| `area_overrides.<area>.section_styles` | inherit global | Per-room category background, frame, height, columns, and action-presentation overrides. |
 | `entity_overrides` | `{}` | Entity name, icon, section, visibility, activity influence, group protection, and per-device tile/state presentation. |
 | `entity_overrides.<entity>.icon` | registry/fallback icon | Overrides one device icon. |
 | `entity_overrides.<entity>.group` | none | Places devices with the same group name under a sub-heading inside their category. |
@@ -623,6 +639,8 @@ style:
 | `style.entity_active_surface` | pale cyan | Active entity-tile background, independent of the Area/Floor surface. |
 | `style.area_frame_color` | automatic | Optional Area summary/expanded-frame color; empty uses a theme-aware state color. |
 | `style.area_frame_width` | `2` | Area summary/expanded-frame thickness in pixels, clamped to 0–8. |
+| `style.entity_frame_color` | automatic | Optional powered-off equipment-frame color; empty derives a coordinated shade from the Area frame. |
+| `style.entity_frame_width` | `1` | Equipment-frame thickness in pixels, clamped to 0–6. |
 | `style.climate_tag_gap` | `0` | Distance between the temperature and its climate/fan tags, clamped to 0–20 px. |
 | `style.link_section_frame_color` | `false` | Derives category-frame colors from the Area frame unless that category has an explicit color. |
 | `style.section_frame_brightness` | `12` | Linked frame shade difference from −100 (darker) to 100 (lighter). |

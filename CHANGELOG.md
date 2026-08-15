@@ -2,6 +2,16 @@
 
 All notable changes to Area Bubble Expander Card will be documented in this file.
 
+## 0.14.0 - 2026-08-15
+
+- Added configurable device-frame color and thickness so powered-off equipment remains visually separated from its category background.
+- Added per-category and per-room device-tile height controls, one-or-two-column cover layouts, and retained one-to-three-column light/switch layouts.
+- Added icon-only, text-only, or combined category action controls, with optional per-category and per-room overrides.
+- Replaced the default group-action glyphs with cleaner semantic power and shutter icons while retaining complete custom-icon support.
+- Added icon-only, text-only, or combined HVAC/fan mode presentation; current mode names are now visible directly on the climate controls.
+- Improved compact two-column cover cards and three-column light tiles for narrow mobile popups.
+- Expanded the full regression suite to 192 passing tests and visually verified the updated RTL mobile layout.
+
 ## 0.13.0 - 2026-08-15
 
 - Added four professionally coordinated Overview themes: Elegant Sapphire, Luminous Sky, Midnight Graphite, and Modern Sage, while retaining the original `classic` appearance as the default.

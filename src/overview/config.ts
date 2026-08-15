@@ -2,6 +2,7 @@ import { OVERVIEW_CARD_TYPE, OVERVIEW_DEFAULT_CONFIG, OVERVIEW_DEFAULT_STYLE, OV
 import type {
   AreaBubbleOverviewCardConfig,
   OverviewAreaOverride,
+  OverviewControlPresentation,
   OverviewEntityOverride,
   OverviewSectionActionIcons,
   OverviewSectionBorderStyle,
@@ -60,7 +61,14 @@ const sectionStyles = (value: unknown): Partial<Record<OverviewSectionId, Overvi
       ? raw.border_style as OverviewSectionBorderStyle
       : undefined;
     const columns = typeof raw.columns === "number" && Number.isFinite(raw.columns)
-      ? Math.min(3, Math.max(1, Math.round(raw.columns))) as 1 | 2 | 3
+      ? Math.min(section === "covers" ? 2 : 3, Math.max(1, Math.round(raw.columns))) as 1 | 2 | 3
+      : undefined;
+    const entityHeight = typeof raw.entity_height === "number" && Number.isFinite(raw.entity_height)
+      ? Math.min(140, Math.max(44, raw.entity_height))
+      : undefined;
+    const actionPresentations = new Set<OverviewControlPresentation>(["icon", "text", "both"]);
+    const actionPresentation = typeof raw.action_presentation === "string" && actionPresentations.has(raw.action_presentation as OverviewControlPresentation)
+      ? raw.action_presentation as OverviewControlPresentation
       : undefined;
     result[section] = {
       ...(background ? { background } : {}),
@@ -69,6 +77,8 @@ const sectionStyles = (value: unknown): Partial<Record<OverviewSectionId, Overvi
       ...(borderStyle ? { border_style: borderStyle } : {}),
       ...(typeof raw.show_border === "boolean" ? { show_border: raw.show_border } : {}),
       ...(columns !== undefined ? { columns } : {}),
+      ...(entityHeight !== undefined ? { entity_height: entityHeight } : {}),
+      ...(actionPresentation ? { action_presentation: actionPresentation } : {}),
     };
   }
   return result;
@@ -173,7 +183,7 @@ export const resolveOverviewConfig = (config: AreaBubbleOverviewCardConfig): Res
   const cardTransparent = typeof themedStyle.card_transparent === "boolean"
     ? themedStyle.card_transparent
     : OVERVIEW_DEFAULT_STYLE.card_transparent;
-  const colorStyle = (key: "entity_active_surface" | "area_frame_color" | "occupancy_active_color" | "occupancy_vacant_color" | "occupancy_unknown_color" | "primary_text_color" | "secondary_text_color" | "active_text_color" | "control_text_color"): string => {
+  const colorStyle = (key: "entity_active_surface" | "area_frame_color" | "entity_frame_color" | "occupancy_active_color" | "occupancy_vacant_color" | "occupancy_unknown_color" | "primary_text_color" | "secondary_text_color" | "active_text_color" | "control_text_color"): string => {
     const value = themedStyle[key];
     return typeof value === "string" ? value.trim() || OVERVIEW_DEFAULT_STYLE[key] : OVERVIEW_DEFAULT_STYLE[key];
   };
@@ -186,6 +196,7 @@ export const resolveOverviewConfig = (config: AreaBubbleOverviewCardConfig): Res
   const stateLanguages = new Set<OverviewStateLanguage>(["auto", "he", "en"]);
   const tileShapes = new Set<OverviewTileShape>(["rectangle", "square"]);
   const iconPositions = new Set<OverviewTileIconPosition>(["start", "left", "right", "center"]);
+  const controlPresentations = new Set<OverviewControlPresentation>(["icon", "text", "both"]);
   return {
     ...merged,
     type: OVERVIEW_CARD_TYPE,
@@ -223,6 +234,12 @@ export const resolveOverviewConfig = (config: AreaBubbleOverviewCardConfig): Res
       OVERVIEW_SECTIONS.map((section) => [section, sectionStyles(config.section_styles)[section] ?? {}]),
     ) as Record<OverviewSectionId, OverviewSectionStyle>,
     section_action_mode: config.section_action_mode === "toggle" ? "toggle" : "dual",
+    section_action_presentation: controlPresentations.has(config.section_action_presentation as OverviewControlPresentation)
+      ? config.section_action_presentation!
+      : "icon",
+    climate_mode_presentation: controlPresentations.has(config.climate_mode_presentation as OverviewControlPresentation)
+      ? config.climate_mode_presentation!
+      : "both",
     section_action_icons: sectionActionIcons(config.section_action_icons),
     quick_actions: quickActionArray(config.quick_actions ?? merged.quick_actions),
     quick_action_icons: quickActionIcons(config.quick_action_icons),
@@ -252,6 +269,10 @@ export const resolveOverviewConfig = (config: AreaBubbleOverviewCardConfig): Res
       area_frame_width: typeof themedStyle.area_frame_width === "number" && Number.isFinite(themedStyle.area_frame_width)
         ? Math.min(8, Math.max(0, themedStyle.area_frame_width))
         : OVERVIEW_DEFAULT_STYLE.area_frame_width,
+      entity_frame_color: colorStyle("entity_frame_color"),
+      entity_frame_width: typeof themedStyle.entity_frame_width === "number" && Number.isFinite(themedStyle.entity_frame_width)
+        ? Math.min(6, Math.max(0, themedStyle.entity_frame_width))
+        : OVERVIEW_DEFAULT_STYLE.entity_frame_width,
       climate_tag_gap: typeof themedStyle.climate_tag_gap === "number" && Number.isFinite(themedStyle.climate_tag_gap)
         ? Math.min(20, Math.max(0, themedStyle.climate_tag_gap))
         : OVERVIEW_DEFAULT_STYLE.climate_tag_gap,

@@ -54,10 +54,10 @@ export const QUICK_ACTION_ICONS: Record<OverviewQuickActionId, string> = {
 };
 
 export const SECTION_ACTION_ICONS: Required<OverviewSectionActionIcons> = {
-  on: "mdi:toggle-switch",
-  off: "mdi:toggle-switch-off-outline",
-  open: "mdi:arrow-up-bold-circle-outline",
-  close: "mdi:arrow-down-bold-circle-outline",
+  on: "mdi:power",
+  off: "mdi:power-off",
+  open: "mdi:window-shutter-open",
+  close: "mdi:window-shutter",
 };
 
 export const OVERVIEW_THEME_PRESETS: Record<OverviewThemePreset, Partial<OverviewStyleConfig>> = {
@@ -205,6 +205,8 @@ export const OVERVIEW_DEFAULT_STYLE: Required<OverviewStyleConfig> = {
   entity_active_surface: "rgba(174, 215, 219, 0.94)",
   area_frame_color: "",
   area_frame_width: 2,
+  entity_frame_color: "",
+  entity_frame_width: 1,
   climate_tag_gap: 0,
   link_section_frame_color: false,
   section_frame_brightness: 12,
@@ -255,6 +257,8 @@ export const OVERVIEW_DEFAULT_CONFIG: AreaBubbleOverviewCardConfig = {
   section_order: OVERVIEW_SECTIONS,
   section_styles: {},
   section_action_mode: "dual",
+  section_action_presentation: "icon",
+  climate_mode_presentation: "both",
   section_action_icons: SECTION_ACTION_ICONS,
   quick_actions: OVERVIEW_QUICK_ACTIONS,
   quick_action_icons: {},

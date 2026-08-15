@@ -23,6 +23,11 @@ export const overviewCardStyles = css`
     --aboc-active-surface: var(--area-bubble-overview-active-surface, rgba(174, 215, 219, 0.94));
     --aboc-entity-active-surface: var(--area-bubble-overview-entity-active-surface, rgba(174, 215, 219, 0.94));
     --aboc-area-frame-width: var(--area-bubble-overview-area-frame-width, 2px);
+    --aboc-entity-frame-width: var(--area-bubble-overview-entity-frame-width, 1px);
+    --aboc-entity-frame-color: var(
+      --area-bubble-overview-entity-frame-color,
+      color-mix(in srgb, var(--aboc-area-frame-color) 44%, var(--divider-color))
+    );
     --aboc-climate-surface: var(--area-bubble-overview-climate-surface, rgba(139, 181, 255, 0.94));
     --aboc-control-surface: var(--area-bubble-overview-control-surface, rgba(11, 28, 58, 0.94));
     --aboc-climate: var(--area-bubble-overview-climate-color, var(--state-climate-cool-color, #2196f3));
@@ -1126,6 +1131,27 @@ export const overviewCardStyles = css`
     cursor: pointer;
   }
 
+  .section-on-button.presentation-text,
+  .section-off-button.presentation-text,
+  .section-toggle-button.presentation-text,
+  .section-on-button.presentation-both,
+  .section-off-button.presentation-both,
+  .section-toggle-button.presentation-both {
+    display: inline-flex;
+    width: auto;
+    min-width: var(--aboc-section-action-size);
+    flex-basis: auto;
+    gap: 6px;
+    padding-inline: 12px;
+  }
+
+  .section-action-label {
+    font-size: 12px;
+    font-weight: 760;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
   .section-on-button {
     background: color-mix(in srgb, var(--success-color, #4caf50) 24%, var(--aboc-control-surface));
   }
@@ -1148,7 +1174,8 @@ export const overviewCardStyles = css`
   }
 
   .section-lights_switches .section-entities,
-  .section-floor_heating .section-entities {
+  .section-floor_heating .section-entities,
+  .section-covers .section-entities {
     grid-template-columns: repeat(var(--aboc-section-columns, 2), minmax(0, 1fr));
   }
 
@@ -1186,7 +1213,7 @@ export const overviewCardStyles = css`
 
   .entity-card {
     min-width: 0;
-    border: 1px solid color-mix(in srgb, var(--divider-color) 64%, transparent);
+    border: var(--aboc-entity-frame-width) solid var(--aboc-entity-frame-color);
     border-radius: calc(var(--aboc-radius) - 2px);
     background:
       linear-gradient(145deg, rgba(255, 255, 255, 0.055), transparent),
@@ -1241,8 +1268,8 @@ export const overviewCardStyles = css`
     align-items: center;
     gap: 9px;
     width: 100%;
-    min-height: max(56px, var(--aboc-row-height));
-    padding: 8px 10px;
+    min-height: var(--aboc-section-entity-height, max(56px, var(--aboc-row-height)));
+    padding: 4px 9px;
     text-align: start;
     cursor: pointer;
     transition: transform 120ms ease, background-color 140ms ease, color 140ms ease;
@@ -1313,7 +1340,7 @@ export const overviewCardStyles = css`
   .thermostat-card {
     display: grid;
     gap: 8px;
-    min-height: 108px;
+    min-height: var(--aboc-section-entity-height, 108px);
     padding: 9px;
   }
 
@@ -1360,6 +1387,35 @@ export const overviewCardStyles = css`
     gap: 8px;
   }
 
+  .climate-mode-control {
+    position: relative;
+    min-width: 0;
+  }
+
+  .climate-mode-value {
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline: 42px 30px;
+    overflow: hidden;
+    color: var(--aboc-primary-text);
+    font-size: 12px;
+    font-weight: 720;
+    line-height: 1;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    pointer-events: none;
+    transform: translateY(-50%);
+  }
+
+  .climate-card.active .climate-mode-value {
+    color: var(--aboc-dark-text);
+  }
+
+  .climate-mode-control.presentation-text .climate-mode-value {
+    inset-inline-start: 12px;
+  }
+
   .temperature-range {
     direction: ltr;
     display: grid;
@@ -1397,7 +1453,7 @@ export const overviewCardStyles = css`
   .light-card {
     display: grid;
     gap: 7px;
-    min-height: max(92px, var(--aboc-row-height));
+    min-height: max(92px, var(--aboc-section-entity-height, var(--aboc-row-height)));
     padding: 8px 10px;
   }
 
@@ -1577,12 +1633,32 @@ export const overviewCardStyles = css`
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
     gap: 8px;
-    min-height: max(56px, var(--aboc-row-height));
-    padding: 8px 10px;
+    min-height: var(--aboc-section-entity-height, max(56px, var(--aboc-row-height)));
+    padding: 4px 8px;
   }
 
   .cover-card.active {
     border-color: color-mix(in srgb, var(--aboc-cover) 42%, var(--divider-color));
+  }
+
+  .section-covers.columns-2 .cover-card {
+    grid-template-columns: minmax(0, 1fr);
+    align-content: center;
+    gap: 2px;
+    min-height: max(92px, var(--aboc-section-entity-height, 92px));
+  }
+
+  .section-covers.columns-2 .cover-controls {
+    justify-content: center;
+  }
+
+  .section-lights_switches.columns-3 .toggle-tile {
+    gap: 5px;
+    padding-inline: 6px;
+  }
+
+  .section-lights_switches.columns-3 .entity-name {
+    font-size: 13px;
   }
 
   .media-card.active {
@@ -2087,7 +2163,6 @@ export const overviewCardStyles = css`
 
     .climate-secondary,
     .thermostat-primary,
-    .cover-card,
     .media-card {
       grid-template-columns: minmax(0, 1fr);
     }
@@ -2096,12 +2171,10 @@ export const overviewCardStyles = css`
       width: 100%;
     }
 
-    .cover-controls,
     .media-controls {
       justify-content: stretch;
     }
 
-    .cover-controls > *,
     .media-controls > * {
       flex: 1 1 44px;
     }

@@ -3,6 +3,7 @@ import type { CardStyleConfig, HassEntity, LanguageMode, RtlMode } from "../type
 export type OverviewSectionId = "climate" | "floor_heating" | "covers" | "lights_switches" | "media";
 export type OverviewQuickActionId = "lights" | "climate" | "floor_heating" | "switches" | "covers" | "media";
 export type OverviewSectionActionMode = "toggle" | "dual";
+export type OverviewControlPresentation = "icon" | "text" | "both";
 export type OverviewSectionBorderStyle = "solid" | "dashed" | "dotted";
 export type OverviewQuickActionsPosition = "near_name" | "opposite";
 export type OverviewClimateTagPosition = "left" | "right" | "top" | "bottom";
@@ -19,6 +20,8 @@ export type OverviewSectionStyle = {
   border_style?: OverviewSectionBorderStyle;
   show_border?: boolean;
   columns?: 1 | 2 | 3;
+  entity_height?: number;
+  action_presentation?: OverviewControlPresentation;
 };
 
 export type OverviewSectionActionIcons = {
@@ -77,6 +80,8 @@ export type OverviewStyleConfig = Pick<
   entity_active_surface?: string;
   area_frame_color?: string;
   area_frame_width?: number;
+  entity_frame_color?: string;
+  entity_frame_width?: number;
   climate_tag_gap?: number;
   link_section_frame_color?: boolean;
   section_frame_brightness?: number;
@@ -132,6 +137,8 @@ export type AreaBubbleOverviewCardConfig = {
   section_titles?: Partial<Record<OverviewSectionId, string>>;
   section_styles?: Partial<Record<OverviewSectionId, OverviewSectionStyle>>;
   section_action_mode?: OverviewSectionActionMode;
+  section_action_presentation?: OverviewControlPresentation;
+  climate_mode_presentation?: OverviewControlPresentation;
   section_action_icons?: OverviewSectionActionIcons;
   quick_actions?: OverviewQuickActionId[];
   quick_action_icons?: Partial<Record<OverviewQuickActionId, string>>;

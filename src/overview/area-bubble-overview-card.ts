@@ -457,52 +457,57 @@ export class AreaBubbleOverviewCard extends LitElement {
     const inheritedFrameColor = this.config?.style.link_section_frame_color
       ? linkedFrameColor
       : "color-mix(in srgb, var(--divider-color) 58%, transparent)";
-    const sectionColumns = sectionStyle.columns ?? (section.id === "lights_switches" || section.id === "floor_heating" ? 2 : 1);
+    const requestedSectionColumns = sectionStyle.columns ?? (section.id === "lights_switches" || section.id === "floor_heating" ? 2 : 1);
+    const sectionColumns = section.id === "covers" ? Math.min(2, requestedSectionColumns) : requestedSectionColumns;
+    const defaultEntityHeight = section.id === "climate" ? 108 : section.id === "floor_heating" ? 92 : 56;
+    const sectionEntityHeight = sectionStyle.entity_height ?? defaultEntityHeight;
+    const actionPresentation = sectionStyle.action_presentation ?? this.config?.section_action_presentation ?? "icon";
     const sectionStyleText = [
       `--aboc-section-background:${sectionStyle.background || "transparent"}`,
       `--aboc-section-border-color:${sectionStyle.border_color || inheritedFrameColor}`,
       `--aboc-section-border-width:${sectionStyle.border_width ?? 1}px`,
       `--aboc-section-border-style:${sectionStyle.border_style ?? "solid"}`,
       `--aboc-section-columns:${sectionColumns}`,
+      `--aboc-section-entity-height:${sectionEntityHeight}px`,
     ].join(";");
     const toggleTurnOn = offTargets.length === 0;
     const toggleTargets = toggleTurnOn ? onTargets : offTargets;
     const togglePending = toggleTurnOn ? pendingOn : pendingOff;
     const toggleLabel = toggleTurnOn ? onLabel : offLabel;
     return html`
-      <section class="device-section section-${section.id} ${sectionStyle.show_border ? "section-framed" : ""}" style=${sectionStyleText} aria-labelledby=${headingId}>
+      <section class="device-section section-${section.id} columns-${sectionColumns} ${sectionStyle.show_border ? "section-framed" : ""}" style=${sectionStyleText} aria-labelledby=${headingId}>
         <h3 class="section-heading" id=${headingId}>
           <span class="section-heading-main"><ha-icon icon=${section.icon}></ha-icon><span class="section-title" title=${section.title}>${section.title}</span><span class="section-count">${section.activeCount}/${section.entities.length}</span></span>
           <span class="section-actions" role="group" aria-label=${`${this.localText("שליטה כללית", "Group controls")}: ${section.title}`}>
             ${this.config?.section_action_mode === "toggle"
               ? html`<button
-                  class="section-toggle-button ${toggleTurnOn ? "turn-on" : "turn-off"}"
+                  class="section-toggle-button presentation-${actionPresentation} ${toggleTurnOn ? "turn-on" : "turn-off"}"
                   type="button"
                   title=${toggleLabel}
                   aria-label=${toggleLabel}
                   aria-busy=${togglePending}
                   ?disabled=${pending || toggleTargets.length === 0}
                   @click=${(event: Event) => this.handleSectionAction(event, section, areaId, toggleTurnOn)}
-                ><ha-icon icon=${togglePending ? "mdi:loading" : this.sectionActionIcon(section.id, toggleTurnOn)}></ha-icon></button>`
+                >${this.renderSectionActionContent(section.id, toggleTurnOn, togglePending, actionPresentation)}</button>`
               : html`
                   <button
-                    class="section-on-button"
+                    class="section-on-button presentation-${actionPresentation}"
                     type="button"
                     title=${onLabel}
                     aria-label=${onLabel}
                     aria-busy=${pendingOn}
                     ?disabled=${pending || onTargets.length === 0}
                     @click=${(event: Event) => this.handleSectionAction(event, section, areaId, true)}
-                  ><ha-icon icon=${pendingOn ? "mdi:loading" : this.sectionActionIcon(section.id, true)}></ha-icon></button>
+                  >${this.renderSectionActionContent(section.id, true, pendingOn, actionPresentation)}</button>
                   <button
-                    class="section-off-button"
+                    class="section-off-button presentation-${actionPresentation}"
                     type="button"
                     title=${offLabel}
                     aria-label=${offLabel}
                     aria-busy=${pendingOff}
                     ?disabled=${pending || offTargets.length === 0}
                     @click=${(event: Event) => this.handleSectionAction(event, section, areaId, false)}
-                  ><ha-icon icon=${pendingOff ? "mdi:loading" : this.sectionActionIcon(section.id, false)}></ha-icon></button>
+                  >${this.renderSectionActionContent(section.id, false, pendingOff, actionPresentation)}</button>
                 `}
           </span>
         </h3>
@@ -538,6 +543,22 @@ export class AreaBubbleOverviewCard extends LitElement {
     if (!this.config) return turnOn ? "mdi:play-circle-outline" : "mdi:stop-circle-outline";
     if (section === "covers") return turnOn ? this.config.section_action_icons.open : this.config.section_action_icons.close;
     return turnOn ? this.config.section_action_icons.on : this.config.section_action_icons.off;
+  }
+
+  private renderSectionActionContent(
+    section: OverviewSection["id"],
+    turnOn: boolean,
+    pending: boolean,
+    presentation: "icon" | "text" | "both",
+  ) {
+    const icon = pending ? "mdi:loading" : this.sectionActionIcon(section, turnOn);
+    const label = section === "covers"
+      ? turnOn ? this.localText("פתח", "Open") : this.localText("סגור", "Close")
+      : turnOn ? this.localText("הדלק", "On") : this.localText("כבה", "Off");
+    return html`
+      ${presentation !== "text" ? html`<ha-icon icon=${icon}></ha-icon>` : nothing}
+      ${presentation !== "icon" ? html`<span class="section-action-label">${pending ? this.localText("מבצע…", "Working…") : label}</span>` : nothing}
+    `;
   }
 
   private renderQuickActionPopup(discovery: OverviewDiscovery) {
@@ -859,6 +880,8 @@ export class AreaBubbleOverviewCard extends LitElement {
       : [];
     const busy = this.entityBusy(item);
     const modeIcon = this.climateModeIcon(item.entity.state);
+    const modePresentation = this.config?.climate_mode_presentation ?? "both";
+    const currentFanMode = String(item.entity.attributes.fan_mode ?? "");
     return html`
       <article class="climate-card entity-card full-span mode-${item.entity.state} ${item.active ? "active" : ""} ${item.available ? "" : "unavailable"}" aria-busy=${busy}>
         <div class="climate-primary">
@@ -879,7 +902,7 @@ export class AreaBubbleOverviewCard extends LitElement {
         ${modes.length || fanModes.length
           ? html`<div class="climate-secondary" @click=${(event: Event) => event.stopPropagation()}>
           ${modes.length
-            ? html`<ha-control-select-menu
+            ? html`<div class="climate-mode-control presentation-${modePresentation}"><ha-control-select-menu
                 class="mode-select"
                 show-arrow
                 hide-label
@@ -888,19 +911,23 @@ export class AreaBubbleOverviewCard extends LitElement {
                 .disabled=${busy || !item.available}
                 .options=${modes.map((mode) => ({ value: mode, label: this.climateModeLabel(mode), icon: this.climateModeIcon(mode) }))}
                 @wa-select=${(event: Event) => this.setClimateMode(item, event)}
-              ><ha-icon slot="icon" icon=${modeIcon}></ha-icon></ha-control-select-menu>`
+              >${modePresentation !== "text" ? html`<ha-icon slot="icon" icon=${modeIcon}></ha-icon>` : nothing}</ha-control-select-menu>
+              ${modePresentation !== "icon" ? html`<span class="climate-mode-value">${this.climateModeLabel(item.entity.state)}</span>` : nothing}
+              </div>`
             : nothing}
           ${fanModes.length
-            ? html`<ha-control-select-menu
+            ? html`<div class="climate-mode-control presentation-${modePresentation}"><ha-control-select-menu
                 class="mode-select"
                 show-arrow
                 hide-label
                 .label=${`${this.localText("מהירות מאוורר", "Fan mode")}: ${item.name}`}
-                .value=${String(item.entity.attributes.fan_mode ?? "")}
+                .value=${currentFanMode}
                 .disabled=${busy || !item.available}
                 .options=${fanModes.map((mode) => ({ value: mode, label: this.modeLabel(mode), icon: "mdi:fan" }))}
                 @wa-select=${(event: Event) => this.setFanMode(item, event)}
-              ><ha-icon slot="icon" icon="mdi:fan"></ha-icon></ha-control-select-menu>`
+              >${modePresentation !== "text" ? html`<ha-icon slot="icon" icon="mdi:fan"></ha-icon>` : nothing}</ha-control-select-menu>
+              ${modePresentation !== "icon" ? html`<span class="climate-mode-value">${currentFanMode ? this.modeLabel(currentFanMode) : this.localText("לא ידוע", "Unknown")}</span>` : nothing}
+              </div>`
             : nothing}
           </div>`
           : nothing}
@@ -1015,7 +1042,7 @@ export class AreaBubbleOverviewCard extends LitElement {
       return service === "stop_cover" && !["opening", "closing"].includes(state);
     };
     return html`
-      <article class="cover-card entity-card full-span ${item.active ? "active" : ""} ${item.available ? "" : "unavailable"}" aria-busy=${busy}>
+      <article class="cover-card entity-card ${item.active ? "active" : ""} ${item.available ? "" : "unavailable"}" aria-busy=${busy}>
         ${this.renderEntityLead(item)}
         <span class="cover-controls" role="group" aria-label=${`${this.localText("שליטה בתריס", "Cover controls")}: ${item.name}`}>
           ${services.map(({ service, icon }) => html`
@@ -1691,6 +1718,9 @@ export class AreaBubbleOverviewCard extends LitElement {
     this.style.setProperty("--area-bubble-overview-area-frame-width", `${style.area_frame_width}px`);
     if (style.area_frame_color) this.style.setProperty("--area-bubble-overview-area-frame-color", style.area_frame_color);
     else this.style.removeProperty("--area-bubble-overview-area-frame-color");
+    this.style.setProperty("--area-bubble-overview-entity-frame-width", `${style.entity_frame_width}px`);
+    if (style.entity_frame_color) this.style.setProperty("--area-bubble-overview-entity-frame-color", style.entity_frame_color);
+    else this.style.removeProperty("--area-bubble-overview-entity-frame-color");
     this.style.setProperty("--area-bubble-overview-climate-surface", style.climate_surface);
     this.style.setProperty("--area-bubble-overview-control-surface", style.control_surface);
     this.style.setProperty("--area-bubble-overview-climate-color", style.climate_color);

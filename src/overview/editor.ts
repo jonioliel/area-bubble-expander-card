@@ -8,6 +8,7 @@ import { overviewLanguage } from "./translations";
 import type {
   AreaBubbleOverviewCardConfig,
   OverviewAreaOverride,
+  OverviewControlPresentation,
   OverviewEntityOverride,
   OverviewQuickActionId,
   OverviewSectionId,
@@ -308,6 +309,24 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
             </select>
           </div>
           <div class="inline-fields">
+            <div class="field">
+              <label>${this.l("תצוגת כפתורי הקטגוריה", "Category button appearance", language)}</label>
+              <select .value=${resolved.section_action_presentation} @change=${(event: Event) => this.commitKey("section_action_presentation", (event.target as HTMLSelectElement).value as OverviewControlPresentation)}>
+                <option value="icon">${this.l("אייקון בלבד", "Icon only", language)}</option>
+                <option value="text">${this.l("טקסט בלבד", "Text only", language)}</option>
+                <option value="both">${this.l("אייקון וטקסט", "Icon and text", language)}</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>${this.l("תצוגת מצב המזגן והמאוורר", "Climate and fan mode display", language)}</label>
+              <select .value=${resolved.climate_mode_presentation} @change=${(event: Event) => this.commitKey("climate_mode_presentation", (event.target as HTMLSelectElement).value as OverviewControlPresentation)}>
+                <option value="icon">${this.l("אייקון בלבד", "Icon only", language)}</option>
+                <option value="text">${this.l("טקסט בלבד", "Text only", language)}</option>
+                <option value="both">${this.l("אייקון וטקסט", "Icon and text", language)}</option>
+              </select>
+            </div>
+          </div>
+          <div class="inline-fields">
             ${(["on", "off", "open", "close"] as const).map((key) => this.iconField(
               this.sectionActionIconName(key, language),
               typeof this.config.section_action_icons?.[key] === "string" ? this.config.section_action_icons[key]! : "",
@@ -332,15 +351,35 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
                     resolved.section_styles[section].show_border ?? false,
                     (checked) => this.setGlobalSectionStyle(section, { show_border: checked }),
                   )}
-                  ${section === "lights_switches"
+                  ${section === "lights_switches" || section === "covers"
                     ? this.numberField(
-                        this.l("מספר אריחי תאורה בשורה", "Light tiles per row", language),
-                        resolved.section_styles[section].columns ?? 2,
+                        section === "covers"
+                          ? this.l("מספר תריסים בשורה", "Covers per row", language)
+                          : this.l("מספר אריחי תאורה בשורה", "Light tiles per row", language),
+                        resolved.section_styles[section].columns ?? (section === "covers" ? 1 : 2),
                         1,
-                        3,
+                        section === "covers" ? 2 : 3,
                         (value) => this.setGlobalSectionStyle(section, { columns: Math.round(value) as 1 | 2 | 3 }),
                       )
                     : nothing}
+                  <div class="inline-fields">
+                    ${this.numberField(
+                      this.l("גובה ציוד בקטגוריה", "Device tile height", language),
+                      resolved.section_styles[section].entity_height ?? (section === "climate" ? 108 : section === "floor_heating" ? 92 : 56),
+                      44,
+                      140,
+                      (value) => this.setGlobalSectionStyle(section, { entity_height: value }),
+                    )}
+                    <div class="field">
+                      <label>${this.l("תצוגת כפתורי פעולה", "Action button appearance", language)}</label>
+                      <select .value=${resolved.section_styles[section].action_presentation ?? ""} @change=${(event: Event) => this.setGlobalSectionStyle(section, { action_presentation: ((event.target as HTMLSelectElement).value || undefined) as OverviewControlPresentation | undefined })}>
+                        <option value="">${this.l("לפי ההגדרה הכללית", "Use global setting", language)}</option>
+                        <option value="icon">${this.l("אייקון בלבד", "Icon only", language)}</option>
+                        <option value="text">${this.l("טקסט בלבד", "Text only", language)}</option>
+                        <option value="both">${this.l("אייקון וטקסט", "Icon and text", language)}</option>
+                      </select>
+                    </div>
+                  </div>
                   <div class="inline-fields">
                     ${this.valueColorField(
                       this.l("רקע קטגוריה", "Category background", language),
@@ -550,18 +589,33 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
                         localStyle.show_border ?? globalStyle.show_border ?? false,
                         (checked) => this.setAreaSectionStyle(area.id, section, { show_border: checked }),
                       )}
-                      ${section === "lights_switches"
+                      ${section === "lights_switches" || section === "covers"
                         ? html`<div class="field">
-                            <label>${this.l("מספר תאורות בשורה בחדר זה", "Light tiles per row in this room", language)}</label>
+                            <label>${section === "covers" ? this.l("מספר תריסים בשורה בחדר זה", "Covers per row in this room", language) : this.l("מספר תאורות בשורה בחדר זה", "Light tiles per row in this room", language)}</label>
                             <select .value=${localStyle.columns === undefined ? "" : String(localStyle.columns)} @change=${(event: Event) => {
                               const value = (event.target as HTMLSelectElement).value;
                               this.setAreaSectionStyle(area.id, section, { columns: value ? Number(value) as 1 | 2 | 3 : undefined });
                             }}>
                               <option value="">${this.l("כמו ההגדרה הכללית", "Use global setting", language)}</option>
-                              <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+                              <option value="1">1</option><option value="2">2</option>${section === "lights_switches" ? html`<option value="3">3</option>` : nothing}
                             </select>
                           </div>`
                         : nothing}
+                      <div class="inline-fields">
+                        <div class="field">
+                          <label>${this.l("גובה ציוד בחדר זה", "Device tile height in this room", language)}</label>
+                          <input type="number" min="44" max="140" .value=${localStyle.entity_height === undefined ? "" : String(localStyle.entity_height)} placeholder=${String(globalStyle.entity_height ?? (section === "climate" ? 108 : section === "floor_heating" ? 92 : 56))} @change=${(event: Event) => { const value = (event.target as HTMLInputElement).value; this.setAreaSectionStyle(area.id, section, { entity_height: value === "" ? undefined : Number(value) }); }} />
+                        </div>
+                        <div class="field">
+                          <label>${this.l("תצוגת כפתורי פעולה בחדר זה", "Action appearance in this room", language)}</label>
+                          <select .value=${localStyle.action_presentation ?? ""} @change=${(event: Event) => this.setAreaSectionStyle(area.id, section, { action_presentation: ((event.target as HTMLSelectElement).value || undefined) as OverviewControlPresentation | undefined })}>
+                            <option value="">${this.l("לפי הגדרת הקטגוריה", "Use category setting", language)}</option>
+                            <option value="icon">${this.l("אייקון בלבד", "Icon only", language)}</option>
+                            <option value="text">${this.l("טקסט בלבד", "Text only", language)}</option>
+                            <option value="both">${this.l("אייקון וטקסט", "Icon and text", language)}</option>
+                          </select>
+                        </div>
+                      </div>
                       <div class="inline-fields">
                         ${this.valueColorField(
                           this.l("רקע בחדר זה", "Background in this room", language),
@@ -762,6 +816,7 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
             ${this.numberField(this.l("גודל כפתור פעולה בקטגוריה", "Category action button size", language), resolved.style.section_action_size, 36, 56, (value) => this.setStyle("section_action_size", value))}
             ${this.numberField(this.l("גודל אייקון פעולה בקטגוריה", "Category action icon size", language), resolved.style.section_action_icon_size, 16, 36, (value) => this.setStyle("section_action_icon_size", value))}
             ${this.numberField(this.l("עובי מסגרת החדר", "Room frame thickness", language), resolved.style.area_frame_width, 0, 8, (value) => this.setStyle("area_frame_width", value))}
+            ${this.numberField(this.l("עובי מסגרת הציוד", "Device frame thickness", language), resolved.style.entity_frame_width, 0, 6, (value) => this.setStyle("entity_frame_width", value))}
             ${this.numberField(this.l("מרחק תג מהטמפרטורה", "Tag distance from temperature", language), resolved.style.climate_tag_gap, 0, 20, (value) => this.setStyle("climate_tag_gap", value))}
             ${this.numberField(this.l("הפרש בהירות מסגרת קטגוריה", "Category frame brightness difference", language), resolved.style.section_frame_brightness, -100, 100, (value) => this.setStyle("section_frame_brightness", value))}
           </div>
@@ -783,6 +838,7 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
             ${this.colorField(this.l("רקע חדר או קומה פעילים", "Active room or floor surface", language), "active_surface", resolved.style.active_surface, "#aed7db", language)}
             ${this.colorField(this.l("רקע רכיב דלוק", "Active device surface", language), "entity_active_surface", resolved.style.entity_active_surface, "#aed7db", language)}
             ${this.colorField(this.l("צבע מסגרת החדר", "Room frame color", language), "area_frame_color", resolved.style.area_frame_color || "var(--divider-color)", "#607086", language)}
+            ${this.colorField(this.l("צבע מסגרת הציוד", "Device frame color", language), "entity_frame_color", resolved.style.entity_frame_color || "var(--divider-color)", "#8a96a8", language)}
             ${this.colorField(this.l("צבע תג פעיל", "Active count badge", language), "active_color", resolved.style.active_color, "#ffd54f", language)}
             ${this.colorField(this.l("צבע נוכחות פעילה", "Occupied presence color", language), "occupancy_active_color", resolved.style.occupancy_active_color, "#b8f5c2", language)}
             ${this.colorField(this.l("צבע חדר ריק", "Vacant presence color", language), "occupancy_vacant_color", resolved.style.occupancy_vacant_color, "#f4f3ec", language)}
