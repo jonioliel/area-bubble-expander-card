@@ -82,8 +82,9 @@ describe("Overview 0.15 auxiliary climate and heating discovery", () => {
   });
 
   it("documents automatic discovery and manual override in the visual editor", () => {
-    expect(editor).toContain("Fans and floor heating are mapped automatically by name and labels");
-    expect(editor).toContain("the manual section choice here always takes precedence");
+    expect(editor).toContain("Open Device overrides only to change its name, section, icon, protection, or appearance");
+    expect(editor).toContain('class="override-details entity-override-details"');
+    expect(editor).toContain("this.updateEntityOverride(item.entityId, { section:");
   });
 
   it("opens an Area from free summary space without stealing quick-action clicks", () => {

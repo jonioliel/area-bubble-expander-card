@@ -1292,7 +1292,7 @@ export const overviewCardStyles = css`
   .section-compact-subgroup-button span {
     min-width: 0;
     overflow: hidden;
-    font-size: 12px;
+    font-size: clamp(10px, 2.8cqi, 12px);
     font-weight: 760;
     text-overflow: ellipsis;
     white-space: nowrap;

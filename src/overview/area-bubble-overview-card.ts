@@ -659,7 +659,7 @@ export class AreaBubbleOverviewCard extends LitElement {
     const configured = areaOverride?.subgroup_titles?.[key] || this.config?.subgroup_titles[key];
     if (configured) return configured;
     if (key === "fans") return compact ? this.localText("מאוורר", "Fan") : this.localText("מאווררים", "Fans");
-    if (key === "heating_controls") return compact ? this.localText("בקר חימום", "Heating control") : this.localText("בקרי חימום", "Heating controls");
+    if (key === "heating_controls") return compact ? this.localText("מפסק", "Switch") : this.localText("בקרי חימום", "Heating controls");
     return group;
   }
 

@@ -154,6 +154,14 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
     .section-style-editor { grid-column: 1 / -1; display: grid; gap: 8px; width: 100%; padding-block-start: 4px; border-block-start: 1px solid color-mix(in srgb, var(--divider-color) 55%, transparent); }
     .entity-fields { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .entity-flags { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 12px; }
+    .override-details { grid-column: 1 / -1; width: 100%; border-color: color-mix(in srgb, var(--primary-color) 28%, var(--divider-color)); background: color-mix(in srgb, var(--secondary-background-color) 66%, transparent); }
+    .override-details > summary { min-height: 48px; padding: 8px 10px; }
+    .override-details > summary .summary-title { font-size: 13px; }
+    .override-details > summary .summary-subtitle { font-size: 11px; }
+    .override-details > .override-panel { display: grid; gap: 10px; padding: 0 10px 10px; }
+    .area-override-details { margin-top: 8px; }
+    .category-override-details { background: var(--card-background-color); }
+    .entity-override-details { margin-top: 2px; }
     .check-label { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; }
     .empty { padding: 18px; color: var(--secondary-text-color); text-align: center; }
     .status { display: inline-flex; align-items: center; gap: 5px; min-height: 24px; padding: 0 8px; border-radius: 999px; background: color-mix(in srgb, var(--success-color, #4caf50) 14%, transparent); color: var(--success-color, #4caf50); font-size: 11px; font-weight: 700; }
@@ -223,7 +231,7 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
           <span class="intro-icon"><ha-icon icon="mdi:home-analytics"></ha-icon></span>
           <div>
             <strong>${this.l("סקירת אזור וקומה", "Area and floor overview", language)}</strong>
-            <span>${this.l("גילוי אוטומטי עם סידור והתאמות שנשמרים גם כשנוספים רכיבים", "Automatic discovery with ordering that keeps working as devices are added", language)}</span>
+            <span>${this.l("הגדירו ברירות מחדל גלובליות, ופתחו עריכה פרטנית רק במקום שבו נדרשת חריגה", "Set global defaults first, then open private overrides only where an exception is needed", language)}</span>
           </div>
         </div>
         ${this.renderTarget(resolved, language)}
@@ -312,7 +320,7 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
       <details>
         ${this.summary("mdi:format-list-bulleted-square", this.l("סעיפים ופעולות", "Sections and actions", language), this.l("עריכת כותרות, סדר וכפתורי הכיבוי", "Edit titles, order, and quick controls", language))}
         <div class="panel">
-          <div class="hint">${this.l("ישויות חדשות מצטרפות אוטומטית בסוף הסעיף, כך שהסידור הידני נשאר יציב.", "New entities are appended automatically, so your manual order remains stable.", language)}</div>
+          <div class="hint">${this.l("אלו ברירות המחדל הגלובליות לכל החדרים. ישויות חדשות מצטרפות אוטומטית בסוף הסעיף; חריגות לחדר או לקטגוריה נמצאות תחת עריכה פרטנית באזור.", "These are the global defaults for every room. New entities are appended automatically; room and category exceptions are available under the area's private editor.", language)}</div>
           <div class="field">
             <label>${this.l("כפתורי שליטה בכותרת קטגוריה", "Category header controls", language)}</label>
             <select .value=${resolved.section_action_mode} @change=${(event: Event) => this.commitKey("section_action_mode", (event.target as HTMLSelectElement).value)}>
@@ -365,7 +373,7 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
               <div class="hint">${this.l("הכפתור הקומפקטי מופיע בכותרת חימום רצפתי ופותח חלון נפרד לבקרי ולממסרי החימום.", "The compact button appears in the Floor-heating heading and opens a separate popup for heating controls and relays.", language)}</div>
             </div>
             <div class="field"><label>${this.l("שם תת־קטגוריית מאווררים", "Fans sub-category name", language)}</label><input type="text" .value=${resolved.subgroup_titles.fans} placeholder=${this.l("מאווררים", "Fans", language)} @change=${(event: Event) => this.setGlobalSubgroupTitle("fans", (event.target as HTMLInputElement).value)} /></div>
-            <div class="field"><label>${this.l("שם תת־קטגוריית בקרי חימום", "Heating-controls sub-category name", language)}</label><input type="text" .value=${resolved.subgroup_titles.heating_controls} placeholder=${this.l("בקרי חימום", "Heating controls", language)} @change=${(event: Event) => this.setGlobalSubgroupTitle("heating_controls", (event.target as HTMLInputElement).value)} /></div>
+            <div class="field"><label>${this.l("שם בקרי חימום / כפתור", "Heating-controls / button label", language)}</label><input type="text" .value=${resolved.subgroup_titles.heating_controls} placeholder=${resolved.heating_controls_display_mode === "button" ? this.l("מפסק", "Switch", language) : this.l("בקרי חימום", "Heating controls", language)} @change=${(event: Event) => this.setGlobalSubgroupTitle("heating_controls", (event.target as HTMLInputElement).value)} /><div class="hint">${this.l("השם משמש גם לכפתור האובלי. השאירו ריק לברירת המחדל הקצרה מפסק.", "This label also applies to the oval button. Leave it empty for the short Switch default.", language)}</div></div>
           </div>
           <div class="inline-fields">
             ${(["on", "off", "open", "close"] as const).map((key) => this.iconField(
@@ -565,6 +573,13 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
         </div>
         ${selected
           ? html`
+              <details class="override-details area-override-details">
+                ${this.summary(
+                  "mdi:pencil-outline",
+                  this.l("עריכה פרטנית של החדר", "Edit this room", language),
+                  this.l("חריגות מההגדרות הגלובליות", "Overrides to global settings", language),
+                )}
+                <div class="override-panel">
               <div class="inline-fields">
                 <div class="field"><label>${this.l("שם מותאם", "Custom name", language)}</label><input type="text" .value=${override.name ?? ""} placeholder=${area.name} @change=${(event: Event) => this.updateAreaOverride(area.id, { name: (event.target as HTMLInputElement).value || undefined })} /></div>
                 ${this.iconField(this.l("אייקון האזור", "Area icon", language), override.icon ?? "", area.icon, language, (value) => this.updateAreaOverride(area.id, { icon: value || undefined }))}
@@ -671,15 +686,20 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
                   </select>
                 </div>
                 <div class="field"><label>${this.l("שם מאווררים בחדר", "Fans name in this room", language)}</label><input type="text" .value=${override.subgroup_titles?.fans ?? ""} placeholder=${resolved.subgroup_titles.fans || this.l("מאווררים", "Fans", language)} @change=${(event: Event) => this.setAreaSubgroupTitle(area.id, "fans", (event.target as HTMLInputElement).value)} /></div>
-                <div class="field"><label>${this.l("שם בקרי חימום בחדר", "Heating-controls name in this room", language)}</label><input type="text" .value=${override.subgroup_titles?.heating_controls ?? ""} placeholder=${resolved.subgroup_titles.heating_controls || this.l("בקרי חימום", "Heating controls", language)} @change=${(event: Event) => this.setAreaSubgroupTitle(area.id, "heating_controls", (event.target as HTMLInputElement).value)} /></div>
+                <div class="field"><label>${this.l("כיתוב בקרי חימום / כפתור בחדר", "Heating-controls / button label in this room", language)}</label><input type="text" .value=${override.subgroup_titles?.heating_controls ?? ""} placeholder=${resolved.subgroup_titles.heating_controls || (override.heating_controls_display_mode === "button" || (!override.heating_controls_display_mode && resolved.heating_controls_display_mode === "button") ? this.l("מפסק", "Switch", language) : this.l("בקרי חימום", "Heating controls", language))} @change=${(event: Event) => this.setAreaSubgroupTitle(area.id, "heating_controls", (event.target as HTMLInputElement).value)} /></div>
               </div>
               <div class="order-list">
                 ${resolved.section_order.map((section) => {
                   const globalStyle = resolved.section_styles[section];
                   const localStyle = override.section_styles?.[section] ?? {};
                   return html`
-                    <div class="area-card">
-                      <div class="setting-title">${this.sectionDefaultName(section, language)}</div>
+                    <details class="override-details category-override-details">
+                      ${this.summary(
+                        SECTION_ICONS[section],
+                        this.sectionDefaultName(section, language),
+                        this.l("עריכה פרטנית בחדר זה", "Room-specific category overrides", language),
+                      )}
+                      <div class="override-panel">
                       ${this.booleanRow(
                         this.l("הצג מסגרת בחדר זה", "Show frame in this room", language),
                         "",
@@ -756,10 +776,13 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
                           </select>
                         </div>
                       </div>
-                    </div>
+                      </div>
+                    </details>
                   `;
                 })}
               </div>
+                </div>
+              </details>
             `
           : nothing}
       </div>
@@ -787,7 +810,7 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
             <select .value=${areaId} @change=${(event: Event) => (this.activeAreaId = (event.target as HTMLSelectElement).value)}>${areas.map((item) => html`<option value=${item.id}>${item.name}</option>`)}</select>
             <input type="search" placeholder=${this.l("חיפוש רכיב", "Search devices", language)} .value=${this.entitySearch} @input=${(event: Event) => (this.entitySearch = (event.target as HTMLInputElement).value)} />
           </div>
-          <div class="hint">${this.l("לכל רכיב יש כפתור הסתרה מלא. רכיב מוסתר נשאר כאן לשחזור, אך אינו מוצג ואינו משפיע על צבע, מונים או פעולות האזור. מאווררים וחימום רצפתי ממופים אוטומטית לפי שם ותוויות; בחירת הסעיף הידנית כאן תמיד גוברת על הזיהוי.", "Every device has a complete hide control. Hidden devices remain here for restore, but do not appear or affect area color, counts, or actions. Fans and floor heating are mapped automatically by name and labels; the manual section choice here always takes precedence.", language)}</div>
+          <div class="hint">${this.l("הסתרה ושחזור נשארים זמינים מיד. לשינוי שם, שיוך, אייקון, הגנה או מראה פתחו עריכה פרטנית ברכיב. רכיב מוסתר אינו מוצג ואינו משפיע על צבע, מונים או פעולות האזור.", "Hide and restore stay immediately available. Open Device overrides only to change its name, section, icon, protection, or appearance. Hidden devices do not appear or affect area color, counts, or actions.", language)}</div>
           ${candidates.length
             ? html`
                 <div class="area-card">
@@ -835,10 +858,17 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
                         type="button"
                         title=${visibilityLabel}
                         aria-label=${`${visibilityLabel}: ${item.name}`}
-                        ?disabled=${globallyExcluded}
-                        @click=${() => this.setEntityVisible(areaId, item.entityId, excluded)}
-                      ><ha-icon icon=${excluded ? "mdi:restore" : "mdi:eye-off-outline"}></ha-icon></button>
-                      <div class="entity-fields">
+                       ?disabled=${globallyExcluded}
+                       @click=${() => this.setEntityVisible(areaId, item.entityId, excluded)}
+                       ><ha-icon icon=${excluded ? "mdi:restore" : "mdi:eye-off-outline"}></ha-icon></button>
+                       <details class="override-details entity-override-details">
+                         ${this.summary(
+                           "mdi:tune-variant",
+                           this.l("עריכה פרטנית", "Device overrides", language),
+                           this.l("שם, שיוך, אייקון, הגנה ומראה", "Name, section, icon, safety, and appearance", language),
+                         )}
+                         <div class="override-panel">
+                       <div class="entity-fields">
                         <div class="field"><label>${this.l("שם מותאם", "Custom name", language)}</label><input type="text" .value=${override.name ?? ""} placeholder=${item.name} @change=${(event: Event) => this.updateEntityOverride(item.entityId, { name: (event.target as HTMLInputElement).value || undefined })} /></div>
                         <div class="field">
                           <label>${this.l("הסרת שם החדר", "Remove room name", language)}</label>
@@ -861,12 +891,14 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
                           <div class="field"><label>${this.l("שפת מצב הרכיב", "Device state language", language)}</label><select .value=${override.state_language ?? ""} @change=${(event: Event) => this.updateEntityOverride(item.entityId, { state_language: ((event.target as HTMLSelectElement).value || undefined) as OverviewEntityOverride["state_language"] })}><option value="">${this.l("כמו ההגדרה הכללית", "Use global setting", language)}</option><option value="auto">Auto</option><option value="he">עברית</option><option value="en">English</option></select></div>
                         ` : nothing}
                       </div>
-                      <div class="entity-flags">
+                       <div class="entity-flags">
                         <label class="check-label"><input type="checkbox" .checked=${override.protected ?? item.protected} @change=${(event: Event) => this.updateEntityOverride(item.entityId, { protected: (event.target as HTMLInputElement).checked })} />${this.l("מוגן מכיבוי קבוצתי", "Protect from group off", language)}</label>
                         <label class="check-label" title=${this.l("הרכיב נשאר גלוי וניתן לשליטה, אך לא ישפיע על צבע החדר, מצב הקומה או תגי הפעולה המהירה.", "The device stays visible and controllable, but does not affect room color, floor state, or quick-action badges.", language)}><input type="checkbox" .checked=${override.ignore_activity ?? item.ignoreActivity ?? false} @change=${(event: Event) => this.updateEntityOverride(item.entityId, { ignore_activity: (event.target as HTMLInputElement).checked })} />${this.l("אל תשפיע על מצב החדר והקומה", "Ignore in room and floor activity", language)}</label>
-                        ${this.orderButtons(index, sectionEntities.length, () => this.moveEntity(areaId, item.section, item.entityId, -1, sectionEntities.map((entity) => entity.entityId)), () => this.moveEntity(areaId, item.section, item.entityId, 1, sectionEntities.map((entity) => entity.entityId)))}
-                      </div>
-                    </div>
+                         ${this.orderButtons(index, sectionEntities.length, () => this.moveEntity(areaId, item.section, item.entityId, -1, sectionEntities.map((entity) => entity.entityId)), () => this.moveEntity(areaId, item.section, item.entityId, 1, sectionEntities.map((entity) => entity.entityId)))}
+                       </div>
+                         </div>
+                       </details>
+                     </div>
                   `;
                 })
               : html`<div class="empty">${this.l("אין רכיבים להצגה באזור זה", "No devices to show in this area", language)}</div>`}

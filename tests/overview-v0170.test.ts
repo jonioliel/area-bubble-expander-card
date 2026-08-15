@@ -60,7 +60,7 @@ describe("Overview 0.17 responsive device cards", () => {
     expect(editorSource).toContain('"entity_card_size"');
     expect(editorSource).toContain("Device card size in this room");
     expect(editorSource).toContain("Fans sub-category name");
-    expect(editorSource).toContain("Heating-controls sub-category name");
+    expect(editorSource).toContain("Heating-controls / button label");
     expect(editorSource).toContain("setAreaSubgroupTitle");
   });
 });

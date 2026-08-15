@@ -2,6 +2,13 @@
 
 All notable changes to Area Bubble Expander Card will be documented in this file.
 
+## 0.20.0 - 2026-08-15
+
+- Simplified the Overview visual editor around global-first configuration: room, category, and device-specific exceptions now stay behind clearly labelled, nested edit disclosures instead of overwhelming the main editor.
+- Kept every existing global and scoped option available, while leaving frequently used Area selection and device hide/restore actions immediately accessible.
+- Shortened the default compact Floor-heating relay label to `מפסק` / `Switch`, added clearer global and per-room label controls, and made its typography adapt to narrow controls.
+- Added regression coverage for the compact label, custom-label precedence, progressive disclosures, and preservation of every override path; the suite now contains 262 tests.
+
 ## 0.19.2 - 2026-08-15
 
 - Widened the active dimmer's identity area on narrow cards so names such as `שידת איפור` remain readable beside the inline brightness slider.

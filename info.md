@@ -11,6 +11,8 @@ Room Popups also support independently collapsible real child Areas, and automat
 
 Multi-column device grids now contract to their real item count. Automatic Floor-heating relays may likewise use full-width subgroup tiles or a compact oval button that opens a relay-only control Popup.
 
+The Overview editor follows a global-first workflow: room, category, and device exceptions remain fully editable but stay behind explicit nested edit controls. The compact Floor-heating relay button defaults to the short `מפסק` / `Switch` label and can still be renamed globally or per room.
+
 Install through HACS as a Lovelace card and add the resource:
 
 ```yaml

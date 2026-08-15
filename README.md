@@ -733,6 +733,8 @@ Both cards expose `getConfigElement()` and work with Home Assistant's dashboard 
 
 The Overview editor provides:
 
+- A global-first workflow: common defaults stay in the main sections, while room, category, and device exceptions open only through explicit **Edit this room**, **Room-specific category overrides**, and **Device overrides** disclosures
+
 - Area/Floor target selection
 - Collapsible Floor defaults plus independently remembered Floor/Area expansion
 - Summary, temperature, attached climate/fan tags, numeric occupancy, sensor fallback, active quick-action placement, and Area-chevron settings
@@ -746,7 +748,7 @@ The Overview editor provides:
 - Entity section/room-sub-area assignment, names, icons, group protection, activity exclusion, and priority order; manual section choices override automatic fan/floor-heating mapping
 - General-room-first hierarchy plus per-room ordering of named sub-areas and their nested category sections
 - Convenient on/off, occupancy, and HVAC temperature-state color pickers with CSS-value inputs, reset actions, and live previews
-- Adjustable Area-name size, item-count-adaptive one-to-three-column light grids, single-device full-width behavior, compact/medium/wide device-card presets, editable automatic sub-category titles, selectable full/oval fan and heating-control presentation, global/per-device tile presentation and state language, native Home Assistant HVAC/fan menus, and automatic full-row brightness sliders for dimmable lights
+- Adjustable Area-name size, item-count-adaptive one-to-three-column light grids, single-device full-width behavior, compact/medium/wide device-card presets, editable automatic sub-category titles, selectable full/oval fan and heating-control presentation, a short `מפסק` / `Switch` default for the oval Floor-heating control with global/per-room custom labels, global/per-device tile presentation and state language, native Home Assistant HVAC/fan menus, and automatic full-row brightness sliders for dimmable lights
 - Safe Area/category/Floor popups and on/off/open/close controls that honor exclusion, availability, capability, and protection rules
 - Hebrew/English, RTL, responsive appearance, long-press More Info, and advanced safety lists
 
