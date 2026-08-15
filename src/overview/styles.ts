@@ -7,7 +7,7 @@ export const overviewCardStyles = css`
     container-type: inline-size;
     direction: var(--aboc-direction, ltr);
     text-align: start;
-    color: var(--primary-text-color);
+    color: var(--aboc-primary-text);
     --aboc-radius: var(--area-bubble-overview-border-radius, 26px);
     --aboc-blur: var(--area-bubble-overview-blur, 18px);
     --aboc-gap: var(--area-bubble-overview-gap, 12px);
@@ -42,8 +42,10 @@ export const overviewCardStyles = css`
     --aboc-card-bg: var(--area-bubble-overview-card-bg, transparent);
     --aboc-card-border: var(--area-bubble-overview-card-border, transparent);
     --aboc-shadow: var(--area-bubble-overview-shadow, 0 12px 30px rgba(0, 0, 0, 0.2));
-    --aboc-dark-text: #111827;
-    --aboc-light-text: #f4f3ec;
+    --aboc-primary-text: var(--area-bubble-overview-primary-text, var(--primary-text-color));
+    --aboc-secondary-text: var(--area-bubble-overview-secondary-text, var(--secondary-text-color));
+    --aboc-dark-text: var(--area-bubble-overview-active-text, #111827);
+    --aboc-light-text: var(--area-bubble-overview-control-text, #f4f3ec);
   }
 
   * {
@@ -93,7 +95,7 @@ export const overviewCardStyles = css`
     border: 2px solid color-mix(in srgb, var(--divider-color) 70%, transparent);
     border-radius: calc(var(--aboc-radius) - 4px);
     background: var(--aboc-row-bg);
-    color: var(--primary-text-color);
+    color: var(--aboc-primary-text);
   }
 
   .floor-heading.has-active .floor-summary-pill {
@@ -146,7 +148,7 @@ export const overviewCardStyles = css`
     width: 44px;
     height: 44px;
     border-radius: 999px;
-    background: color-mix(in srgb, var(--primary-text-color) 8%, transparent);
+    background: color-mix(in srgb, var(--aboc-primary-text) 8%, transparent);
     transition: transform 160ms ease;
   }
 
@@ -200,7 +202,7 @@ export const overviewCardStyles = css`
   .secondary,
   .state-text,
   .active-summary {
-    color: var(--secondary-text-color);
+    color: var(--aboc-secondary-text);
     font-size: 12px;
     line-height: 1.35;
   }
@@ -302,7 +304,7 @@ export const overviewCardStyles = css`
     overflow: hidden;
     border-radius: 999px;
     background: var(--aboc-row-bg);
-    color: var(--primary-text-color);
+    color: var(--aboc-primary-text);
     transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease;
   }
 
@@ -442,8 +444,8 @@ export const overviewCardStyles = css`
     padding: 0;
     border: 0;
     border-radius: 999px;
-    background: color-mix(in srgb, var(--primary-text-color) 8%, transparent);
-    color: var(--primary-text-color);
+    background: color-mix(in srgb, var(--aboc-primary-text) 8%, transparent);
+    color: var(--aboc-primary-text);
     cursor: pointer;
   }
 
@@ -464,7 +466,7 @@ export const overviewCardStyles = css`
     height: 48px;
     flex: 0 0 auto;
     border-radius: 999px;
-    background: color-mix(in srgb, var(--primary-text-color) 9%, transparent);
+    background: color-mix(in srgb, var(--aboc-primary-text) 9%, transparent);
     color: var(--aboc-accent);
   }
 
@@ -474,8 +476,8 @@ export const overviewCardStyles = css`
   }
 
   .area-panel.all-off > .area-summary .area-icon {
-    background: color-mix(in srgb, var(--primary-text-color) 9%, transparent);
-    color: var(--secondary-text-color);
+    background: color-mix(in srgb, var(--aboc-primary-text) 9%, transparent);
+    color: var(--aboc-secondary-text);
   }
 
   .icon-bubble.small {
@@ -628,7 +630,7 @@ export const overviewCardStyles = css`
     border-radius: calc(var(--aboc-radius) + 2px);
     outline: 0;
     background: var(--ha-card-background, var(--card-background-color));
-    color: var(--primary-text-color);
+    color: var(--aboc-primary-text);
     box-shadow: 0 24px 72px rgba(0, 0, 0, 0.42);
     direction: var(--aboc-direction, ltr);
   }
@@ -710,7 +712,7 @@ export const overviewCardStyles = css`
   }
 
   .quick-popup-summary {
-    color: var(--secondary-text-color);
+    color: var(--aboc-secondary-text);
     font-size: 12px;
     font-weight: 650;
   }
@@ -724,8 +726,8 @@ export const overviewCardStyles = css`
     padding: 0;
     border: 0;
     border-radius: 999px;
-    background: color-mix(in srgb, var(--primary-text-color) 9%, transparent);
-    color: var(--primary-text-color);
+    background: color-mix(in srgb, var(--aboc-primary-text) 9%, transparent);
+    color: var(--aboc-primary-text);
     cursor: pointer;
   }
 
@@ -1065,7 +1067,7 @@ export const overviewCardStyles = css`
     min-height: max(44px, var(--aboc-section-action-size));
     margin: 0;
     padding: 3px 5px;
-    color: var(--secondary-text-color);
+    color: var(--aboc-secondary-text);
     font-size: 14px;
     font-weight: 680;
     letter-spacing: 0.01em;
@@ -1167,7 +1169,7 @@ export const overviewCardStyles = css`
     align-items: center;
     gap: 7px;
     min-height: 28px;
-    color: var(--secondary-text-color);
+    color: var(--aboc-secondary-text);
     font-size: 12px;
     font-weight: 720;
   }
@@ -1189,7 +1191,7 @@ export const overviewCardStyles = css`
     background:
       linear-gradient(145deg, rgba(255, 255, 255, 0.055), transparent),
       var(--aboc-row-bg);
-    color: var(--primary-text-color);
+    color: var(--aboc-primary-text);
   }
 
   .entity-card:not(.active) {
@@ -1605,7 +1607,7 @@ export const overviewCardStyles = css`
     border: 0;
     border-radius: 999px;
     background: transparent;
-    color: var(--primary-text-color);
+    color: var(--aboc-primary-text);
     cursor: pointer;
   }
 
@@ -1702,7 +1704,7 @@ export const overviewCardStyles = css`
     gap: 8px;
     min-height: 116px;
     padding: 22px;
-    color: var(--secondary-text-color);
+    color: var(--aboc-secondary-text);
     text-align: center;
   }
 
@@ -1722,7 +1724,7 @@ export const overviewCardStyles = css`
     border-radius: 12px;
     background: rgba(0, 0, 0, 0.16);
     direction: ltr;
-    color: var(--secondary-text-color);
+    color: var(--aboc-secondary-text);
     font: 11px/1.4 monospace;
     text-align: left;
     white-space: pre-wrap;

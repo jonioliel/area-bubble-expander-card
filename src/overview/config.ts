@@ -1,4 +1,4 @@
-import { OVERVIEW_CARD_TYPE, OVERVIEW_DEFAULT_CONFIG, OVERVIEW_DEFAULT_STYLE, OVERVIEW_SECTIONS, QUICK_ACTION_ICONS, SECTION_ACTION_ICONS } from "./constants";
+import { OVERVIEW_CARD_TYPE, OVERVIEW_DEFAULT_CONFIG, OVERVIEW_DEFAULT_STYLE, OVERVIEW_SECTIONS, OVERVIEW_THEME_PRESETS, QUICK_ACTION_ICONS, SECTION_ACTION_ICONS } from "./constants";
 import type {
   AreaBubbleOverviewCardConfig,
   OverviewAreaOverride,
@@ -10,6 +10,7 @@ import type {
   OverviewStateLanguage,
   OverviewTileIconPosition,
   OverviewTileShape,
+  OverviewThemePreset,
   ResolvedOverviewConfig,
 } from "./types";
 import type { OverviewQuickActionId } from "./types";
@@ -159,22 +160,25 @@ export const resolveOverviewConfig = (config: AreaBubbleOverviewCardConfig): Res
   const merged = { ...OVERVIEW_DEFAULT_CONFIG, ...config };
   const customTitles = sectionTitles(config.section_titles);
   const customStyle = isRecord(config.style) ? config.style : {};
-  const requestedAreaNameSize = customStyle.area_name_size;
+  const themePresets = new Set<OverviewThemePreset>(["classic", "elegant", "light", "dark", "modern"]);
+  const themePreset = themePresets.has(config.theme_preset as OverviewThemePreset) ? config.theme_preset! : "classic";
+  const themedStyle: Record<string, unknown> = { ...OVERVIEW_THEME_PRESETS[themePreset], ...customStyle };
+  const requestedAreaNameSize = themedStyle.area_name_size;
   const areaNameSize = typeof requestedAreaNameSize === "number" && Number.isFinite(requestedAreaNameSize)
     ? Math.min(24, Math.max(11, requestedAreaNameSize))
     : OVERVIEW_DEFAULT_STYLE.area_name_size;
-  const cardBackground = typeof customStyle.card_background === "string" && customStyle.card_background.trim()
-    ? customStyle.card_background.trim()
+  const cardBackground = typeof themedStyle.card_background === "string" && themedStyle.card_background.trim()
+    ? themedStyle.card_background.trim()
     : OVERVIEW_DEFAULT_STYLE.card_background;
-  const cardTransparent = typeof customStyle.card_transparent === "boolean"
-    ? customStyle.card_transparent
+  const cardTransparent = typeof themedStyle.card_transparent === "boolean"
+    ? themedStyle.card_transparent
     : OVERVIEW_DEFAULT_STYLE.card_transparent;
-  const colorStyle = (key: "entity_active_surface" | "area_frame_color" | "occupancy_active_color" | "occupancy_vacant_color" | "occupancy_unknown_color"): string => {
-    const value = customStyle[key];
+  const colorStyle = (key: "entity_active_surface" | "area_frame_color" | "occupancy_active_color" | "occupancy_vacant_color" | "occupancy_unknown_color" | "primary_text_color" | "secondary_text_color" | "active_text_color" | "control_text_color"): string => {
+    const value = themedStyle[key];
     return typeof value === "string" ? value.trim() || OVERVIEW_DEFAULT_STYLE[key] : OVERVIEW_DEFAULT_STYLE[key];
   };
   const numberStyle = (key: "quick_action_size" | "quick_action_icon_size" | "section_action_size" | "section_action_icon_size" | "category_gap", min: number, max: number): number => {
-    const value = customStyle[key];
+    const value = themedStyle[key];
     return typeof value === "number" && Number.isFinite(value)
       ? Math.min(max, Math.max(min, value))
       : OVERVIEW_DEFAULT_STYLE[key];
@@ -190,6 +194,7 @@ export const resolveOverviewConfig = (config: AreaBubbleOverviewCardConfig): Res
     floor: typeof config.floor === "string" && config.floor ? config.floor : undefined,
     title: typeof config.title === "string" ? config.title : "",
     target_icon: typeof config.target_icon === "string" ? config.target_icon.trim() : "",
+    theme_preset: themePreset,
     show_area_expand_button:
       typeof config.show_area_expand_button === "boolean"
         ? config.show_area_expand_button
@@ -233,23 +238,28 @@ export const resolveOverviewConfig = (config: AreaBubbleOverviewCardConfig): Res
     entity_overrides: entityOverrides(config.entity_overrides),
     style: {
       ...OVERVIEW_DEFAULT_STYLE,
+      ...OVERVIEW_THEME_PRESETS[themePreset],
       ...customStyle,
       area_name_size: areaNameSize,
       card_background: cardBackground,
       card_transparent: cardTransparent,
+      primary_text_color: colorStyle("primary_text_color"),
+      secondary_text_color: colorStyle("secondary_text_color"),
+      active_text_color: colorStyle("active_text_color"),
+      control_text_color: colorStyle("control_text_color"),
       entity_active_surface: colorStyle("entity_active_surface"),
       area_frame_color: colorStyle("area_frame_color"),
-      area_frame_width: typeof customStyle.area_frame_width === "number" && Number.isFinite(customStyle.area_frame_width)
-        ? Math.min(8, Math.max(0, customStyle.area_frame_width))
+      area_frame_width: typeof themedStyle.area_frame_width === "number" && Number.isFinite(themedStyle.area_frame_width)
+        ? Math.min(8, Math.max(0, themedStyle.area_frame_width))
         : OVERVIEW_DEFAULT_STYLE.area_frame_width,
-      climate_tag_gap: typeof customStyle.climate_tag_gap === "number" && Number.isFinite(customStyle.climate_tag_gap)
-        ? Math.min(20, Math.max(0, customStyle.climate_tag_gap))
+      climate_tag_gap: typeof themedStyle.climate_tag_gap === "number" && Number.isFinite(themedStyle.climate_tag_gap)
+        ? Math.min(20, Math.max(0, themedStyle.climate_tag_gap))
         : OVERVIEW_DEFAULT_STYLE.climate_tag_gap,
-      link_section_frame_color: typeof customStyle.link_section_frame_color === "boolean"
-        ? customStyle.link_section_frame_color
+      link_section_frame_color: typeof themedStyle.link_section_frame_color === "boolean"
+        ? themedStyle.link_section_frame_color
         : OVERVIEW_DEFAULT_STYLE.link_section_frame_color,
-      section_frame_brightness: typeof customStyle.section_frame_brightness === "number" && Number.isFinite(customStyle.section_frame_brightness)
-        ? Math.min(100, Math.max(-100, customStyle.section_frame_brightness))
+      section_frame_brightness: typeof themedStyle.section_frame_brightness === "number" && Number.isFinite(themedStyle.section_frame_brightness)
+        ? Math.min(100, Math.max(-100, themedStyle.section_frame_brightness))
         : OVERVIEW_DEFAULT_STYLE.section_frame_brightness,
       occupancy_active_color: colorStyle("occupancy_active_color"),
       occupancy_vacant_color: colorStyle("occupancy_vacant_color"),

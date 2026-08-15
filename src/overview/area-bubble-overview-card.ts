@@ -1678,6 +1678,10 @@ export class AreaBubbleOverviewCard extends LitElement {
       "--area-bubble-overview-card-bg",
       style.card_transparent ? "transparent" : style.card_background,
     );
+    this.style.setProperty("--area-bubble-overview-primary-text", style.primary_text_color);
+    this.style.setProperty("--area-bubble-overview-secondary-text", style.secondary_text_color);
+    this.style.setProperty("--area-bubble-overview-active-text", style.active_text_color);
+    this.style.setProperty("--area-bubble-overview-control-text", style.control_text_color);
     this.style.setProperty(
       "--area-bubble-overview-card-border",
       style.card_transparent ? "transparent" : "color-mix(in srgb, var(--divider-color) 58%, transparent)",

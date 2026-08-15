@@ -64,6 +64,26 @@ After replacing the resource, refresh the Home Assistant frontend cache.
 
 ## Area Bubble Overview Card
 
+### Professional design themes
+
+Overview includes four coordinated professional themes in addition to the backwards-compatible `classic` appearance. Choose a theme from the visual editor under **Appearance and language → Design theme**, or set it in YAML:
+
+```yaml
+type: custom:area-bubble-overview-card
+floor: upper_floor
+theme_preset: elegant
+```
+
+Manual `style.*` values remain available after choosing a theme and override only the values you customize.
+
+| Elegant Sapphire | Luminous Sky |
+| --- | --- |
+| ![Elegant Sapphire theme](docs/screenshots/overview-theme-elegant.png) | ![Luminous Sky theme](docs/screenshots/overview-theme-light.png) |
+| **Midnight Graphite** | **Modern Sage** |
+| ![Midnight Graphite theme](docs/screenshots/overview-theme-dark.png) | ![Modern Sage theme](docs/screenshots/overview-theme-modern.png) |
+
+See the [complete theme guide](docs/themes.md) for palette intent, all YAML values, gradients, transparency, manual overrides, and accessibility behavior.
+
 ### One Area
 
 ```yaml
@@ -72,6 +92,7 @@ id: kids-room-overview
 area: kids_room
 language: he
 rtl: auto
+theme_preset: modern
 ```
 
 ### A complete Floor
@@ -541,6 +562,7 @@ style:
 | `title` | none | Optional overall title; Floor mode still shows the Floor name by default. |
 | `target_icon` | registry/fallback icon | Overrides the top-level Area or Floor icon. |
 | `language` / `rtl` | `auto` | `he`, `en`; RTL may be `auto`, `true`, or `false`. |
+| `theme_preset` | `classic` | `classic`, `elegant`, `light`, `dark`, or `modern`. The preset is a base; explicit `style.*` values override it. |
 | `show_temperature` | `true` | Shows the preferred/automatic current temperature. |
 | `show_occupancy` | `true` | Shows a numeric occupancy/count-sensor badge, including zero and unknown. |
 | `show_quick_actions` | `true` | Shows popup triggers only for categories that currently have a powered member. |
@@ -590,6 +612,8 @@ style:
 | `style.row_background` | theme-aware neutral | Shared Floor-header, powered-off Area, and inactive-entity background. |
 | `style.card_transparent` | `true` | Removes the card surface and border so the dashboard background is visible. |
 | `style.card_background` | HA card background | Card color/CSS value used when transparent mode is disabled. |
+| `style.primary_text_color` / `secondary_text_color` | HA theme text | Main and supporting text colors; presets supply coordinated accessible values. |
+| `style.active_text_color` / `control_text_color` | dark / light | Text used on active room/device surfaces and dark control pills. |
 | `style.area_name_size` | `17` | Area-name font size in pixels, clamped to 11–24; also editable in Appearance. |
 | `style.category_gap` | `12` | Vertical space in pixels between expanded categories, clamped to 0–40. |
 | `style.quick_action_size` / `quick_action_icon_size` | `38` / `20` | Collapsed-room quick-action circle and glyph sizes. |

@@ -2,6 +2,14 @@
 
 All notable changes to Area Bubble Expander Card will be documented in this file.
 
+## 0.13.0 - 2026-08-15
+
+- Added four professionally coordinated Overview themes: Elegant Sapphire, Luminous Sky, Midnight Graphite, and Modern Sage, while retaining the original `classic` appearance as the default.
+- Added restrained multi-stop gradients, palette-specific room/device/control/temperature colors, semantic primary/secondary/active/control text colors, and verified WCAG-readable active/control contrast.
+- Added an HA-style visual theme chooser. Selecting a preset resets only prior theme-color overrides; layout, ordering, entity choices, and all other behavior remain untouched and every color can still be fine-tuned.
+- Added a complete theme guide and four real rendered screenshots, plus regression coverage for palette resolution, YAML sanitization, manual overrides, semantic CSS variables, editor behavior, and contrast.
+- Expanded the full regression suite to 186 passing tests and visually verified all four palettes without horizontal overflow.
+
 ## 0.12.0 - 2026-08-15
 
 - Added `show_floor_expand_button` so the top Floor chevron can be hidden while the full Floor header remains an accessible collapse control.

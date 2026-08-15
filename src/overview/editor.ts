@@ -2,7 +2,7 @@ import { LitElement, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type { HassAreaRegistryEntry, HassEntity, HomeAssistant } from "../types";
 import { resolveOverviewConfig } from "./config";
-import { OVERVIEW_CARD_TYPE, OVERVIEW_DEFAULT_STYLE, OVERVIEW_EDITOR_TAG, OVERVIEW_QUICK_ACTIONS, OVERVIEW_SECTIONS, QUICK_ACTION_ICONS, SECTION_ACTION_ICONS, SECTION_ICONS } from "./constants";
+import { OVERVIEW_CARD_TYPE, OVERVIEW_DEFAULT_STYLE, OVERVIEW_EDITOR_TAG, OVERVIEW_QUICK_ACTIONS, OVERVIEW_SECTIONS, OVERVIEW_THEME_PRESETS, QUICK_ACTION_ICONS, SECTION_ACTION_ICONS, SECTION_ICONS } from "./constants";
 import { discoverOverview, isOverviewEntityPowered, overviewEntityAreaId } from "./discovery";
 import { overviewLanguage } from "./translations";
 import type {
@@ -13,6 +13,7 @@ import type {
   OverviewSectionId,
   OverviewSectionStyle,
   OverviewStyleConfig,
+  OverviewThemePreset,
   ResolvedOverviewConfig,
 } from "./types";
 import { css } from "lit";
@@ -77,6 +78,31 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
     .state-preview-item.on { color: #111827; }
     .state-preview-item.off { color: #f4f3ec; }
     .state-preview-item::before { content: ""; width: 28px; height: 28px; border-radius: 50%; background: color-mix(in srgb, var(--primary-text-color) 12%, transparent); }
+    .theme-preset-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .theme-preset {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: center;
+      gap: 10px;
+      min-height: 74px;
+      padding: 10px;
+      border: 2px solid color-mix(in srgb, var(--divider-color) 72%, transparent);
+      border-radius: 14px;
+      background: var(--card-background-color);
+      color: var(--primary-text-color);
+      text-align: start;
+      cursor: pointer;
+    }
+    .theme-preset.selected { border-color: var(--primary-color); box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-color) 18%, transparent); }
+    .theme-preset-preview { display: grid; place-items: center; width: 58px; height: 52px; border: 1px solid var(--theme-frame); border-radius: 13px; background: var(--theme-card); box-shadow: 0 6px 14px rgba(0,0,0,0.12); }
+    .theme-preset-swatches { display: flex; gap: 4px; }
+    .theme-preset-swatches i { display: block; width: 13px; height: 13px; border-radius: 999px; background: var(--theme-active); }
+    .theme-preset-swatches i:nth-child(2) { background: var(--theme-control); }
+    .theme-preset-swatches i:nth-child(3) { background: var(--theme-accent); }
+    .theme-preset-copy { min-width: 0; }
+    .theme-preset-copy strong, .theme-preset-copy span { display: block; }
+    .theme-preset-copy strong { margin-bottom: 3px; font-size: 13px; }
+    .theme-preset-copy span { color: var(--secondary-text-color); font-size: 11px; line-height: 1.35; }
     textarea { min-height: 90px; resize: vertical; direction: ltr; }
     input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
     .settings-list { display: grid; gap: 2px; }
@@ -123,7 +149,7 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
     .empty { padding: 18px; color: var(--secondary-text-color); text-align: center; }
     .status { display: inline-flex; align-items: center; gap: 5px; min-height: 24px; padding: 0 8px; border-radius: 999px; background: color-mix(in srgb, var(--success-color, #4caf50) 14%, transparent); color: var(--success-color, #4caf50); font-size: 11px; font-weight: 700; }
     @media (max-width: 560px) {
-      .inline-fields, .entity-toolbar, .entity-fields, .state-preview { grid-template-columns: 1fr; }
+      .inline-fields, .entity-toolbar, .entity-fields, .state-preview, .theme-preset-grid { grid-template-columns: 1fr; }
       .icon-picker-row, .color-control { grid-template-columns: auto minmax(0, 1fr); }
       .icon-picker-row .reset-button, .color-control .reset-button { grid-column: 1 / -1; }
       .order-item { grid-template-columns: auto minmax(0, 1fr); }
@@ -146,6 +172,7 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
     if (typeof config.show_area_expand_button !== "boolean") delete sanitized.show_area_expand_button;
     if (typeof config.show_floor_expand_button !== "boolean") delete sanitized.show_floor_expand_button;
     if (config.area_open_mode !== "expander" && config.area_open_mode !== "popup") delete sanitized.area_open_mode;
+    if (!["classic", "elegant", "light", "dark", "modern"].includes(String(config.theme_preset))) delete sanitized.theme_preset;
     this.config = sanitized;
     this.targetMode = config.floor ? "floor" : "area";
     if (config.area) this.activeAreaId = config.area;
@@ -692,6 +719,27 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
       <details>
         ${this.summary("mdi:palette-outline", this.l("מראה ושפה", "Appearance and language", language), this.l("צבעים, מרווחים ו-RTL", "Colors, spacing, and RTL", language))}
         <div class="panel">
+          <div class="setting-title">${this.l("ערכת עיצוב", "Design theme", language)}</div>
+          <div class="theme-preset-grid" role="radiogroup" aria-label=${this.l("בחירת ערכת עיצוב", "Choose design theme", language)}>
+            ${([
+              ["classic", this.l("קלאסי", "Classic", language), this.l("המראה המקורי, משתלב עם ערכת Home Assistant", "Original look that follows the Home Assistant theme", language)],
+              ["elegant", this.l("אלגנטי · ספיר", "Elegant · Sapphire", language), this.l("כחול מעושן, מתכת עדינה וניגודיות רגועה", "Muted blue, subtle metallic depth, calm contrast", language)],
+              ["light", this.l("מואר · שמיים", "Luminous · Sky", language), this.l("לבן נקי, תכלת רך ותחושה אוורירית", "Clean white, soft sky blue, airy finish", language)],
+              ["dark", this.l("כהה · חצות", "Dark · Midnight", language), this.l("גרפיט עמוק, טורקיז מרוסן וקריאות גבוהה", "Deep graphite, restrained teal, high readability", language)],
+              ["modern", this.l("עכשווי · מרווה", "Modern · Sage", language), this.l("גוונים טבעיים, חמים ומינימליסטיים", "Natural, warm, minimalist tones", language)],
+            ] as Array<[OverviewThemePreset, string, string]>).map(([preset, title, description]) => {
+              const palette = { ...OVERVIEW_DEFAULT_STYLE, ...OVERVIEW_THEME_PRESETS[preset] };
+              return html`<button
+                class="theme-preset ${resolved.theme_preset === preset ? "selected" : ""}"
+                type="button"
+                role="radio"
+                aria-checked=${resolved.theme_preset === preset}
+                style=${`--theme-card:${palette.card_background};--theme-active:${palette.active_surface};--theme-control:${palette.control_surface};--theme-accent:${palette.accent_color};--theme-frame:${palette.area_frame_color || "var(--divider-color)"}`}
+                @click=${() => this.applyThemePreset(preset)}
+              ><span class="theme-preset-preview"><span class="theme-preset-swatches"><i></i><i></i><i></i></span></span><span class="theme-preset-copy"><strong>${title}</strong><span>${description}</span></span></button>`;
+            })}
+          </div>
+          <div class="hint">${this.l("בחירת ערכה מחליפה את צבעי הערכה בלבד. לאחר מכן ניתן להתאים כל צבע ידנית.", "Choosing a theme replaces theme colors only; every color can still be fine-tuned below.", language)}</div>
           <div class="inline-fields">
             <div class="field"><label>${this.l("מיקום פעולות מהירות בחדר", "Room quick-actions position", language)}</label><select .value=${resolved.quick_actions_position} @change=${(event: Event) => this.commitKey("quick_actions_position", (event.target as HTMLSelectElement).value)}><option value="opposite">${this.l("בצד הנגדי לשם", "Opposite the room name", language)}</option><option value="near_name">${this.l("צמוד לשם החדר", "Next to the room name", language)}</option></select></div>
             <div class="field"><label>${this.l("מיקום תגי מזגן ומאוורר", "Climate and fan tag position", language)}</label><select .value=${resolved.climate_tag_position} @change=${(event: Event) => this.commitKey("climate_tag_position", (event.target as HTMLSelectElement).value)}><option value="left">${this.l("משמאל לטמפרטורה", "Left of temperature", language)}</option><option value="right">${this.l("מימין לטמפרטורה", "Right of temperature", language)}</option><option value="top">${this.l("מעל הטמפרטורה", "Above temperature", language)}</option><option value="bottom">${this.l("מתחת לטמפרטורה", "Below temperature", language)}</option></select></div>
@@ -740,6 +788,10 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
             ${this.colorField(this.l("צבע חדר ריק", "Vacant presence color", language), "occupancy_vacant_color", resolved.style.occupancy_vacant_color, "#f4f3ec", language)}
             ${this.colorField(this.l("צבע נוכחות לא ידועה", "Unknown presence color", language), "occupancy_unknown_color", resolved.style.occupancy_unknown_color, "#ffcc80", language)}
             ${this.colorField(this.l("צבע הדגשה", "Accent color", language), "accent_color", resolved.style.accent_color, "#03a9f4", language)}
+            ${this.colorField(this.l("צבע טקסט ראשי", "Primary text color", language), "primary_text_color", resolved.style.primary_text_color, "#172033", language)}
+            ${this.colorField(this.l("צבע טקסט משני", "Secondary text color", language), "secondary_text_color", resolved.style.secondary_text_color, "#526174", language)}
+            ${this.colorField(this.l("טקסט על רקע פעיל", "Text on active surfaces", language), "active_text_color", resolved.style.active_text_color, "#172033", language)}
+            ${this.colorField(this.l("טקסט על כפתורי שליטה", "Text on control pills", language), "control_text_color", resolved.style.control_text_color, "#f8fafc", language)}
             ${this.colorField(this.l("טמפרטורה — מיזוג כבוי", "Temperature — climate off", language), "temperature_off_surface", resolved.style.temperature_off_surface, "#0b1c3a", language)}
             ${this.colorField(this.l("טמפרטורה — קירור", "Temperature — cooling", language), "temperature_cool_surface", resolved.style.temperature_cool_surface, "#2271c4", language)}
             ${this.colorField(this.l("טמפרטורה — חימום", "Temperature — heating", language), "temperature_heat_surface", resolved.style.temperature_heat_surface, "#c6532f", language)}
@@ -1160,6 +1212,19 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
     if (value === undefined || value === "") delete style[key];
     else style[key] = value;
     this.commit({ ...this.config, style: style as OverviewStyleConfig });
+  }
+
+  private applyThemePreset(preset: OverviewThemePreset): void {
+    const style = { ...(this.config.style ?? {}) } as Record<string, unknown>;
+    const themeKeys = new Set(
+      Object.values(OVERVIEW_THEME_PRESETS).flatMap((theme) => Object.keys(theme)),
+    );
+    for (const key of themeKeys) delete style[key];
+    this.commit({
+      ...this.config,
+      theme_preset: preset,
+      style: (Object.keys(style).length ? style : undefined) as OverviewStyleConfig | undefined,
+    });
   }
 
   private commitKey(key: keyof AreaBubbleOverviewCardConfig, value: unknown): void {

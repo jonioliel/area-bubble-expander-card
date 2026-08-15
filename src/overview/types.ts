@@ -7,6 +7,7 @@ export type OverviewSectionBorderStyle = "solid" | "dashed" | "dotted";
 export type OverviewQuickActionsPosition = "near_name" | "opposite";
 export type OverviewClimateTagPosition = "left" | "right" | "top" | "bottom";
 export type OverviewAreaOpenMode = "expander" | "popup";
+export type OverviewThemePreset = "classic" | "elegant" | "light" | "dark" | "modern";
 export type OverviewStateLanguage = "auto" | "he" | "en";
 export type OverviewTileShape = "rectangle" | "square";
 export type OverviewTileIconPosition = "start" | "left" | "right" | "center";
@@ -67,6 +68,10 @@ export type OverviewStyleConfig = Pick<
   area_name_size?: number;
   card_background?: string;
   card_transparent?: boolean;
+  primary_text_color?: string;
+  secondary_text_color?: string;
+  active_text_color?: string;
+  control_text_color?: string;
   active_color?: string;
   active_surface?: string;
   entity_active_surface?: string;
@@ -103,6 +108,7 @@ export type AreaBubbleOverviewCardConfig = {
   target_icon?: string;
   language?: LanguageMode;
   rtl?: RtlMode;
+  theme_preset?: OverviewThemePreset;
   show_header?: boolean;
   show_floor_header?: boolean;
   show_temperature?: boolean;
