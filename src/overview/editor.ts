@@ -2,7 +2,7 @@ import { LitElement, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type { HassAreaRegistryEntry, HassEntity, HomeAssistant } from "../types";
 import { resolveOverviewConfig } from "./config";
-import { AUTO_FAN_GROUP, AUTO_FLOOR_HEATING_GROUP, OVERVIEW_CARD_TYPE, OVERVIEW_DEFAULT_STYLE, OVERVIEW_EDITOR_TAG, OVERVIEW_QUICK_ACTIONS, OVERVIEW_SECTIONS, OVERVIEW_THEME_PRESETS, QUICK_ACTION_ICONS, SECTION_ACTION_ICONS, SECTION_ICONS } from "./constants";
+import { AUTO_FAN_GROUP, AUTO_FLOOR_HEATING_GROUP, OVERVIEW_CARD_TYPE, OVERVIEW_DEFAULT_STYLE, OVERVIEW_EDITOR_TAG, OVERVIEW_QUICK_ACTIONS, OVERVIEW_SECTIONS, OVERVIEW_THEME_NAMES, OVERVIEW_THEME_PRESETS, overviewThemePalette, QUICK_ACTION_ICONS, SECTION_ACTION_ICONS, SECTION_ICONS } from "./constants";
 import { discoverOverview, isOverviewEntityPowered, overviewEntityAreaId } from "./discovery";
 import { overviewLanguage } from "./translations";
 import type {
@@ -16,6 +16,7 @@ import type {
   OverviewSectionId,
   OverviewSectionStyle,
   OverviewStyleConfig,
+  OverviewThemeMode,
   OverviewThemePreset,
   ResolvedOverviewConfig,
 } from "./types";
@@ -106,6 +107,9 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
     .theme-preset-copy strong, .theme-preset-copy span { display: block; }
     .theme-preset-copy strong { margin-bottom: 3px; font-size: 13px; }
     .theme-preset-copy span { color: var(--secondary-text-color); font-size: 11px; line-height: 1.35; }
+    .theme-mode-switch { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-bottom: 10px; padding: 4px; border-radius: 12px; background: var(--secondary-background-color); }
+    .theme-mode-switch button { min-height: 38px; border: 1px solid transparent; border-radius: 9px; background: transparent; color: var(--primary-text-color); font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+    .theme-mode-switch button.selected { border-color: color-mix(in srgb, var(--primary-color) 55%, transparent); background: var(--card-background-color); color: var(--primary-color); box-shadow: 0 2px 8px rgba(0,0,0,.08); }
     textarea { min-height: 90px; resize: vertical; direction: ltr; }
     input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
     .settings-list { display: grid; gap: 2px; }
@@ -175,7 +179,8 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
     if (typeof config.show_area_expand_button !== "boolean") delete sanitized.show_area_expand_button;
     if (typeof config.show_floor_expand_button !== "boolean") delete sanitized.show_floor_expand_button;
     if (config.area_open_mode !== "expander" && config.area_open_mode !== "popup") delete sanitized.area_open_mode;
-    if (!["classic", "elegant", "light", "dark", "modern"].includes(String(config.theme_preset))) delete sanitized.theme_preset;
+    if (!OVERVIEW_THEME_NAMES.includes(config.theme_preset as OverviewThemePreset)) delete sanitized.theme_preset;
+    if (!["recommended", "light", "dark"].includes(String(config.theme_mode))) delete sanitized.theme_mode;
     this.config = sanitized;
     this.targetMode = config.floor ? "floor" : "area";
     if (config.area) this.activeAreaId = config.area;
@@ -841,6 +846,19 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
         ${this.summary("mdi:palette-outline", this.l("מראה ושפה", "Appearance and language", language), this.l("צבעים, מרווחים ו-RTL", "Colors, spacing, and RTL", language))}
         <div class="panel">
           <div class="setting-title">${this.l("ערכת עיצוב", "Design theme", language)}</div>
+          <div class="theme-mode-switch" role="radiogroup" aria-label=${this.l("גרסת צבע", "Theme color mode", language)}>
+            ${(["recommended", "light", "dark"] as OverviewThemeMode[]).map((mode) => html`<button
+              class=${resolved.theme_mode === mode ? "selected" : ""}
+              type="button"
+              role="radio"
+              aria-checked=${resolved.theme_mode === mode}
+              @click=${() => this.applyThemeMode(mode)}
+            >${mode === "recommended"
+              ? this.l("מומלץ", "Recommended", language)
+              : mode === "light"
+                ? this.l("בהיר", "Light", language)
+                : this.l("כהה", "Dark", language)}</button>`)}
+          </div>
           <div class="theme-preset-grid" role="radiogroup" aria-label=${this.l("בחירת ערכת עיצוב", "Choose design theme", language)}>
             ${([
               ["classic", this.l("קלאסי", "Classic", language), this.l("המראה המקורי, משתלב עם ערכת Home Assistant", "Original look that follows the Home Assistant theme", language)],
@@ -848,8 +866,14 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
               ["light", this.l("מואר · שמיים", "Luminous · Sky", language), this.l("לבן נקי, תכלת רך ותחושה אוורירית", "Clean white, soft sky blue, airy finish", language)],
               ["dark", this.l("כהה · חצות", "Dark · Midnight", language), this.l("גרפיט עמוק, טורקיז מרוסן וקריאות גבוהה", "Deep graphite, restrained teal, high readability", language)],
               ["modern", this.l("עכשווי · מרווה", "Modern · Sage", language), this.l("גוונים טבעיים, חמים ומינימליסטיים", "Natural, warm, minimalist tones", language)],
+              ["ocean", this.l("אוקיינוס · אזור", "Ocean · Azure", language), this.l("כחול חי, טורקיז נקי ועומק ימי", "Vivid blue, clean turquoise, ocean depth", language)],
+              ["emerald", this.l("בוטני · אמרלד", "Botanical · Emerald", language), this.l("ירוק עשיר, איזון טבעי וניגוד רגוע", "Rich green, natural balance, calm contrast", language)],
+              ["violet", this.l("אטלייה · אמטיסט", "Atelier · Amethyst", language), this.l("סגול מעודן, עומק יצירתי וגימור אלגנטי", "Refined violet, creative depth, elegant finish", language)],
+              ["coral", this.l("טרקוטה · קורל", "Terracotta · Coral", language), this.l("כתום רך, חמימות מרוסנת ואופי מודרני", "Soft coral, restrained warmth, modern character", language)],
+              ["amber", this.l("זהוב · ענבר", "Golden · Amber", language), this.l("זהב עמוק, חום מדויק ונוכחות מתונה", "Deep gold, precise warmth, understated presence", language)],
+              ["rose", this.l("רוזה · פרי יער", "Rose · Berry", language), this.l("רוזה עשיר, סגול עדין ואלגנטיות רכה", "Rich rose, subtle violet, soft sophistication", language)],
             ] as Array<[OverviewThemePreset, string, string]>).map(([preset, title, description]) => {
-              const palette = { ...OVERVIEW_DEFAULT_STYLE, ...OVERVIEW_THEME_PRESETS[preset] };
+              const palette = { ...OVERVIEW_DEFAULT_STYLE, ...overviewThemePalette(preset, resolved.theme_mode) };
               return html`<button
                 class="theme-preset ${resolved.theme_preset === preset ? "selected" : ""}"
                 type="button"
@@ -1373,6 +1397,19 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
     this.commit({
       ...this.config,
       theme_preset: preset,
+      style: (Object.keys(style).length ? style : undefined) as OverviewStyleConfig | undefined,
+    });
+  }
+
+  private applyThemeMode(mode: OverviewThemeMode): void {
+    const style = { ...(this.config.style ?? {}) } as Record<string, unknown>;
+    const themeKeys = new Set(
+      Object.values(OVERVIEW_THEME_PRESETS).flatMap((theme) => Object.keys(theme)),
+    );
+    for (const key of themeKeys) delete style[key];
+    this.commit({
+      ...this.config,
+      theme_mode: mode,
       style: (Object.keys(style).length ? style : undefined) as OverviewStyleConfig | undefined,
     });
   }

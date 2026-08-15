@@ -1,6 +1,6 @@
 # Overview design themes
 
-Area Bubble Overview ships with four coordinated professional themes plus the original classic appearance. A theme controls the card, inactive and active surfaces, device surfaces, controls, climate and temperature states, frames, presence indicators, typography colors, glass blur, radius, and shadows as one coherent palette.
+Area Bubble Overview ships with ten coordinated professional color families plus the original classic appearance. Every family has complete light and dark variants. A theme controls the card, inactive and active surfaces, device surfaces, controls, climate and temperature states, frames, presence indicators, typography colors, glass blur, radius, and shadows as one coherent palette.
 
 Themes do not change discovery, device order, room hierarchy, actions, popup/expander behavior, visibility, or safety settings.
 
@@ -15,6 +15,7 @@ type: custom:area-bubble-overview-card
 id: main-floor
 floor: main_floor
 theme_preset: elegant
+theme_mode: dark
 ```
 
 Accepted values are:
@@ -26,6 +27,19 @@ Accepted values are:
 | `light` | Luminous Sky | Clean white, soft sky blue, low visual weight, and an airy dashboard feel. |
 | `dark` | Midnight Graphite | Deep graphite and navy with restrained teal details and high-contrast text. |
 | `modern` | Modern Sage | Warm neutral surfaces, desaturated sage, and a quiet contemporary character. |
+| `ocean` | Ocean Azure | Vivid marine blue, clean turquoise, and controlled depth. |
+| `emerald` | Botanical Emerald | Rich green, natural balance, and calm contrast. |
+| `violet` | Atelier Amethyst | Refined violet with subtle berry depth. |
+| `coral` | Terracotta Coral | Restrained coral warmth with a modern neutral base. |
+| `amber` | Golden Amber | Deep gold and warm mineral tones without visual glare. |
+| `rose` | Rose Berry | Sophisticated rose with a quiet violet secondary tone. |
+
+`theme_mode` accepts `recommended`, `light`, or `dark`. Recommended preserves the established appearance of the original presets, keeps Classic tied to Home Assistant theme variables, and uses the curated light composition for the six new color families. Selecting Light or Dark applies a complete explicit palette for the chosen family.
+
+```yaml
+theme_preset: emerald
+theme_mode: light
+```
 
 ## Theme gallery
 
@@ -51,6 +65,7 @@ The selected preset is the base. Explicit `style.*` values are applied afterward
 
 ```yaml
 theme_preset: dark
+theme_mode: dark
 style:
   active_surface: "linear-gradient(135deg, #264f5c 0%, #364b70 100%)"
   area_frame_color: "#77b8ca"
@@ -108,6 +123,7 @@ floor: living_floor
 language: he
 rtl: true
 theme_preset: elegant
+theme_mode: light
 show_floor_expand_button: false
 show_area_expand_button: false
 area_open_mode: popup
@@ -125,6 +141,7 @@ Choose **Classic** in the visual editor or set:
 
 ```yaml
 theme_preset: classic
+theme_mode: recommended
 ```
 
 Classic follows Home Assistant theme variables and preserves the original Area Bubble Overview appearance.

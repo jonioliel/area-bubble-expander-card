@@ -1126,7 +1126,6 @@ export const overviewCardStyles = css`
     --aboc-entity-gap: 5px;
     --aboc-entity-padding-inline: 6px;
     --aboc-cover-grid-min-height: 76px;
-    --aboc-light-card-min-height: 82px;
   }
 
   .device-section.entity-size-medium {
@@ -1136,7 +1135,6 @@ export const overviewCardStyles = css`
     --aboc-entity-gap: 9px;
     --aboc-entity-padding-inline: 9px;
     --aboc-cover-grid-min-height: 92px;
-    --aboc-light-card-min-height: 92px;
   }
 
   .device-section.entity-size-wide {
@@ -1146,7 +1144,6 @@ export const overviewCardStyles = css`
     --aboc-entity-gap: 11px;
     --aboc-entity-padding-inline: 13px;
     --aboc-cover-grid-min-height: 108px;
-    --aboc-light-card-min-height: 108px;
   }
 
   .section-heading {
@@ -1553,8 +1550,18 @@ export const overviewCardStyles = css`
   .light-card {
     display: grid;
     gap: 7px;
-    min-height: max(var(--aboc-light-card-min-height, 92px), var(--aboc-section-entity-height, var(--aboc-row-height)));
+    min-height: max(var(--aboc-section-entity-height, var(--aboc-row-height)), var(--aboc-row-height));
     padding: 8px var(--aboc-entity-padding-inline, 10px);
+  }
+
+  .light-card.dimmer-on {
+    grid-template-columns: minmax(118px, 0.92fr) minmax(124px, 1.08fr);
+    align-items: center;
+  }
+
+  .light-card.dimmer-off {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: center;
   }
 
   .section-lights_switches .light-card {
@@ -1629,9 +1636,9 @@ export const overviewCardStyles = css`
   .brightness-control {
     direction: ltr;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 42px;
+    grid-template-columns: minmax(52px, 1fr) 34px;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
     min-width: 0;
   }
 
@@ -2259,6 +2266,23 @@ export const overviewCardStyles = css`
 
     .climate-primary {
       grid-template-columns: minmax(0, 1fr);
+    }
+
+    .light-card.dimmer-on {
+      grid-template-columns: minmax(128px, 1fr) minmax(70px, 0.55fr);
+    }
+
+    .light-card.dimmer-on .brightness-control {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .light-card.dimmer-on .brightness-value {
+      display: none;
+    }
+
+    .light-card.dimmer-on .icon-bubble.small {
+      width: 36px;
+      height: 36px;
     }
 
     .climate-primary .temperature-stepper,

@@ -2,13 +2,15 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import { resolveOverviewConfig } from "../src/overview/config";
-import { OVERVIEW_DEFAULT_STYLE, OVERVIEW_THEME_PRESETS } from "../src/overview/constants";
+import { OVERVIEW_DEFAULT_STYLE, OVERVIEW_THEME_NAMES, OVERVIEW_THEME_PRESETS, OVERVIEW_THEME_VARIANTS, overviewThemePalette } from "../src/overview/constants";
 import { overviewCardStyles } from "../src/overview/styles";
-import type { OverviewThemePreset } from "../src/overview/types";
+import type { OverviewThemeMode, OverviewThemePreset } from "../src/overview/types";
 
 const type = "custom:area-bubble-overview-card" as const;
-const presets: OverviewThemePreset[] = ["classic", "elegant", "light", "dark", "modern"];
-const designedPresets: OverviewThemePreset[] = ["elegant", "light", "dark", "modern"];
+const presets: OverviewThemePreset[] = ["classic", "elegant", "light", "dark", "modern", "ocean", "emerald", "violet", "coral", "amber", "rose"];
+const designedPresets = presets.filter((preset) => preset !== "classic");
+const newPresets: OverviewThemePreset[] = ["ocean", "emerald", "violet", "coral", "amber", "rose"];
+const explicitModes: Array<Exclude<OverviewThemeMode, "recommended">> = ["light", "dark"];
 const cardSource = readFileSync(new URL("../src/overview/area-bubble-overview-card.ts", import.meta.url), "utf8");
 const editorSource = readFileSync(new URL("../src/overview/editor.ts", import.meta.url), "utf8");
 const css = overviewCardStyles.cssText;
@@ -39,8 +41,9 @@ describe("Overview professional design themes", () => {
     expect(resolved.style.active_surface).toBe(OVERVIEW_DEFAULT_STYLE.active_surface);
   });
 
-  it("ships four complete coordinated palettes with restrained gradients", () => {
+  it("ships ten complete coordinated palettes plus the backwards-compatible classic base", () => {
     expect(Object.keys(OVERVIEW_THEME_PRESETS)).toEqual(presets);
+    expect(OVERVIEW_THEME_NAMES).toEqual(presets);
     for (const preset of designedPresets) {
       const palette = OVERVIEW_THEME_PRESETS[preset];
       expect(palette.card_background).toMatch(/^linear-gradient\(/);
@@ -49,6 +52,51 @@ describe("Overview professional design themes", () => {
       expect(palette.card_transparent).toBe(false);
       expect(palette.area_frame_color).toMatch(/^#[0-9a-f]{6}$/i);
     }
+  });
+
+  it("adds six vivid professional color families", () => {
+    expect(newPresets).toEqual(["ocean", "emerald", "violet", "coral", "amber", "rose"]);
+    for (const preset of newPresets) {
+      expect(OVERVIEW_THEME_PRESETS[preset].card_background).toMatch(/^linear-gradient\(/);
+      expect(OVERVIEW_THEME_PRESETS[preset].show_shadows).toBe(true);
+    }
+  });
+
+  it("provides complete light and dark variants for every theme family", () => {
+    for (const preset of presets) {
+      for (const mode of explicitModes) {
+        const palette = OVERVIEW_THEME_VARIANTS[preset][mode];
+        expect(palette.card_background).toMatch(/^linear-gradient\(/);
+        expect(palette.active_surface).toMatch(/^linear-gradient\(/);
+        expect(palette.entity_active_surface).toMatch(/^#[0-9a-f]{6}$/i);
+        expect(palette.control_surface).toMatch(/^#[0-9a-f]{6}$/i);
+        expect(palette.card_transparent).toBe(false);
+      }
+    }
+  });
+
+  it.each(presets.flatMap((preset) => explicitModes.map((mode) => [preset, mode] as const)))(
+    "keeps readable active and control contrast in %s/%s",
+    (preset, mode) => {
+      const palette = OVERVIEW_THEME_VARIANTS[preset][mode];
+      expect(contrast(String(palette.active_text_color), String(palette.entity_active_surface))).toBeGreaterThanOrEqual(4.5);
+      expect(contrast(String(palette.control_text_color), String(palette.control_surface))).toBeGreaterThanOrEqual(4.5);
+      expect(contrast(String(palette.occupancy_active_color), String(palette.control_surface))).toBeGreaterThanOrEqual(4.5);
+      expect(contrast(String(palette.occupancy_vacant_color), String(palette.control_surface))).toBeGreaterThanOrEqual(4.5);
+      expect(contrast(String(palette.occupancy_unknown_color), String(palette.control_surface))).toBeGreaterThanOrEqual(4.5);
+    },
+  );
+
+  it("resolves explicit theme modes while preserving recommended legacy defaults", () => {
+    expect(resolveOverviewConfig({ type }).theme_mode).toBe("recommended");
+    expect(resolveOverviewConfig({ type }).style.active_surface).toBe(OVERVIEW_DEFAULT_STYLE.active_surface);
+    expect(resolveOverviewConfig({ type, theme_preset: "ocean", theme_mode: "dark" }).style.card_background)
+      .toBe(OVERVIEW_THEME_VARIANTS.ocean.dark.card_background);
+    expect(resolveOverviewConfig({ type, theme_preset: "emerald", theme_mode: "light" }).style.active_surface)
+      .toBe(OVERVIEW_THEME_VARIANTS.emerald.light.active_surface);
+    expect(resolveOverviewConfig({ type, theme_preset: "rose", theme_mode: "invalid" as OverviewThemeMode }).theme_mode)
+      .toBe("recommended");
+    expect(overviewThemePalette("classic", "recommended")).toEqual({});
   });
 
   it.each(designedPresets)("resolves the %s palette as a complete style base", (preset) => {
@@ -106,6 +154,14 @@ describe("Overview professional design themes", () => {
     expect(editorSource).toContain("Luminous · Sky");
     expect(editorSource).toContain("Dark · Midnight");
     expect(editorSource).toContain("Modern · Sage");
+    expect(editorSource).toContain("Ocean · Azure");
+    expect(editorSource).toContain("Botanical · Emerald");
+    expect(editorSource).toContain("Atelier · Amethyst");
+    expect(editorSource).toContain("Terracotta · Coral");
+    expect(editorSource).toContain("Golden · Amber");
+    expect(editorSource).toContain("Rose · Berry");
+    expect(editorSource).toContain('class="theme-mode-switch"');
+    expect(editorSource).toContain("this.applyThemeMode(mode)");
     expect(editorSource).toContain("this.applyThemePreset(preset)");
     expect(editorSource).toContain("for (const key of themeKeys) delete style[key]");
     expect(editorSource).toContain("Primary text color");

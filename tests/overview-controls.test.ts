@@ -52,12 +52,20 @@ describe("Overview dimmer controls", () => {
     expect(lightBrightnessPercentage(overviewEntity("light.max", "on", {}))).toBe(100);
   });
 
-  it("renders the HA slider and sends brightness_pct or turn_off only after a committed value", () => {
+  it("renders an inline HA slider only while the dimmer is on and commits brightness safely", () => {
     const source = readFileSync(new URL("../src/overview/area-bubble-overview-card.ts", import.meta.url), "utf8");
+    const styles = readFileSync(new URL("../src/overview/styles.ts", import.meta.url), "utf8");
     expect(source).toContain("<ha-control-slider");
+    expect(source).toContain('${item.powered ? html`<div class="brightness-control"');
+    expect(source).toContain('${item.powered ? "dimmer-on" : "dimmer-off"}');
     expect(source).toContain("@value-changed=${(event: Event) => this.setLightBrightness(item, event)}");
     expect(source).toContain('{ brightness_pct: brightness }');
     expect(source).toMatch(/brightness === 0[\s\S]*?"turn_off"/);
+    expect(styles).toMatch(/\.light-card\.dimmer-on\s*\{[^}]*grid-template-columns:\s*minmax\(118px,\s*0\.92fr\)\s*minmax\(124px,\s*1\.08fr\)/s);
+    expect(styles).toMatch(/\.light-card\.dimmer-off\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/s);
+    expect(styles).toMatch(/@container overview-card \(max-width:\s*340px\)[\s\S]*?\.light-card\.dimmer-on\s*\{[^}]*grid-template-columns:\s*minmax\(128px,\s*1fr\)\s*minmax\(70px,\s*0\.55fr\)/s);
+    expect(styles).toMatch(/\.light-card\.dimmer-on \.brightness-value\s*\{[^}]*display:\s*none/s);
+    expect(styles).not.toContain("--aboc-light-card-min-height");
   });
 });
 

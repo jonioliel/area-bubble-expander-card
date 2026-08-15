@@ -1,4 +1,4 @@
-import { OVERVIEW_CARD_TYPE, OVERVIEW_DEFAULT_CONFIG, OVERVIEW_DEFAULT_STYLE, OVERVIEW_SECTIONS, OVERVIEW_THEME_PRESETS, QUICK_ACTION_ICONS, SECTION_ACTION_ICONS } from "./constants";
+import { OVERVIEW_CARD_TYPE, OVERVIEW_DEFAULT_CONFIG, OVERVIEW_DEFAULT_STYLE, OVERVIEW_SECTIONS, OVERVIEW_THEME_NAMES, overviewThemePalette, QUICK_ACTION_ICONS, SECTION_ACTION_ICONS } from "./constants";
 import type {
   AreaBubbleOverviewCardConfig,
   OverviewAutomaticSubgroupId,
@@ -13,6 +13,7 @@ import type {
   OverviewStateLanguage,
   OverviewTileIconPosition,
   OverviewTileShape,
+  OverviewThemeMode,
   OverviewThemePreset,
   ResolvedOverviewConfig,
 } from "./types";
@@ -188,9 +189,12 @@ export const resolveOverviewConfig = (config: AreaBubbleOverviewCardConfig): Res
   const merged = { ...OVERVIEW_DEFAULT_CONFIG, ...config };
   const customTitles = sectionTitles(config.section_titles);
   const customStyle = isRecord(config.style) ? config.style : {};
-  const themePresets = new Set<OverviewThemePreset>(["classic", "elegant", "light", "dark", "modern"]);
+  const themePresets = new Set<OverviewThemePreset>(OVERVIEW_THEME_NAMES);
   const themePreset = themePresets.has(config.theme_preset as OverviewThemePreset) ? config.theme_preset! : "classic";
-  const themedStyle: Record<string, unknown> = { ...OVERVIEW_THEME_PRESETS[themePreset], ...customStyle };
+  const themeModes = new Set<OverviewThemeMode>(["recommended", "light", "dark"]);
+  const themeMode = themeModes.has(config.theme_mode as OverviewThemeMode) ? config.theme_mode! : "recommended";
+  const themeStyle = overviewThemePalette(themePreset, themeMode);
+  const themedStyle: Record<string, unknown> = { ...themeStyle, ...customStyle };
   const requestedAreaNameSize = themedStyle.area_name_size;
   const areaNameSize = typeof requestedAreaNameSize === "number" && Number.isFinite(requestedAreaNameSize)
     ? Math.min(24, Math.max(11, requestedAreaNameSize))
@@ -225,6 +229,7 @@ export const resolveOverviewConfig = (config: AreaBubbleOverviewCardConfig): Res
     title: typeof config.title === "string" ? config.title : "",
     target_icon: typeof config.target_icon === "string" ? config.target_icon.trim() : "",
     theme_preset: themePreset,
+    theme_mode: themeMode,
     show_area_expand_button:
       typeof config.show_area_expand_button === "boolean"
         ? config.show_area_expand_button
@@ -283,7 +288,7 @@ export const resolveOverviewConfig = (config: AreaBubbleOverviewCardConfig): Res
     entity_overrides: entityOverrides(config.entity_overrides),
     style: {
       ...OVERVIEW_DEFAULT_STYLE,
-      ...OVERVIEW_THEME_PRESETS[themePreset],
+      ...themeStyle,
       ...customStyle,
       area_name_size: areaNameSize,
       card_background: cardBackground,

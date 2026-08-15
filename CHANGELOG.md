@@ -2,6 +2,14 @@
 
 All notable changes to Area Bubble Expander Card will be documented in this file.
 
+## 0.18.0 - 2026-08-15
+
+- Added six vivid but restrained professional Overview themes: Ocean Azure, Botanical Emerald, Atelier Amethyst, Terracotta Coral, Golden Amber, and Rose Berry.
+- Added complete Light and Dark variants to every theme family, with a Recommended mode that preserves established presets and the Home Assistant-aware Classic default.
+- Kept explicit `style.*` customizations authoritative above all new palettes and added a visual three-way theme-mode selector.
+- Reworked dimmable-light tiles: OFF dimmers no longer render an inactive slider, while ON dimmers place the brightness slider inline in the same compact row.
+- Expanded palette, contrast, configuration, editor, responsive dimmer, and regression coverage; the full suite now contains 245 tests.
+
 ## 0.17.0 - 2026-08-15
 
 - Made a lone cover span the complete category width even when the Cover grid is configured for two columns; two or more covers still use the selected grid.

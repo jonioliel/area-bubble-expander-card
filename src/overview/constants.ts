@@ -4,6 +4,7 @@ import type {
   OverviewSectionActionIcons,
   OverviewSectionId,
   OverviewStyleConfig,
+  OverviewThemeMode,
   OverviewThemePreset,
 } from "./types";
 
@@ -61,6 +62,112 @@ export const SECTION_ACTION_ICONS: Required<OverviewSectionActionIcons> = {
   open: "mdi:window-shutter-open",
   close: "mdi:window-shutter",
 };
+
+type ThemeFamilySpec = {
+  accent: string;
+  deep: string;
+  secondary: string;
+};
+
+const mixHex = (foreground: string, background: string, weight: number): string => {
+  const channels = (value: string) => [1, 3, 5].map((index) => Number.parseInt(value.slice(index, index + 2), 16));
+  const foregroundChannels = channels(foreground);
+  const backgroundChannels = channels(background);
+  return `#${foregroundChannels.map((channel, index) => Math.round(channel * weight + backgroundChannels[index] * (1 - weight))
+    .toString(16)
+    .padStart(2, "0")).join("")}`;
+};
+
+const gradient = (first: string, second: string, angle = 135): string =>
+  `linear-gradient(${angle}deg, ${first} 0%, ${second} 100%)`;
+
+const themePalette = (family: ThemeFamilySpec, mode: Exclude<OverviewThemeMode, "recommended">): Partial<OverviewStyleConfig> => {
+  const dark = mode === "dark";
+  const controlSurface = dark
+    ? mixHex(family.deep, "#070e1a", 0.12)
+    : mixHex(family.deep, "#0a1424", 0.18);
+  const activeFirst = dark
+    ? mixHex(family.accent, "#132034", 0.27)
+    : mixHex(family.accent, "#ffffff", 0.18);
+  const activeSecond = dark
+    ? mixHex(family.accent, "#18273d", 0.4)
+    : mixHex(family.accent, "#ffffff", 0.34);
+  const entitySurface = dark
+    ? mixHex(family.accent, "#17243a", 0.31)
+    : mixHex(family.accent, "#ffffff", 0.25);
+  return {
+    border_radius: dark ? 24 : 26,
+    blur: dark ? 24 : 18,
+    show_shadows: true,
+    shadow_intensity: dark ? 0.32 : 0.15,
+    card_transparent: false,
+    card_background: dark
+      ? gradient(mixHex(family.accent, "#080f1d", 0.07), mixHex(family.secondary, "#17243a", 0.13), 145)
+      : gradient(mixHex(family.accent, "#ffffff", 0.04), mixHex(family.secondary, "#edf2f7", 0.1), 145),
+    row_background: dark
+      ? mixHex(family.accent, "#17243a", 0.11)
+      : mixHex(family.accent, "#ffffff", 0.065),
+    active_surface: gradient(activeFirst, activeSecond),
+    entity_active_surface: entitySurface,
+    area_frame_color: dark
+      ? mixHex(family.accent, "#ffffff", 0.74)
+      : mixHex(family.deep, "#334155", 0.72),
+    active_color: dark ? "#f5c451" : "#e4ad2f",
+    accent_color: dark ? mixHex(family.accent, "#ffffff", 0.78) : family.deep,
+    control_surface: controlSurface,
+    climate_surface: dark
+      ? gradient(mixHex("#2f83bd", "#17243a", 0.38), mixHex(family.accent, "#1b2c44", 0.32))
+      : gradient(mixHex("#4aa8db", "#ffffff", 0.3), mixHex(family.accent, "#ffffff", 0.24)),
+    climate_color: dark ? "#78c9ef" : "#1d719e",
+    cover_color: dark ? mixHex(family.secondary, "#ffffff", 0.72) : mixHex(family.secondary, "#1f5164", 0.68),
+    media_color: dark ? mixHex(family.secondary, "#ffffff", 0.72) : family.secondary,
+    temperature_off_surface: gradient(controlSurface, mixHex(family.deep, "#17243a", 0.18)),
+    temperature_cool_surface: dark
+      ? gradient("#1d5e8e", "#2f7fad")
+      : gradient("#2f73ac", "#4797c5"),
+    temperature_heat_surface: dark
+      ? gradient("#8f4639", "#b4614d")
+      : gradient("#aa543d", "#ce785a"),
+    temperature_active_surface: dark
+      ? gradient(mixHex(family.secondary, "#2b2440", 0.55), mixHex(family.secondary, "#4a3c64", 0.64))
+      : gradient(mixHex(family.secondary, "#ffffff", 0.68), mixHex(family.secondary, "#ffffff", 0.82)),
+    occupancy_active_color: dark ? "#91e7b7" : "#a7efc8",
+    occupancy_vacant_color: dark ? "#e2e8f0" : "#f4f7fb",
+    occupancy_unknown_color: dark ? "#f5cf78" : "#f4cd72",
+    primary_text_color: dark ? "#f3f7fb" : "#172033",
+    secondary_text_color: dark ? "#b6c4d4" : "#536174",
+    active_text_color: dark ? "#f7fbff" : "#172033",
+    control_text_color: "#f8fafc",
+  };
+};
+
+const THEME_FAMILIES: Record<OverviewThemePreset, ThemeFamilySpec> = {
+  classic: { accent: "#5b7c9c", deep: "#2b4968", secondary: "#7a668f" },
+  elegant: { accent: "#55799f", deep: "#304e70", secondary: "#725e91" },
+  light: { accent: "#2d8db5", deep: "#176b91", secondary: "#7c64a8" },
+  dark: { accent: "#4f8da3", deep: "#315d71", secondary: "#7768a3" },
+  modern: { accent: "#557f73", deep: "#365e54", secondary: "#806a8f" },
+  ocean: { accent: "#0ea5c6", deep: "#076d8a", secondary: "#2f7fb0" },
+  emerald: { accent: "#20a66a", deep: "#146a48", secondary: "#318f82" },
+  violet: { accent: "#8067d8", deep: "#5541a8", secondary: "#a45896" },
+  coral: { accent: "#df705b", deep: "#9f493d", secondary: "#a85d75" },
+  amber: { accent: "#d69b27", deep: "#8f620e", secondary: "#a36e48" },
+  rose: { accent: "#d65f89", deep: "#963c61", secondary: "#9365a9" },
+};
+
+export const OVERVIEW_THEME_NAMES: OverviewThemePreset[] = [
+  "classic",
+  "elegant",
+  "light",
+  "dark",
+  "modern",
+  "ocean",
+  "emerald",
+  "violet",
+  "coral",
+  "amber",
+  "rose",
+];
 
 export const OVERVIEW_THEME_PRESETS: Record<OverviewThemePreset, Partial<OverviewStyleConfig>> = {
   classic: {},
@@ -184,7 +291,30 @@ export const OVERVIEW_THEME_PRESETS: Record<OverviewThemePreset, Partial<Overvie
     active_text_color: "#183029",
     control_text_color: "#f7faf8",
   },
+  ocean: themePalette(THEME_FAMILIES.ocean, "light"),
+  emerald: themePalette(THEME_FAMILIES.emerald, "light"),
+  violet: themePalette(THEME_FAMILIES.violet, "light"),
+  coral: themePalette(THEME_FAMILIES.coral, "light"),
+  amber: themePalette(THEME_FAMILIES.amber, "light"),
+  rose: themePalette(THEME_FAMILIES.rose, "light"),
 };
+
+export const OVERVIEW_THEME_VARIANTS: Record<
+  OverviewThemePreset,
+  Record<Exclude<OverviewThemeMode, "recommended">, Partial<OverviewStyleConfig>>
+> = Object.fromEntries(
+  OVERVIEW_THEME_NAMES.map((preset) => [preset, {
+    light: themePalette(THEME_FAMILIES[preset], "light"),
+    dark: themePalette(THEME_FAMILIES[preset], "dark"),
+  }]),
+) as Record<OverviewThemePreset, Record<"light" | "dark", Partial<OverviewStyleConfig>>>;
+
+export const overviewThemePalette = (
+  preset: OverviewThemePreset,
+  mode: OverviewThemeMode,
+): Partial<OverviewStyleConfig> => mode === "recommended"
+  ? OVERVIEW_THEME_PRESETS[preset]
+  : OVERVIEW_THEME_VARIANTS[preset][mode];
 
 export const OVERVIEW_DEFAULT_STYLE: Required<OverviewStyleConfig> = {
   border_radius: 26,
@@ -237,6 +367,7 @@ export const OVERVIEW_DEFAULT_CONFIG: AreaBubbleOverviewCardConfig = {
   language: "auto",
   rtl: "auto",
   theme_preset: "classic",
+  theme_mode: "recommended",
   show_header: true,
   show_floor_header: true,
   show_temperature: true,

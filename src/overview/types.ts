@@ -8,7 +8,19 @@ export type OverviewSectionBorderStyle = "solid" | "dashed" | "dotted";
 export type OverviewQuickActionsPosition = "near_name" | "opposite";
 export type OverviewClimateTagPosition = "left" | "right" | "top" | "bottom";
 export type OverviewAreaOpenMode = "expander" | "popup";
-export type OverviewThemePreset = "classic" | "elegant" | "light" | "dark" | "modern";
+export type OverviewThemePreset =
+  | "classic"
+  | "elegant"
+  | "light"
+  | "dark"
+  | "modern"
+  | "ocean"
+  | "emerald"
+  | "violet"
+  | "coral"
+  | "amber"
+  | "rose";
+export type OverviewThemeMode = "recommended" | "light" | "dark";
 export type OverviewStateLanguage = "auto" | "he" | "en";
 export type OverviewTileShape = "rectangle" | "square";
 export type OverviewTileIconPosition = "start" | "left" | "right" | "center";
@@ -120,6 +132,7 @@ export type AreaBubbleOverviewCardConfig = {
   language?: LanguageMode;
   rtl?: RtlMode;
   theme_preset?: OverviewThemePreset;
+  theme_mode?: OverviewThemeMode;
   show_header?: boolean;
   show_floor_header?: boolean;
   show_temperature?: boolean;

@@ -66,15 +66,18 @@ After replacing the resource, refresh the Home Assistant frontend cache.
 
 ### Professional design themes
 
-Overview includes four coordinated professional themes in addition to the backwards-compatible `classic` appearance. Choose a theme from the visual editor under **Appearance and language → Design theme**, or set it in YAML:
+Overview includes ten coordinated professional themes in addition to the backwards-compatible `classic` appearance. Every family includes a polished light and dark variant, plus a recommended mode that preserves the established look. Choose both controls under **Appearance and language → Design theme**, or set them in YAML:
 
 ```yaml
 type: custom:area-bubble-overview-card
 floor: upper_floor
 theme_preset: elegant
+theme_mode: dark
 ```
 
 Manual `style.*` values remain available after choosing a theme and override only the values you customize.
+
+The extended gallery adds Ocean Azure, Botanical Emerald, Atelier Amethyst, Terracotta Coral, Golden Amber, and Rose Berry. Their gradients use nearby tones and semantic temperature colors so the result stays lively without becoming decorative or noisy.
 
 | Elegant Sapphire | Luminous Sky |
 | --- | --- |
@@ -170,7 +173,7 @@ style:
   area_frame_width: 2
 ```
 
-Dimmable lights are detected automatically from Home Assistant's light capabilities and receive a compact brightness slider. Dragging updates the visual value immediately and sends one `light.turn_on` action with `brightness_pct` when released; releasing at zero turns the light off. The separate power button remains available for a fast toggle.
+Dimmable lights are detected automatically from Home Assistant's light capabilities. An OFF dimmer stays a compact single-row tile without an inactive slider; when switched ON, its brightness slider appears inline on that same row. Dragging updates the visual value immediately and sends one `light.turn_on` action with `brightness_pct` when released; releasing at zero turns the light off. The separate power button remains available for a fast toggle.
 
 ### Summary tags and lighting tiles
 
@@ -592,7 +595,8 @@ style:
 | `title` | none | Optional overall title; Floor mode still shows the Floor name by default. |
 | `target_icon` | registry/fallback icon | Overrides the top-level Area or Floor icon. |
 | `language` / `rtl` | `auto` | `he`, `en`; RTL may be `auto`, `true`, or `false`. |
-| `theme_preset` | `classic` | `classic`, `elegant`, `light`, `dark`, or `modern`. The preset is a base; explicit `style.*` values override it. |
+| `theme_preset` | `classic` | `classic`, `elegant`, `light`, `dark`, `modern`, `ocean`, `emerald`, `violet`, `coral`, `amber`, or `rose`. The preset is a base; explicit `style.*` values override it. |
+| `theme_mode` | `recommended` | `recommended`, `light`, or `dark`. Every family supplies both explicit brightness variants. |
 | `show_temperature` | `true` | Shows the preferred/automatic current temperature. |
 | `show_occupancy` | `true` | Shows a numeric occupancy/count-sensor badge, including zero and unknown. |
 | `show_quick_actions` | `true` | Shows popup triggers only for categories that currently have a powered member. |

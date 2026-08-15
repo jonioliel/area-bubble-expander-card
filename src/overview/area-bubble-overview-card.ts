@@ -1010,7 +1010,7 @@ export class AreaBubbleOverviewCard extends LitElement {
     const brightnessLabel = `${this.localText("בהירות", "Brightness")}: ${item.name}`;
     const presentation = this.entityPresentation(item);
     return html`
-      <article class="light-card entity-card tile-shape-${presentation.shape} tile-icon-${presentation.iconPosition} ${item.active ? "active" : ""} ${item.available ? "" : "unavailable"}" aria-busy=${busy}>
+      <article class="light-card dimmer-card ${item.powered ? "dimmer-on" : "dimmer-off"} entity-card tile-shape-${presentation.shape} tile-icon-${presentation.iconPosition} ${item.active ? "active" : ""} ${item.available ? "" : "unavailable"}" aria-busy=${busy}>
         <div class="light-primary">
           ${this.renderEntityLead(item)}
           <button
@@ -1022,7 +1022,7 @@ export class AreaBubbleOverviewCard extends LitElement {
             @click=${(event: Event) => this.toggleEntity(event, item)}
           ><ha-icon icon=${busy ? "mdi:loading" : "mdi:power"}></ha-icon></button>
         </div>
-        <div class="brightness-control" @click=${(event: Event) => event.stopPropagation()}>
+        ${item.powered ? html`<div class="brightness-control" @click=${(event: Event) => event.stopPropagation()}>
           <ha-control-slider
             class="brightness-slider"
             .value=${brightness}
@@ -1038,7 +1038,7 @@ export class AreaBubbleOverviewCard extends LitElement {
             @value-changed=${(event: Event) => this.setLightBrightness(item, event)}
           ></ha-control-slider>
           <span class="brightness-value" aria-hidden="true">${brightness}%</span>
-        </div>
+        </div>` : nothing}
       </article>
     `;
   }
