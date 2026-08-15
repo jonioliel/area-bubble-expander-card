@@ -174,7 +174,7 @@ Dimmable lights are detected automatically from Home Assistant's light capabilit
 
 ### Summary tags and lighting tiles
 
-Collapsed Area summaries can keep active quick actions beside the Area name or move them to the opposite logical edge. Climate and active-fan tags stay attached to the temperature cluster and may be placed on its left, right, top, or bottom with a configurable gap. Fans remain members of the Climate category and open the same safe popup.
+Collapsed Area summaries can keep active quick actions beside the Area name or move them to the opposite logical edge. Climate and active-fan tags stay attached to the temperature cluster and may be placed on its left, right, top, or bottom with a configurable gap. Native fans and switches/input booleans whose names clearly contain `fan`, `מאוורר`, or `ונטה` are mapped into a compact **Fans** sub-group inside Climate. Their tile stays at cover-row height and, while powered, shows the elapsed ON duration from Home Assistant's `last_changed` value. A manual section or sub-group selection in the editor always takes precedence.
 
 ```yaml
 quick_actions_position: opposite # opposite | near_name
@@ -266,7 +266,7 @@ entity_overrides:
 
 ### Floor heating
 
-Home Assistant does not have one universal Domain or Device Class for floor heating. The card therefore avoids unsafe guesswork and supports three explicit methods:
+Home Assistant does not have one universal Domain or Device Class for floor heating. The card uses a conservative name match for `floor heating`, `underfloor`, `חימום רצפתי`, and `חימום תת רצפתי`, so a thermostat and its relay can be discovered together. Relay switches/input booleans are placed in a compact **Heating controls** sub-group while the thermostat keeps the complete temperature controls. The explicit methods below remain available and always override automatic classification:
 
 ```yaml
 floor_heating_labels:
@@ -284,7 +284,7 @@ entity_overrides:
     icon: mdi:heating-coil
 ```
 
-The visual editor can move an automatically discovered switch or climate entity into the Floor heating section. It can also add supported unclassified `input_boolean` and `water_heater` entities.
+The visual editor can move any discovered switch or climate entity into or out of Floor heating, so automatic detection is never mandatory. It can also add supported unclassified `input_boolean` and `water_heater` entities.
 
 ### Quick actions
 
@@ -709,7 +709,7 @@ The Overview editor provides:
 - Quick-action icon pickers with built-in fallbacks and one-click reset
 - Preferred temperature, occupancy-count, and occupancy sensor selection
 - Complete per-Area entity hiding/restoration that also excludes hidden devices from state, color, summaries, and group actions
-- Entity section/sub-group assignment, names, icons, group protection, activity exclusion, and priority order
+- Entity section/sub-group assignment, names, icons, group protection, activity exclusion, and priority order; manual section choices override automatic fan/floor-heating mapping
 - Convenient on/off, occupancy, and HVAC temperature-state color pickers with CSS-value inputs, reset actions, and live previews
 - Adjustable Area-name size, one-to-three-column light grids, global/per-device tile presentation and state language, native Home Assistant HVAC/fan menus, and automatic full-row brightness sliders for dimmable lights
 - Safe Area/category/Floor popups and on/off/open/close controls that honor exclusion, availability, capability, and protection rules
@@ -723,7 +723,7 @@ The What's-on-now editor provides a Home Assistant-style vertical navigation lay
 - For Floor mode, assign each Area to a Floor in **Settings → Areas, labels & zones**.
 - Prefer stable Area/Floor IDs in YAML; the visual editor stores them automatically.
 - Use a preferred temperature entity if an Area contains unrelated numeric sensors.
-- Apply a `floor_heating` Label or section override instead of relying on device names.
+- If an automatic fan or floor-heating match is not appropriate, choose the desired section manually in the visual editor; use a `floor_heating` Label for the most stable explicit classification.
 - Enable `debug: true` temporarily on the Overview card to inspect its discovery model.
 - On the What's-on-now card, use `show_debug: true` to see why entities were filtered.
 

@@ -11,6 +11,8 @@ export const OVERVIEW_CARD_TYPE = "custom:area-bubble-overview-card";
 export const OVERVIEW_CARD_TAG = "area-bubble-overview-card";
 export const OVERVIEW_EDITOR_TAG = "area-bubble-overview-card-editor";
 export const OVERVIEW_STORAGE_PREFIX = "area-bubble-overview-card";
+export const AUTO_FAN_GROUP = "__area_bubble_auto_fans__";
+export const AUTO_FLOOR_HEATING_GROUP = "__area_bubble_auto_floor_heating_controls__";
 
 export const CLIMATE_FEATURES = {
   TARGET_TEMPERATURE: 1,

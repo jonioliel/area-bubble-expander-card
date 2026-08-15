@@ -1,4 +1,4 @@
-import { SECTION_ICONS } from "./constants";
+import { AUTO_FAN_GROUP, AUTO_FLOOR_HEATING_GROUP, SECTION_ICONS } from "./constants";
 import { overviewSectionTitle } from "./translations";
 import type { HassAreaRegistryEntry, HassEntity, HomeAssistant } from "../types";
 import type {
@@ -59,17 +59,36 @@ const classify = (
   areaName: string | undefined,
   entityId: string,
   domain: string,
+  name: string,
   labels: string[],
 ): OverviewSectionId | undefined => {
   const forced = forcedSection(config, areaId, areaName, entityId);
   if (forced) return forced;
-  if (config.floor_heating_entities.includes(entityId) || labels.some((label) => config.floor_heating_labels.includes(label))) {
+  const searchable = `${entityId} ${name} ${labels.join(" ")}`.toLocaleLowerCase();
+  const floorHeatingName = /(?:under[\s_-]*floor|floor[\s_-]*heating|חימום\s*(?:תת[\s_-]*)?רצפתי)/u.test(searchable);
+  const fanName = /(?:^|[\s._-])(?:fan|ventilator|blower|מאוורר(?:ים)?|ו?ו?נטה)(?:$|[\s._-])/u.test(searchable);
+  if (config.floor_heating_entities.includes(entityId) || labels.some((label) => config.floor_heating_labels.includes(label)) || floorHeatingName) {
     return "floor_heating";
   }
+  if (["switch", "input_boolean"].includes(domain) && fanName) return "climate";
   if (domain === "climate" || domain === "fan") return "climate";
   if (domain === "cover") return "covers";
   if (domain === "light" || domain === "switch") return "lights_switches";
   if (domain === "media_player") return "media";
+  return undefined;
+};
+
+const automaticGroup = (
+  section: OverviewSectionId,
+  domain: string,
+  entityId: string,
+  name: string,
+  labels: string[],
+): string | undefined => {
+  const searchable = `${entityId} ${name} ${labels.join(" ")}`.toLocaleLowerCase();
+  const fanName = /(?:^|[\s._-])(?:fan|ventilator|blower|מאוורר(?:ים)?|ו?ו?נטה)(?:$|[\s._-])/u.test(searchable);
+  if (section === "climate" && (domain === "fan" || fanName)) return AUTO_FAN_GROUP;
+  if (section === "floor_heating" && ["switch", "input_boolean"].includes(domain)) return AUTO_FLOOR_HEATING_GROUP;
   return undefined;
 };
 
@@ -257,13 +276,14 @@ const createArea = (
     if (registryEntity?.entity_category === "config" || registryEntity?.entity_category === "diagnostic") continue;
     const domain = domainOf(entityId);
     const labels = labelsForEntity(hass, entityId);
-    const section = classify(config, areaId, registryArea?.name, entityId, domain, labels);
+    const resolvedName = entityName(hass, entity, entityOverride?.name);
+    const section = classify(config, areaId, registryArea?.name, entityId, domain, resolvedName, labels);
     if (!section) continue;
     entities.push({
       entity,
       entityId,
       domain,
-      name: entityName(hass, entity, entityOverride?.name),
+      name: resolvedName,
       icon: entityIcon(entity, domain, entityOverride?.icon),
       areaId,
       section,
@@ -276,7 +296,7 @@ const createArea = (
         config.protected_entities.includes(entityId) ||
         labels.some((label) => config.protected_labels.includes(label)),
       ignoreActivity: entityOverride?.ignore_activity === true,
-      group: entityOverride?.group,
+      group: entityOverride?.group ?? automaticGroup(section, domain, entityId, resolvedName, labels),
     });
   }
 

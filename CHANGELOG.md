@@ -2,6 +2,14 @@
 
 All notable changes to Area Bubble Expander Card will be documented in this file.
 
+## 0.15.0 - 2026-08-15
+
+- Added conservative automatic mapping of named fan switches/input booleans into the Climate section and named floor-heating thermostats/relays into Floor heating.
+- Added localized automatic Fan and Heating controls sub-groups while keeping manual section and sub-group choices authoritative.
+- Kept fan and auxiliary relay tiles compact at no more than the standard 56 px cover-row height instead of inheriting the full climate-card height.
+- Added live powered-duration text for fans and auxiliary heating controls, refreshed once per minute from Home Assistant's `last_changed` timestamp.
+- Added Hebrew/English discovery, override-priority, grouping, compact-layout, and duration regression coverage; the full suite now contains 197 tests.
+
 ## 0.14.0 - 2026-08-15
 
 - Added configurable device-frame color and thickness so powered-off equipment remains visually separated from its category background.

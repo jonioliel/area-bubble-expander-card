@@ -1310,6 +1310,10 @@ export const overviewCardStyles = css`
     align-content: center;
   }
 
+  .toggle-tile.compact-auxiliary {
+    min-height: min(56px, var(--aboc-section-entity-height, 56px));
+  }
+
   .hold-target {
     touch-action: pan-y;
     user-select: none;

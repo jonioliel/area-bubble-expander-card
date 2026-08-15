@@ -15,6 +15,8 @@ import {
 } from "./actions";
 import { resolveOverviewConfig, validateOverviewConfig } from "./config";
 import {
+  AUTO_FAN_GROUP,
+  AUTO_FLOOR_HEATING_GROUP,
   CLIMATE_FEATURES,
   MEDIA_FEATURES,
   OVERVIEW_CARD_TAG,
@@ -90,6 +92,12 @@ export class AreaBubbleOverviewCard extends LitElement {
   private areaPopupMoreInfo?: OverviewEntity;
   private restoreAreaPopupFocus = true;
   private floorPopupTrigger?: HTMLElement;
+  private durationTimer?: number;
+
+  public override connectedCallback(): void {
+    super.connectedCallback();
+    this.durationTimer ??= window.setInterval(() => this.requestUpdate(), 60_000);
+  }
 
   public static getConfigElement(): HTMLElement {
     return document.createElement(OVERVIEW_EDITOR_TAG);
@@ -141,6 +149,8 @@ export class AreaBubbleOverviewCard extends LitElement {
     this.resetQuickPopup();
     this.resetFloorPopup();
     this.resetAreaPopup();
+    if (this.durationTimer !== undefined) window.clearInterval(this.durationTimer);
+    this.durationTimer = undefined;
   }
 
   protected override render() {
@@ -530,13 +540,28 @@ export class AreaBubbleOverviewCard extends LitElement {
     }
     return html`
       ${ungrouped.length ? html`<div class="section-entities">${ungrouped.map((item) => this.renderEntity(item, section.id))}</div>` : nothing}
-      ${[...groups.entries()].map(([group, entities]) => html`
-        <section class="entity-subgroup" aria-label=${group}>
-          <div class="entity-subgroup-heading"><ha-icon icon="mdi:folder-home-outline"></ha-icon><span>${group}</span><small>${entities.filter((item) => item.powered).length}/${entities.length}</small></div>
-          <div class="section-entities">${entities.map((item) => this.renderEntity(item, section.id))}</div>
-        </section>
-      `)}
+      ${[...groups.entries()].map(([group, entities]) => {
+        const title = this.subgroupTitle(group);
+        return html`
+          <section class="entity-subgroup" aria-label=${title}>
+            <div class="entity-subgroup-heading"><ha-icon icon=${this.subgroupIcon(group)}></ha-icon><span>${title}</span><small>${entities.filter((item) => item.powered).length}/${entities.length}</small></div>
+            <div class="section-entities">${entities.map((item) => this.renderEntity(item, section.id))}</div>
+          </section>
+        `;
+      })}
     `;
+  }
+
+  private subgroupTitle(group: string): string {
+    if (group === AUTO_FAN_GROUP) return this.localText("מאווררים", "Fans");
+    if (group === AUTO_FLOOR_HEATING_GROUP) return this.localText("בקרי חימום", "Heating controls");
+    return group;
+  }
+
+  private subgroupIcon(group: string): string {
+    if (group === AUTO_FAN_GROUP) return "mdi:fan";
+    if (group === AUTO_FLOOR_HEATING_GROUP) return "mdi:radiator";
+    return "mdi:folder-home-outline";
   }
 
   private sectionActionIcon(section: OverviewSection["id"], turnOn: boolean): string {
@@ -836,9 +861,10 @@ export class AreaBubbleOverviewCard extends LitElement {
     const powerPlan = entityPowerService(item, !item.powered);
     const toggleDisabled = !item.available || busy || !powerPlan;
     const presentation = this.entityPresentation(item);
+    const compactAuxiliary = this.isCompactAuxiliary(item);
     return html`
       <button
-        class="toggle-tile entity-card hold-target tile-shape-${presentation.shape} tile-icon-${presentation.iconPosition} ${item.active ? "active" : ""} ${item.available ? "" : "unavailable"}"
+        class="toggle-tile entity-card hold-target tile-shape-${presentation.shape} tile-icon-${presentation.iconPosition} ${compactAuxiliary ? "compact-auxiliary" : ""} ${item.active ? "active" : ""} ${item.available ? "" : "unavailable"}"
         type="button"
         aria-pressed=${item.powered}
         aria-busy=${busy}
@@ -1092,6 +1118,10 @@ export class AreaBubbleOverviewCard extends LitElement {
     if (!item.available) return overviewText(this.hass, this.config!, "unavailable");
     const binaryState = String(item.entity.state).toLowerCase();
     const binaryLabel = binaryState === "on" || binaryState === "off" ? this.binaryStateLabel(binaryState, item) : undefined;
+    if (this.isCompactAuxiliary(item)) {
+      const elapsed = item.powered ? this.elapsedSince(item.entity.last_changed) : undefined;
+      return [binaryLabel ?? item.entity.state, elapsed].filter(Boolean).join(" · ");
+    }
     if (item.domain === "climate") {
       const current = numberAttribute(item, "current_temperature");
       const action = String(item.entity.attributes.hvac_action ?? item.entity.state).replace(/_/g, " ");
@@ -1113,6 +1143,25 @@ export class AreaBubbleOverviewCard extends LitElement {
       return [binaryLabel ?? item.entity.state, current !== undefined ? this.formatTemperature(current, this.areaTemperatureUnit(item)) : ""].filter(Boolean).join(" · ");
     }
     return binaryLabel ?? this.hass?.formatEntityState?.(item.entity) ?? item.entity.state;
+  }
+
+  private isCompactAuxiliary(item: OverviewEntity): boolean {
+    return item.domain === "fan" ||
+      (item.section === "climate" && ["switch", "input_boolean"].includes(item.domain)) ||
+      (item.section === "floor_heating" && ["switch", "input_boolean"].includes(item.domain));
+  }
+
+  private elapsedSince(timestamp: string): string | undefined {
+    const started = Date.parse(timestamp);
+    if (!Number.isFinite(started)) return undefined;
+    const totalMinutes = Math.max(0, Math.floor((Date.now() - started) / 60_000));
+    if (totalMinutes < 1) return this.localText("פחות מדקה", "less than a minute");
+    const days = Math.floor(totalMinutes / 1_440);
+    const hours = Math.floor((totalMinutes % 1_440) / 60);
+    const minutes = totalMinutes % 60;
+    if (days > 0) return this.localText(`${days} י׳ ${hours} ש׳`, `${days}d ${hours}h`);
+    if (hours > 0) return this.localText(`${hours} ש׳ ${minutes} דק׳`, `${hours}h ${minutes}m`);
+    return this.localText(`${minutes} דק׳`, `${minutes}m`);
   }
 
   private entityPresentation(item: OverviewEntity) {
