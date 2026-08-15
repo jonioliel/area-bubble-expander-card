@@ -6,7 +6,9 @@ Themes do not change discovery, device order, room hierarchy, actions, popup/exp
 
 ## Choose a theme
 
-In the visual editor, open **Appearance and language** and select a card under **Design theme**. The preview swatches show the active surface, control surface, and accent family.
+In the visual editor, open **Appearance and language** and select a card under **Design theme**. The four preview swatches show the active-room surface, control surface, active-device surface, and accent family.
+
+Every palette keeps the room/device hierarchy intentional: an active room uses a calmer coordinated gradient, while a powered entity uses a stronger solid accent. This separation applies to recommended, light, and dark modes, including the backwards-compatible Classic fallback.
 
 YAML uses `theme_preset`:
 

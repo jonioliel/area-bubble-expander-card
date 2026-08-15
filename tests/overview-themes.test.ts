@@ -33,12 +33,31 @@ const contrast = (a: string, b: string): number => {
   return (lighter + 0.05) / (darker + 0.05);
 };
 
+const gradientHexColors = (value: string): string[] => value.match(/#[0-9a-f]{6}/gi) ?? [];
+
+const colorDistance = (a: string, b: string): number => {
+  const left = rgb(a);
+  const right = rgb(b);
+  return Math.sqrt(left.reduce((sum, channel, index) => sum + (channel - right[index]) ** 2, 0));
+};
+
+const expectRoomDeviceSeparation = (palette: { active_surface?: unknown; entity_active_surface?: unknown; active_text_color?: unknown }): void => {
+  const roomStops = gradientHexColors(String(palette.active_surface));
+  const entitySurface = String(palette.entity_active_surface);
+  expect(roomStops.length).toBeGreaterThanOrEqual(2);
+  expect(entitySurface).toMatch(/^#[0-9a-f]{6}$/i);
+  expect(Math.min(...roomStops.map((stop) => colorDistance(stop, entitySurface)))).toBeGreaterThanOrEqual(32);
+  for (const stop of roomStops) expect(contrast(String(palette.active_text_color), stop)).toBeGreaterThanOrEqual(4.5);
+  expect(contrast(String(palette.active_text_color), entitySurface)).toBeGreaterThanOrEqual(4.5);
+};
+
 describe("Overview professional design themes", () => {
   it("preserves the existing classic theme as the backwards-compatible default", () => {
     const resolved = resolveOverviewConfig({ type });
     expect(resolved.theme_preset).toBe("classic");
     expect(resolved.style.card_transparent).toBe(OVERVIEW_DEFAULT_STYLE.card_transparent);
     expect(resolved.style.active_surface).toBe(OVERVIEW_DEFAULT_STYLE.active_surface);
+    expect(resolved.style.entity_active_surface).not.toBe(resolved.style.active_surface);
   });
 
   it("ships ten complete coordinated palettes plus the backwards-compatible classic base", () => {
@@ -51,6 +70,7 @@ describe("Overview professional design themes", () => {
       expect(palette.temperature_cool_surface).toMatch(/^linear-gradient\(/);
       expect(palette.card_transparent).toBe(false);
       expect(palette.area_frame_color).toMatch(/^#[0-9a-f]{6}$/i);
+      expectRoomDeviceSeparation(palette);
     }
   });
 
@@ -71,6 +91,7 @@ describe("Overview professional design themes", () => {
         expect(palette.entity_active_surface).toMatch(/^#[0-9a-f]{6}$/i);
         expect(palette.control_surface).toMatch(/^#[0-9a-f]{6}$/i);
         expect(palette.card_transparent).toBe(false);
+        expectRoomDeviceSeparation(palette);
       }
     }
   });
@@ -161,6 +182,8 @@ describe("Overview professional design themes", () => {
     expect(editorSource).toContain("Golden · Amber");
     expect(editorSource).toContain("Rose · Berry");
     expect(editorSource).toContain('class="theme-mode-switch"');
+    expect(editorSource).toContain("--theme-entity:");
+    expect(editorSource).toContain('<i></i><i></i><i></i><i></i>');
     expect(editorSource).toContain("this.applyThemeMode(mode)");
     expect(editorSource).toContain("this.applyThemePreset(preset)");
     expect(editorSource).toContain("for (const key of themeKeys) delete style[key]");

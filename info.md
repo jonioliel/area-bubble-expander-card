@@ -13,6 +13,8 @@ Multi-column device grids now contract to their real item count. Automatic Floor
 
 The Overview editor follows a global-first workflow: room, category, and device exceptions remain fully editable but stay behind explicit nested edit controls. The compact Floor-heating relay button defaults to the short `מפסק` / `Switch` label and can still be renamed globally or per room.
 
+All professional light and dark palettes now keep active rooms visually quieter than active entity tiles, with independent editor preview swatches and automated room/device separation plus accessible text-contrast checks. The Classic fallback follows the same clear hierarchy.
+
 Install through HACS as a Lovelace card and add the resource:
 
 ```yaml

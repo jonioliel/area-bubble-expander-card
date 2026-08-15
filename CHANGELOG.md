@@ -2,6 +2,14 @@
 
 All notable changes to Area Bubble Expander Card will be documented in this file.
 
+## 0.20.1 - 2026-08-16
+
+- Reviewed every Classic and professional theme in recommended, light, and dark modes and separated the active-room surface from the active-device surface throughout the palette system.
+- Made active room and Floor gradients calmer while giving active entity tiles a stronger, coordinated accent, so state hierarchy remains immediately readable without making the card visually noisy.
+- Corrected the backwards-compatible Classic defaults, where active rooms and devices previously shared the same surface, and refined the four original recommended palettes to follow the same hierarchy.
+- Expanded the visual-editor theme preview to show active-room and active-device colors independently.
+- Strengthened automated theme coverage with minimum room/device RGB separation and WCAG AA text-contrast checks across every explicit light/dark palette; the full suite remains at 262 tests.
+
 ## 0.20.0 - 2026-08-15
 
 - Simplified the Overview visual editor around global-first configuration: room, category, and device-specific exceptions now stay behind clearly labelled, nested edit disclosures instead of overwhelming the main editor.

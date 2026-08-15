@@ -3914,7 +3914,7 @@ window.customCards.some((e) => e.type === "area-bubble-expander-card") || window
   documentationURL: "https://github.com/jonioliel/area-bubble-expander-card"
 });
 console.info(
-  `%c AREA-BUBBLE-CARDS %c 0.20.0 ${ke(void 0, "auto")}`,
+  `%c AREA-BUBBLE-CARDS %c 0.20.1 ${ke(void 0, "auto")}`,
   "color: white; background: #03a9f4; font-weight: 700;",
   "color: #03a9f4; font-weight: 700;"
 );
@@ -3955,7 +3955,7 @@ const me = "custom:area-bubble-overview-card", mt = "area-bubble-overview-card",
   const o = (n) => [1, 3, 5].map((s) => Number.parseInt(n.slice(s, s + 2), 16)), a = o(e), r = o(t);
   return `#${a.map((n, s) => Math.round(n * i + r[s] * (1 - i)).toString(16).padStart(2, "0")).join("")}`;
 }, B = (e, t, i = 135) => `linear-gradient(${i}deg, ${e} 0%, ${t} 100%)`, te = (e, t) => {
-  const i = t === "dark", o = i ? P(e.deep, "#070e1a", 0.12) : P(e.deep, "#0a1424", 0.18), a = i ? P(e.accent, "#132034", 0.27) : P(e.accent, "#ffffff", 0.18), r = i ? P(e.accent, "#18273d", 0.4) : P(e.accent, "#ffffff", 0.34), n = i ? P(e.accent, "#17243a", 0.31) : P(e.accent, "#ffffff", 0.25);
+  const i = t === "dark", o = i ? P(e.deep, "#070e1a", 0.12) : P(e.deep, "#0a1424", 0.18), a = i ? P(e.accent, "#132034", 0.2) : P(e.accent, "#ffffff", 0.1), r = i ? P(e.accent, "#18273d", 0.28) : P(e.accent, "#ffffff", 0.2), n = i ? P(e.accent, "#060d18", 0.67) : P(e.accent, "#ffffff", 0.5);
   return {
     border_radius: i ? 24 : 26,
     blur: i ? 24 : 18,
@@ -4020,8 +4020,8 @@ const me = "custom:area-bubble-overview-card", mt = "area-bubble-overview-card",
     card_transparent: !1,
     card_background: "linear-gradient(145deg, rgba(249,251,253,0.98) 0%, rgba(232,238,246,0.97) 55%, rgba(219,229,241,0.95) 100%)",
     row_background: "rgba(242,245,249,0.96)",
-    active_surface: "linear-gradient(135deg, #dce8f3 0%, #c1d4e6 100%)",
-    entity_active_surface: "#d2e1ee",
+    active_surface: "linear-gradient(135deg, #edf3f8 0%, #dbe7f0 100%)",
+    entity_active_surface: "#8fb7d2",
     area_frame_color: "#526b86",
     active_color: "#d8a62c",
     accent_color: "#55799f",
@@ -4050,8 +4050,8 @@ const me = "custom:area-bubble-overview-card", mt = "area-bubble-overview-card",
     card_transparent: !1,
     card_background: "linear-gradient(145deg, rgba(255,255,255,0.99) 0%, rgba(240,248,253,0.98) 58%, rgba(227,241,249,0.96) 100%)",
     row_background: "rgba(248,251,253,0.98)",
-    active_surface: "linear-gradient(135deg, #dff5fb 0%, #c8eaf4 100%)",
-    entity_active_surface: "#d6eef5",
+    active_surface: "linear-gradient(135deg, #eefbfe 0%, #d8f0f7 100%)",
+    entity_active_surface: "#73c7df",
     area_frame_color: "#5b8fa3",
     active_color: "#e6ad25",
     accent_color: "#2d8db5",
@@ -4080,8 +4080,8 @@ const me = "custom:area-bubble-overview-card", mt = "area-bubble-overview-card",
     card_transparent: !1,
     card_background: "linear-gradient(145deg, rgba(12,20,34,0.98) 0%, rgba(23,34,51,0.97) 56%, rgba(31,44,63,0.96) 100%)",
     row_background: "rgba(34,47,65,0.96)",
-    active_surface: "linear-gradient(135deg, #1f5360 0%, #2c4768 100%)",
-    entity_active_surface: "#285264",
+    active_surface: "linear-gradient(135deg, #263e50 0%, #315066 100%)",
+    entity_active_surface: "#1c667b",
     area_frame_color: "#65a9bd",
     active_color: "#f0bd4f",
     accent_color: "#70b7cf",
@@ -4110,8 +4110,8 @@ const me = "custom:area-bubble-overview-card", mt = "area-bubble-overview-card",
     card_transparent: !1,
     card_background: "linear-gradient(145deg, rgba(250,249,245,0.99) 0%, rgba(237,242,236,0.97) 55%, rgba(225,234,228,0.96) 100%)",
     row_background: "rgba(244,246,241,0.97)",
-    active_surface: "linear-gradient(135deg, #d9e9e1 0%, #bfd7cc 100%)",
-    entity_active_surface: "#cfe2d9",
+    active_surface: "linear-gradient(135deg, #ebf3ef 0%, #d7e5de 100%)",
+    entity_active_surface: "#8cb9aa",
     area_frame_color: "#5c7b72",
     active_color: "#d6a43a",
     accent_color: "#557f73",
@@ -4161,7 +4161,7 @@ const me = "custom:area-bubble-overview-card", mt = "area-bubble-overview-card",
   control_text_color: "#f4f3ec",
   active_color: "var(--state-active-color, #ffd54f)",
   active_surface: "rgba(174, 215, 219, 0.94)",
-  entity_active_surface: "rgba(174, 215, 219, 0.94)",
+  entity_active_surface: "#7fb8c1",
   area_frame_color: "",
   area_frame_width: 2,
   entity_frame_color: "",
@@ -5617,9 +5617,9 @@ let W = class extends ne {
                 type="button"
                 role="radio"
                 aria-checked=${e.theme_preset === i}
-                style=${`--theme-card:${r.card_background};--theme-active:${r.active_surface};--theme-control:${r.control_surface};--theme-accent:${r.accent_color};--theme-frame:${r.area_frame_color || "var(--divider-color)"}`}
+                style=${`--theme-card:${r.card_background};--theme-active:${r.active_surface};--theme-control:${r.control_surface};--theme-entity:${r.entity_active_surface};--theme-accent:${r.accent_color};--theme-frame:${r.area_frame_color || "var(--divider-color)"}`}
                 @click=${() => this.applyThemePreset(i)}
-              ><span class="theme-preset-preview"><span class="theme-preset-swatches"><i></i><i></i><i></i></span></span><span class="theme-preset-copy"><strong>${o}</strong><span>${a}</span></span></button>`;
+              ><span class="theme-preset-preview"><span class="theme-preset-swatches"><i></i><i></i><i></i><i></i></span></span><span class="theme-preset-copy"><strong>${o}</strong><span>${a}</span></span></button>`;
     })}
           </div>
           <div class="hint">${this.l("בחירת ערכה מחליפה את צבעי הערכה בלבד. לאחר מכן ניתן להתאים כל צבע ידנית.", "Choosing a theme replaces theme colors only; every color can still be fine-tuned below.", t)}</div>
@@ -6145,7 +6145,8 @@ W.styles = Ne`
     .theme-preset-swatches { display: flex; gap: 4px; }
     .theme-preset-swatches i { display: block; width: 13px; height: 13px; border-radius: 999px; background: var(--theme-active); }
     .theme-preset-swatches i:nth-child(2) { background: var(--theme-control); }
-    .theme-preset-swatches i:nth-child(3) { background: var(--theme-accent); }
+    .theme-preset-swatches i:nth-child(3) { background: var(--theme-entity); }
+    .theme-preset-swatches i:nth-child(4) { background: var(--theme-accent); }
     .theme-preset-copy { min-width: 0; }
     .theme-preset-copy strong, .theme-preset-copy span { display: block; }
     .theme-preset-copy strong { margin-bottom: 3px; font-size: 13px; }
@@ -6261,7 +6262,7 @@ const Oa = Ne`
     --aboc-accent: var(--area-bubble-overview-accent, var(--primary-color));
     --aboc-active: var(--area-bubble-overview-active, var(--state-active-color, #ffd54f));
     --aboc-active-surface: var(--area-bubble-overview-active-surface, rgba(174, 215, 219, 0.94));
-    --aboc-entity-active-surface: var(--area-bubble-overview-entity-active-surface, rgba(174, 215, 219, 0.94));
+    --aboc-entity-active-surface: var(--area-bubble-overview-entity-active-surface, #7fb8c1);
     --aboc-area-frame-width: var(--area-bubble-overview-area-frame-width, 2px);
     --aboc-entity-frame-width: var(--area-bubble-overview-entity-frame-width, 1px);
     --aboc-entity-frame-color: var(

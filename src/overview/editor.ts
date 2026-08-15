@@ -104,7 +104,8 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
     .theme-preset-swatches { display: flex; gap: 4px; }
     .theme-preset-swatches i { display: block; width: 13px; height: 13px; border-radius: 999px; background: var(--theme-active); }
     .theme-preset-swatches i:nth-child(2) { background: var(--theme-control); }
-    .theme-preset-swatches i:nth-child(3) { background: var(--theme-accent); }
+    .theme-preset-swatches i:nth-child(3) { background: var(--theme-entity); }
+    .theme-preset-swatches i:nth-child(4) { background: var(--theme-accent); }
     .theme-preset-copy { min-width: 0; }
     .theme-preset-copy strong, .theme-preset-copy span { display: block; }
     .theme-preset-copy strong { margin-bottom: 3px; font-size: 13px; }
@@ -947,9 +948,9 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
                 type="button"
                 role="radio"
                 aria-checked=${resolved.theme_preset === preset}
-                style=${`--theme-card:${palette.card_background};--theme-active:${palette.active_surface};--theme-control:${palette.control_surface};--theme-accent:${palette.accent_color};--theme-frame:${palette.area_frame_color || "var(--divider-color)"}`}
+                style=${`--theme-card:${palette.card_background};--theme-active:${palette.active_surface};--theme-control:${palette.control_surface};--theme-entity:${palette.entity_active_surface};--theme-accent:${palette.accent_color};--theme-frame:${palette.area_frame_color || "var(--divider-color)"}`}
                 @click=${() => this.applyThemePreset(preset)}
-              ><span class="theme-preset-preview"><span class="theme-preset-swatches"><i></i><i></i><i></i></span></span><span class="theme-preset-copy"><strong>${title}</strong><span>${description}</span></span></button>`;
+              ><span class="theme-preset-preview"><span class="theme-preset-swatches"><i></i><i></i><i></i><i></i></span></span><span class="theme-preset-copy"><strong>${title}</strong><span>${description}</span></span></button>`;
             })}
           </div>
           <div class="hint">${this.l("בחירת ערכה מחליפה את צבעי הערכה בלבד. לאחר מכן ניתן להתאים כל צבע ידנית.", "Choosing a theme replaces theme colors only; every color can still be fine-tuned below.", language)}</div>

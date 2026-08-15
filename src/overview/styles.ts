@@ -21,7 +21,7 @@ export const overviewCardStyles = css`
     --aboc-accent: var(--area-bubble-overview-accent, var(--primary-color));
     --aboc-active: var(--area-bubble-overview-active, var(--state-active-color, #ffd54f));
     --aboc-active-surface: var(--area-bubble-overview-active-surface, rgba(174, 215, 219, 0.94));
-    --aboc-entity-active-surface: var(--area-bubble-overview-entity-active-surface, rgba(174, 215, 219, 0.94));
+    --aboc-entity-active-surface: var(--area-bubble-overview-entity-active-surface, #7fb8c1);
     --aboc-area-frame-width: var(--area-bubble-overview-area-frame-width, 2px);
     --aboc-entity-frame-width: var(--area-bubble-overview-entity-frame-width, 1px);
     --aboc-entity-frame-color: var(

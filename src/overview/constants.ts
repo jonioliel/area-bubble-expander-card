@@ -87,14 +87,14 @@ const themePalette = (family: ThemeFamilySpec, mode: Exclude<OverviewThemeMode, 
     ? mixHex(family.deep, "#070e1a", 0.12)
     : mixHex(family.deep, "#0a1424", 0.18);
   const activeFirst = dark
-    ? mixHex(family.accent, "#132034", 0.27)
-    : mixHex(family.accent, "#ffffff", 0.18);
+    ? mixHex(family.accent, "#132034", 0.2)
+    : mixHex(family.accent, "#ffffff", 0.1);
   const activeSecond = dark
-    ? mixHex(family.accent, "#18273d", 0.4)
-    : mixHex(family.accent, "#ffffff", 0.34);
+    ? mixHex(family.accent, "#18273d", 0.28)
+    : mixHex(family.accent, "#ffffff", 0.2);
   const entitySurface = dark
-    ? mixHex(family.accent, "#17243a", 0.31)
-    : mixHex(family.accent, "#ffffff", 0.25);
+    ? mixHex(family.accent, "#060d18", 0.67)
+    : mixHex(family.accent, "#ffffff", 0.5);
   return {
     border_radius: dark ? 24 : 26,
     blur: dark ? 24 : 18,
@@ -179,8 +179,8 @@ export const OVERVIEW_THEME_PRESETS: Record<OverviewThemePreset, Partial<Overvie
     card_transparent: false,
     card_background: "linear-gradient(145deg, rgba(249,251,253,0.98) 0%, rgba(232,238,246,0.97) 55%, rgba(219,229,241,0.95) 100%)",
     row_background: "rgba(242,245,249,0.96)",
-    active_surface: "linear-gradient(135deg, #dce8f3 0%, #c1d4e6 100%)",
-    entity_active_surface: "#d2e1ee",
+    active_surface: "linear-gradient(135deg, #edf3f8 0%, #dbe7f0 100%)",
+    entity_active_surface: "#8fb7d2",
     area_frame_color: "#526b86",
     active_color: "#d8a62c",
     accent_color: "#55799f",
@@ -209,8 +209,8 @@ export const OVERVIEW_THEME_PRESETS: Record<OverviewThemePreset, Partial<Overvie
     card_transparent: false,
     card_background: "linear-gradient(145deg, rgba(255,255,255,0.99) 0%, rgba(240,248,253,0.98) 58%, rgba(227,241,249,0.96) 100%)",
     row_background: "rgba(248,251,253,0.98)",
-    active_surface: "linear-gradient(135deg, #dff5fb 0%, #c8eaf4 100%)",
-    entity_active_surface: "#d6eef5",
+    active_surface: "linear-gradient(135deg, #eefbfe 0%, #d8f0f7 100%)",
+    entity_active_surface: "#73c7df",
     area_frame_color: "#5b8fa3",
     active_color: "#e6ad25",
     accent_color: "#2d8db5",
@@ -239,8 +239,8 @@ export const OVERVIEW_THEME_PRESETS: Record<OverviewThemePreset, Partial<Overvie
     card_transparent: false,
     card_background: "linear-gradient(145deg, rgba(12,20,34,0.98) 0%, rgba(23,34,51,0.97) 56%, rgba(31,44,63,0.96) 100%)",
     row_background: "rgba(34,47,65,0.96)",
-    active_surface: "linear-gradient(135deg, #1f5360 0%, #2c4768 100%)",
-    entity_active_surface: "#285264",
+    active_surface: "linear-gradient(135deg, #263e50 0%, #315066 100%)",
+    entity_active_surface: "#1c667b",
     area_frame_color: "#65a9bd",
     active_color: "#f0bd4f",
     accent_color: "#70b7cf",
@@ -269,8 +269,8 @@ export const OVERVIEW_THEME_PRESETS: Record<OverviewThemePreset, Partial<Overvie
     card_transparent: false,
     card_background: "linear-gradient(145deg, rgba(250,249,245,0.99) 0%, rgba(237,242,236,0.97) 55%, rgba(225,234,228,0.96) 100%)",
     row_background: "rgba(244,246,241,0.97)",
-    active_surface: "linear-gradient(135deg, #d9e9e1 0%, #bfd7cc 100%)",
-    entity_active_surface: "#cfe2d9",
+    active_surface: "linear-gradient(135deg, #ebf3ef 0%, #d7e5de 100%)",
+    entity_active_surface: "#8cb9aa",
     area_frame_color: "#5c7b72",
     active_color: "#d6a43a",
     accent_color: "#557f73",
@@ -334,7 +334,7 @@ export const OVERVIEW_DEFAULT_STYLE: Required<OverviewStyleConfig> = {
   control_text_color: "#f4f3ec",
   active_color: "var(--state-active-color, #ffd54f)",
   active_surface: "rgba(174, 215, 219, 0.94)",
-  entity_active_surface: "rgba(174, 215, 219, 0.94)",
+  entity_active_surface: "#7fb8c1",
   area_frame_color: "",
   area_frame_width: 2,
   entity_frame_color: "",

@@ -75,7 +75,7 @@ theme_preset: elegant
 theme_mode: dark
 ```
 
-Manual `style.*` values remain available after choosing a theme and override only the values you customize.
+Manual `style.*` values remain available after choosing a theme and override only the values you customize. Every palette deliberately uses a calmer active-room gradient and a stronger active-device surface, so a powered device remains visually distinct from the room that contains it in both light and dark modes.
 
 The extended gallery adds Ocean Azure, Botanical Emerald, Atelier Amethyst, Terracotta Coral, Golden Amber, and Rose Berry. Their gradients use nearby tones and semantic temperature colors so the result stays lively without becoming decorative or noisy.
 
@@ -432,7 +432,7 @@ The device remains in its category and can still be controlled individually. It 
 
 ### On/off colors
 
-The Appearance panel provides color swatches, editable CSS values, reset buttons, and a live on/off preview. The main state mapping is:
+The Appearance panel provides color swatches, editable CSS values, reset buttons, and a live on/off preview. Theme cards preview the active-room and active-device surfaces separately. The main state mapping is:
 
 | State | Style key | Used for |
 | --- | --- | --- |
