@@ -2,6 +2,11 @@
 
 All notable changes to Area Bubble Expander Card will be documented in this file.
 
+## 0.19.1 - 2026-08-15
+
+- Prevented ordinary room names such as `שירותים` and `חדר הורים` from being prematurely truncated on narrow cards by sizing the room-name control to its content before the scrollable status region.
+- Preserved the single-row mobile summary layout and active quick-action access while giving room names a larger logical share when the separate expand button is hidden.
+
 ## 0.19.0 - 2026-08-15
 
 - Made light/switch and other multi-column grids adaptive to their actual item count: two devices now use two equal columns even when the configured maximum is three.

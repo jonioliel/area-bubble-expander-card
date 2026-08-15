@@ -3914,7 +3914,7 @@ window.customCards.some((e) => e.type === "area-bubble-expander-card") || window
   documentationURL: "https://github.com/jonioliel/area-bubble-expander-card"
 });
 console.info(
-  `%c AREA-BUBBLE-CARDS %c 0.19.0 ${ke(void 0, "auto")}`,
+  `%c AREA-BUBBLE-CARDS %c 0.19.1 ${ke(void 0, "auto")}`,
   "color: white; background: #03a9f4; font-weight: 700;",
   "color: #03a9f4; font-weight: 700;"
 );
@@ -6591,9 +6591,10 @@ const Ia = Ne`
   }
 
   .area-summary-pill.has-statuses .area-toggle {
+    width: max-content;
     min-width: 72px;
-    max-width: min(42%, 168px);
-    flex: 0 1 auto;
+    max-width: min(46%, 180px);
+    flex: 0 0 auto;
   }
 
   .area-main,
@@ -8321,9 +8322,10 @@ const Ia = Ne`
 
     .area-summary-pill.has-statuses .area-toggle,
     .area-summary-pill.has-statuses.compact-statuses .area-toggle {
+      width: max-content;
       min-width: 68px;
-      max-width: 96px;
-      flex: 0 1 auto;
+      max-width: min(50%, 180px);
+      flex: 0 0 auto;
       gap: 5px;
     }
 
@@ -8536,9 +8538,10 @@ const Ia = Ne`
     }
 
     .area-summary-pill.has-statuses .area-toggle {
+      width: max-content;
       min-width: 64px;
-      max-width: 82px;
-      flex: 0 1 auto;
+      max-width: 52%;
+      flex: 0 0 auto;
     }
 
     .area-summary-pill.no-statuses .area-toggle {
@@ -8615,9 +8618,10 @@ const Ia = Ne`
     }
 
     .area-summary.without-expand-button .area-summary-pill.has-statuses .area-toggle {
+      width: max-content;
       min-width: 64px;
-      max-width: 82px;
-      flex: 0 1 auto;
+      max-width: min(58%, 180px);
+      flex: 0 0 auto;
     }
 
     .area-summary.without-expand-button .area-statuses {

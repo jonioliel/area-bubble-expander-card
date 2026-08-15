@@ -53,8 +53,8 @@ describe("Overview 0.10 compact summary contracts", () => {
     expect(css).toMatch(/\.temperature-status-tag\s*\{[^}]*margin-inline-start:\s*0/s);
   });
 
-  it("shrinks dense mobile statuses before clipping them", () => {
-    expect(css).toMatch(/@container overview-card \(max-width:\s*430px\)[\s\S]*?\.area-summary-pill\.has-statuses[\s\S]*?max-width:\s*96px/s);
+  it("shrinks dense mobile statuses without prematurely clipping room names", () => {
+    expect(css).toMatch(/@container overview-card \(max-width:\s*430px\)[\s\S]*?\.area-summary-pill\.has-statuses[\s\S]*?width:\s*max-content;[\s\S]*?max-width:\s*min\(50%,\s*180px\)/s);
     expect(css).toMatch(/@container overview-card \(max-width:\s*340px\)[\s\S]*?\.compact-statuses \.quick-action\s*\{[^}]*30px/s);
     expect(css).toMatch(/@container overview-card \(max-width:\s*340px\)[\s\S]*?\.compact-statuses \.temperature-status-tag\s*\{[^}]*width:\s*18px/s);
   });

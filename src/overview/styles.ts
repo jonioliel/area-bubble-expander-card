@@ -383,9 +383,10 @@ export const overviewCardStyles = css`
   }
 
   .area-summary-pill.has-statuses .area-toggle {
+    width: max-content;
     min-width: 72px;
-    max-width: min(42%, 168px);
-    flex: 0 1 auto;
+    max-width: min(46%, 180px);
+    flex: 0 0 auto;
   }
 
   .area-main,
@@ -2113,9 +2114,10 @@ export const overviewCardStyles = css`
 
     .area-summary-pill.has-statuses .area-toggle,
     .area-summary-pill.has-statuses.compact-statuses .area-toggle {
+      width: max-content;
       min-width: 68px;
-      max-width: 96px;
-      flex: 0 1 auto;
+      max-width: min(50%, 180px);
+      flex: 0 0 auto;
       gap: 5px;
     }
 
@@ -2328,9 +2330,10 @@ export const overviewCardStyles = css`
     }
 
     .area-summary-pill.has-statuses .area-toggle {
+      width: max-content;
       min-width: 64px;
-      max-width: 82px;
-      flex: 0 1 auto;
+      max-width: 52%;
+      flex: 0 0 auto;
     }
 
     .area-summary-pill.no-statuses .area-toggle {
@@ -2407,9 +2410,10 @@ export const overviewCardStyles = css`
     }
 
     .area-summary.without-expand-button .area-summary-pill.has-statuses .area-toggle {
+      width: max-content;
       min-width: 64px;
-      max-width: 82px;
-      flex: 0 1 auto;
+      max-width: min(58%, 180px);
+      flex: 0 0 auto;
     }
 
     .area-summary.without-expand-button .area-statuses {

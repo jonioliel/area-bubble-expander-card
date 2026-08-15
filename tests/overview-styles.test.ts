@@ -148,7 +148,8 @@ describe("overview header presentation contracts", () => {
     expect(regularWidthCss).toMatch(/--aboc-area-name-size:\s*var\(--area-bubble-overview-area-name-size,\s*17px\)/);
     expect(regularWidthCss).toMatch(/\.area-name\s*\{[^}]*font-size:\s*var\(--aboc-area-name-size\)/s);
     expect(containerCssAt(430)).toMatch(/\.area-name\s*\{[^}]*font-size:\s*min\(var\(--aboc-area-name-size\),\s*14px\)/s);
-    expect(containerCssAt(340)).toMatch(/\.area-summary-pill\.has-statuses \.area-toggle\s*\{[^}]*max-width:\s*82px/s);
+    expect(containerCssAt(340)).toMatch(/\.area-summary-pill\.has-statuses \.area-toggle\s*\{[^}]*width:\s*max-content;[^}]*max-width:\s*52%;[^}]*flex:\s*0 0 auto/s);
+    expect(containerCssAt(340)).not.toMatch(/\.area-summary-pill\.has-statuses \.area-toggle\s*\{[^}]*max-width:\s*82px/s);
     expect(containerCssAt(340)).toMatch(/\.area-summary-pill\.no-statuses \.area-toggle\s*\{[^}]*min-width:\s*112px/s);
   });
 
