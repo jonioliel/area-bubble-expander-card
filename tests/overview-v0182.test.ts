@@ -39,12 +39,12 @@ describe("Overview 0.18.2 popup sub-areas and compact fan control", () => {
 
   it("replaces only the automatic fan subgroup with a touch-safe oval popup button", () => {
     expect(cardSource).toContain('this.fanDisplayMode(area) === "button"');
-    expect(cardSource).toContain('item.group === AUTO_FAN_GROUP');
-    expect(cardSource).toContain('class="section-fan-button ${activeCount ? "active" : "inactive"}"');
+    expect(cardSource).toContain('? AUTO_FAN_GROUP');
+    expect(cardSource).toContain('"section-fan-button"');
     expect(cardSource).toContain("entities.filter((item) => item.powered).length");
-    expect(cardSource).toContain('this.openQuickActionPopup(event, area, "fans")');
-    expect(css).toMatch(/\.section-heading\.has-fan-button\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\) minmax\(0,\s*auto\) auto/s);
-    expect(css).toMatch(/\.section-fan-button\s*\{[^}]*min-height:\s*44px;[^}]*border-radius:\s*999px/s);
+    expect(cardSource).toContain('const action: OverviewQuickActionKind = heatingControls ? "heating_controls" : "fans"');
+    expect(css).toMatch(/\.section-heading\.has-compact-subgroup-button\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\) minmax\(0,\s*auto\) auto/s);
+    expect(css).toMatch(/\.section-compact-subgroup-button\s*\{[^}]*min-height:\s*44px;[^}]*border-radius:\s*999px/s);
   });
 
   it("offers the display choice globally and per room in the visual editor", () => {

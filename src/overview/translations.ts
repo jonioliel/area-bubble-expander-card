@@ -88,6 +88,7 @@ const QUICK_ACTIONS: Record<OverviewLanguage, Record<OverviewQuickActionKind, st
     covers: "תריסים",
     media: "מוזיקה",
     fans: "מאווררים",
+    heating_controls: "בקרי חימום",
   },
   en: {
     lights: "Lights",
@@ -97,6 +98,7 @@ const QUICK_ACTIONS: Record<OverviewLanguage, Record<OverviewQuickActionKind, st
     covers: "Covers",
     media: "Music",
     fans: "Fans",
+    heating_controls: "Heating controls",
   },
 };
 

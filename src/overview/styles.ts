@@ -1263,11 +1263,11 @@ export const overviewCardStyles = css`
     min-width: 0;
   }
 
-  .section-heading.has-fan-button {
+  .section-heading.has-compact-subgroup-button {
     grid-template-columns: minmax(0, 1fr) minmax(0, auto) auto;
   }
 
-  .section-fan-button {
+  .section-compact-subgroup-button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -1284,11 +1284,11 @@ export const overviewCardStyles = css`
     cursor: pointer;
   }
 
-  .section-fan-button.active {
+  .section-compact-subgroup-button.active {
     background: color-mix(in srgb, var(--success-color, #4caf50) 30%, var(--aboc-control-surface));
   }
 
-  .section-fan-button span {
+  .section-compact-subgroup-button span {
     min-width: 0;
     overflow: hidden;
     font-size: 12px;
@@ -1297,24 +1297,24 @@ export const overviewCardStyles = css`
     white-space: nowrap;
   }
 
-  .section-fan-button small {
+  .section-compact-subgroup-button small {
     flex: 0 0 auto;
     font-size: 10px;
     font-variant-numeric: tabular-nums;
   }
 
-  .section-fan-button ha-icon {
+  .section-compact-subgroup-button ha-icon {
     flex: 0 0 auto;
     color: currentColor;
     --mdc-icon-size: 18px;
   }
 
-  .section-fan-button:focus-visible {
+  .section-compact-subgroup-button:focus-visible {
     outline: 2px solid var(--aboc-accent);
     outline-offset: 2px;
   }
 
-  .section-fan-button:disabled {
+  .section-compact-subgroup-button:disabled {
     cursor: wait;
     opacity: 0.58;
   }

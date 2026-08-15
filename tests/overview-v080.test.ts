@@ -161,7 +161,7 @@ describe("Overview 0.8 rendering contracts", () => {
 
   it("keeps automatic implementation sub-groups while promoting manual room sub-areas", () => {
     expect(source).toContain("const groups = new Map<string, OverviewEntity[]>()");
-    expect(source).toContain('class="entity-subgroup"');
+    expect(source).toContain('class="entity-subgroup ${automaticHeatingControls');
     expect(source).toContain('class="entity-subgroup-heading"');
     expect(source).toContain('class="room-subarea');
     expect(editor).toContain('"Sub-area inside room"');

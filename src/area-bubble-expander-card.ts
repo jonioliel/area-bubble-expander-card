@@ -395,7 +395,7 @@ if (!window.customCards.some((card) => card.type === "area-bubble-expander-card"
 }
 
 console.info(
-  `%c AREA-BUBBLE-CARDS %c 0.18.2 ${resolveLanguage(undefined, "auto")}`,
+  `%c AREA-BUBBLE-CARDS %c 0.19.0 ${resolveLanguage(undefined, "auto")}`,
   "color: white; background: #03a9f4; font-weight: 700;",
   "color: #03a9f4; font-weight: 700;",
 );

@@ -1,6 +1,6 @@
 import type { HomeAssistant } from "../types";
 import { entityPowerService, supportsEntityFeature, type EntityServicePlan } from "./features";
-import { AUTO_FAN_GROUP } from "./constants";
+import { AUTO_FAN_GROUP, AUTO_FLOOR_HEATING_GROUP } from "./constants";
 import type { OverviewArea, OverviewEntity, OverviewQuickActionId, OverviewQuickActionKind, OverviewSection } from "./types";
 
 type GroupedService = {
@@ -28,6 +28,9 @@ const isQuickActionMember = (item: OverviewEntity, action: OverviewQuickActionKi
   if (action === "climate") return item.domain === "climate";
   if (action === "fans") {
     return item.section === "climate" && (item.domain === "fan" || item.group === AUTO_FAN_GROUP);
+  }
+  if (action === "heating_controls") {
+    return item.section === "floor_heating" && item.group === AUTO_FLOOR_HEATING_GROUP;
   }
   if (action === "floor_heating") return item.section === "floor_heating";
   if (action === "covers") return item.domain === "cover";

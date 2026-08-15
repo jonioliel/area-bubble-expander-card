@@ -3,7 +3,7 @@ import type { CardStyleConfig, HassEntity, LanguageMode, RtlMode } from "../type
 export type OverviewSectionId = "climate" | "floor_heating" | "covers" | "lights_switches" | "media";
 export type OverviewQuickActionId = "lights" | "climate" | "floor_heating" | "switches" | "covers" | "media";
 /** Runtime-only popup kinds may extend the user-configurable quick actions. */
-export type OverviewQuickActionKind = OverviewQuickActionId | "fans";
+export type OverviewQuickActionKind = OverviewQuickActionId | "fans" | "heating_controls";
 export type OverviewSectionActionMode = "toggle" | "dual";
 export type OverviewControlPresentation = "icon" | "text" | "both";
 export type OverviewSectionBorderStyle = "solid" | "dashed" | "dotted";
@@ -28,7 +28,9 @@ export type OverviewTileShape = "rectangle" | "square";
 export type OverviewTileIconPosition = "start" | "left" | "right" | "center";
 export type OverviewEntityCardSize = "compact" | "medium" | "wide";
 export type OverviewAutomaticSubgroupId = "fans" | "heating_controls";
-export type OverviewFanDisplayMode = "subgroup" | "button";
+export type OverviewAutomaticSubgroupDisplayMode = "subgroup" | "button";
+export type OverviewFanDisplayMode = OverviewAutomaticSubgroupDisplayMode;
+export type OverviewHeatingControlsDisplayMode = OverviewAutomaticSubgroupDisplayMode;
 
 export type OverviewSectionStyle = {
   background?: string;
@@ -78,6 +80,7 @@ export type OverviewAreaOverride = {
   subarea_order?: string[];
   subgroup_titles?: Partial<Record<OverviewAutomaticSubgroupId, string>>;
   fan_display_mode?: OverviewFanDisplayMode;
+  heating_controls_display_mode?: OverviewHeatingControlsDisplayMode;
   entity_card_size?: OverviewEntityCardSize;
   section_titles?: Partial<Record<OverviewSectionId, string>>;
   section_styles?: Partial<Record<OverviewSectionId, OverviewSectionStyle>>;
@@ -156,6 +159,7 @@ export type AreaBubbleOverviewCardConfig = {
   entity_card_size?: OverviewEntityCardSize;
   subgroup_titles?: Partial<Record<OverviewAutomaticSubgroupId, string>>;
   fan_display_mode?: OverviewFanDisplayMode;
+  heating_controls_display_mode?: OverviewHeatingControlsDisplayMode;
   show_empty_sections?: boolean;
   default_expanded?: boolean;
   floor_default_expanded?: boolean;

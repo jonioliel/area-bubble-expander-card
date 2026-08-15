@@ -7,6 +7,7 @@ import type {
   OverviewEntityCardSize,
   OverviewEntityOverride,
   OverviewFanDisplayMode,
+  OverviewHeatingControlsDisplayMode,
   OverviewSectionActionIcons,
   OverviewSectionBorderStyle,
   OverviewSectionId,
@@ -149,6 +150,9 @@ const areaOverrides = (value: unknown): Record<string, OverviewAreaOverride> => 
       ...(raw.fan_display_mode === "subgroup" || raw.fan_display_mode === "button"
         ? { fan_display_mode: raw.fan_display_mode as OverviewFanDisplayMode }
         : {}),
+      ...(raw.heating_controls_display_mode === "subgroup" || raw.heating_controls_display_mode === "button"
+        ? { heating_controls_display_mode: raw.heating_controls_display_mode as OverviewHeatingControlsDisplayMode }
+        : {}),
       ...(typeof raw.entity_card_size === "string" && entityCardSizes.has(raw.entity_card_size as OverviewEntityCardSize)
         ? { entity_card_size: raw.entity_card_size as OverviewEntityCardSize }
         : {}),
@@ -260,6 +264,7 @@ export const resolveOverviewConfig = (config: AreaBubbleOverviewCardConfig): Res
     light_show_state: typeof config.light_show_state === "boolean" ? config.light_show_state : true,
     entity_card_size: entityCardSizes.has(config.entity_card_size as OverviewEntityCardSize) ? config.entity_card_size! : "medium",
     fan_display_mode: config.fan_display_mode === "button" ? "button" : "subgroup",
+    heating_controls_display_mode: config.heating_controls_display_mode === "button" ? "button" : "subgroup",
     section_order: sectionArray(config.section_order),
     section_titles: Object.fromEntries(
       OVERVIEW_SECTIONS.map((section) => [section, typeof customTitles[section] === "string" ? customTitles[section] : ""]),

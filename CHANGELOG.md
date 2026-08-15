@@ -2,6 +2,14 @@
 
 All notable changes to Area Bubble Expander Card will be documented in this file.
 
+## 0.19.0 - 2026-08-15
+
+- Made light/switch and other multi-column grids adaptive to their actual item count: two devices now use two equal columns even when the configured maximum is three.
+- Kept automatic Floor-heating relay/control tiles full-width inside their complete sub-category presentation.
+- Added global and per-room `heating_controls_display_mode` choices between the full Heating-controls sub-category and a compact oval control in the Floor-heating heading.
+- Added a dedicated Heating-controls Popup containing only automatic relays/input booleans, with safe individual and grouped on/off actions while leaving the thermostat in the main Floor-heating category.
+- Added configuration, membership, service, editor, adaptive-grid, full-width subgroup, RTL, 340 px geometry, and regression coverage; the full suite now contains 257 tests.
+
 ## 0.18.2 - 2026-08-15
 
 - Made every real child Area inside a room Popup an independent accessible disclosure, with its own expand/collapse state, nested-descendant gating, and optional persistence through `remember_expanded_state`.

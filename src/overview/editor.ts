@@ -13,6 +13,7 @@ import type {
   OverviewEntityCardSize,
   OverviewEntityOverride,
   OverviewFanDisplayMode,
+  OverviewHeatingControlsDisplayMode,
   OverviewQuickActionId,
   OverviewSectionId,
   OverviewSectionStyle,
@@ -181,6 +182,7 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
     if (typeof config.show_floor_expand_button !== "boolean") delete sanitized.show_floor_expand_button;
     if (config.area_open_mode !== "expander" && config.area_open_mode !== "popup") delete sanitized.area_open_mode;
     if (config.fan_display_mode !== "subgroup" && config.fan_display_mode !== "button") delete sanitized.fan_display_mode;
+    if (config.heating_controls_display_mode !== "subgroup" && config.heating_controls_display_mode !== "button") delete sanitized.heating_controls_display_mode;
     if (!OVERVIEW_THEME_NAMES.includes(config.theme_preset as OverviewThemePreset)) delete sanitized.theme_preset;
     if (!["recommended", "light", "dark"].includes(String(config.theme_mode))) delete sanitized.theme_mode;
     this.config = sanitized;
@@ -353,6 +355,14 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
                 <option value="button">${this.l("כפתור אובלי קומפקטי", "Compact oval button", language)}</option>
               </select>
               <div class="hint">${this.l("הכפתור הקומפקטי מופיע בין כותרת אקלים לבין פעולות ההדלקה והכיבוי ופותח חלון שליטה מלא.", "The compact button sits between the Climate title and its group controls, and opens the full fan popup.", language)}</div>
+            </div>
+            <div class="field">
+              <label>${this.l("תצוגת בקרי חימום רצפתי", "Floor-heating controls display", language)}</label>
+              <select .value=${resolved.heating_controls_display_mode} @change=${(event: Event) => this.commitKey("heating_controls_display_mode", (event.target as HTMLSelectElement).value as OverviewHeatingControlsDisplayMode)}>
+                <option value="subgroup">${this.l("תת־קטגוריה מלאה", "Full sub-category", language)}</option>
+                <option value="button">${this.l("כפתור אובלי קומפקטי", "Compact oval button", language)}</option>
+              </select>
+              <div class="hint">${this.l("הכפתור הקומפקטי מופיע בכותרת חימום רצפתי ופותח חלון נפרד לבקרי ולממסרי החימום.", "The compact button appears in the Floor-heating heading and opens a separate popup for heating controls and relays.", language)}</div>
             </div>
             <div class="field"><label>${this.l("שם תת־קטגוריית מאווררים", "Fans sub-category name", language)}</label><input type="text" .value=${resolved.subgroup_titles.fans} placeholder=${this.l("מאווררים", "Fans", language)} @change=${(event: Event) => this.setGlobalSubgroupTitle("fans", (event.target as HTMLInputElement).value)} /></div>
             <div class="field"><label>${this.l("שם תת־קטגוריית בקרי חימום", "Heating-controls sub-category name", language)}</label><input type="text" .value=${resolved.subgroup_titles.heating_controls} placeholder=${this.l("בקרי חימום", "Heating controls", language)} @change=${(event: Event) => this.setGlobalSubgroupTitle("heating_controls", (event.target as HTMLInputElement).value)} /></div>
@@ -647,6 +657,14 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
                 <div class="field">
                   <label>${this.l("תצוגת מאווררים בחדר", "Fan display in this room", language)}</label>
                   <select .value=${override.fan_display_mode ?? ""} @change=${(event: Event) => this.updateAreaOverride(area.id, { fan_display_mode: ((event.target as HTMLSelectElement).value || undefined) as OverviewFanDisplayMode | undefined })}>
+                    <option value="">${this.l("לפי ההגדרה הכללית", "Use global setting", language)}</option>
+                    <option value="subgroup">${this.l("תת־קטגוריה מלאה", "Full sub-category", language)}</option>
+                    <option value="button">${this.l("כפתור אובלי קומפקטי", "Compact oval button", language)}</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label>${this.l("תצוגת בקרי חימום בחדר", "Heating-controls display in this room", language)}</label>
+                  <select .value=${override.heating_controls_display_mode ?? ""} @change=${(event: Event) => this.updateAreaOverride(area.id, { heating_controls_display_mode: ((event.target as HTMLSelectElement).value || undefined) as OverviewHeatingControlsDisplayMode | undefined })}>
                     <option value="">${this.l("לפי ההגדרה הכללית", "Use global setting", language)}</option>
                     <option value="subgroup">${this.l("תת־קטגוריה מלאה", "Full sub-category", language)}</option>
                     <option value="button">${this.l("כפתור אובלי קומפקטי", "Compact oval button", language)}</option>

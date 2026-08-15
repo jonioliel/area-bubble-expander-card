@@ -9,6 +9,8 @@ Both cards support Hebrew/English, RTL, responsive layouts, automatic Home Assis
 
 Room Popups also support independently collapsible real child Areas, and automatic Climate fans may be shown either as the full subgroup or as a compact oval button that opens the fan-only control Popup.
 
+Multi-column device grids now contract to their real item count. Automatic Floor-heating relays may likewise use full-width subgroup tiles or a compact oval button that opens a relay-only control Popup.
+
 Install through HACS as a Lovelace card and add the resource:
 
 ```yaml

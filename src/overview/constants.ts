@@ -387,6 +387,7 @@ export const OVERVIEW_DEFAULT_CONFIG: AreaBubbleOverviewCardConfig = {
   entity_card_size: "medium",
   subgroup_titles: {},
   fan_display_mode: "subgroup",
+  heating_controls_display_mode: "subgroup",
   show_empty_sections: false,
   default_expanded: false,
   floor_default_expanded: true,

@@ -528,14 +528,19 @@ export class AreaBubbleOverviewCard extends LitElement {
     const toggleTargets = toggleTurnOn ? onTargets : offTargets;
     const togglePending = toggleTurnOn ? pendingOn : pendingOff;
     const toggleLabel = toggleTurnOn ? onLabel : offLabel;
-    const compactFans = section.id === "climate" && this.fanDisplayMode(area) === "button"
-      ? section.entities.filter((item) => item.group === AUTO_FAN_GROUP)
+    const compactGroup = section.id === "climate" && this.fanDisplayMode(area) === "button"
+      ? AUTO_FAN_GROUP
+      : section.id === "floor_heating" && this.heatingControlsDisplayMode(area) === "button"
+        ? AUTO_FLOOR_HEATING_GROUP
+        : undefined;
+    const compactEntities = compactGroup
+      ? section.entities.filter((item) => item.group === compactGroup)
       : [];
     return html`
       <section class="device-section section-${section.id} columns-${sectionColumns} entity-size-${entityCardSize} ${sectionStyle.show_border ? "section-framed" : ""}" style=${sectionStyleText} aria-labelledby=${headingId}>
-        <h3 class="section-heading ${compactFans.length ? "has-fan-button" : ""}" id=${headingId}>
+        <h3 class="section-heading ${compactEntities.length ? "has-compact-subgroup-button" : ""}" id=${headingId}>
           <span class="section-heading-main"><ha-icon icon=${section.icon}></ha-icon><span class="section-title" title=${section.title}>${section.title}</span><span class="section-count">${section.activeCount}/${section.entities.length}</span></span>
-          ${compactFans.length ? this.renderFanSectionButton(area, compactFans) : nothing}
+          ${compactGroup && compactEntities.length ? this.renderAutomaticSubgroupButton(area, compactGroup, compactEntities) : nothing}
           <span class="section-actions" role="group" aria-label=${`${this.localText("שליטה כללית", "Group controls")}: ${section.title}`}>
             ${this.config?.section_action_mode === "toggle"
               ? html`<button
@@ -569,64 +574,81 @@ export class AreaBubbleOverviewCard extends LitElement {
                 `}
           </span>
         </h3>
-        ${this.renderSectionEntities(section, area)}
+        ${this.renderSectionEntities(section, area, sectionColumns)}
       </section>
     `;
   }
 
-  private renderSectionEntities(section: OverviewSection, area: OverviewArea) {
+  private renderSectionEntities(section: OverviewSection, area: OverviewArea, configuredColumns: number) {
     if (!section.entities.length) {
       return html`<div class="section-entities"><div class="secondary section-empty">${this.config && overviewLanguage(this.hass, this.config) === "he" ? "אין רכיבים בסעיף" : "No devices in this section"}</div></div>`;
     }
-    const compactFanButton = section.id === "climate" && this.fanDisplayMode(area) === "button";
+    const compactGroup = section.id === "climate" && this.fanDisplayMode(area) === "button"
+      ? AUTO_FAN_GROUP
+      : section.id === "floor_heating" && this.heatingControlsDisplayMode(area) === "button"
+        ? AUTO_FLOOR_HEATING_GROUP
+        : undefined;
+    const gridColumns = (count: number, forceSingle = false): string =>
+      `--aboc-section-columns:${forceSingle ? 1 : Math.max(1, Math.min(configuredColumns, count))}`;
     const ungrouped = section.entities.filter((item) => !item.group);
     const groups = new Map<string, OverviewEntity[]>();
     for (const item of section.entities) {
       if (!item.group) continue;
-      if (compactFanButton && item.group === AUTO_FAN_GROUP) continue;
+      if (item.group === compactGroup) continue;
       const entries = groups.get(item.group) ?? [];
       entries.push(item);
       groups.set(item.group, entries);
     }
     return html`
-      ${ungrouped.length ? html`<div class="section-entities">${ungrouped.map((item) => this.renderEntity(item, section.id))}</div>` : nothing}
+      ${ungrouped.length ? html`<div class="section-entities" style=${gridColumns(ungrouped.length)}>${ungrouped.map((item) => this.renderEntity(item, section.id))}</div>` : nothing}
       ${[...groups.entries()].map(([group, entities]) => {
         const title = this.subgroupTitle(group, area);
+        const automaticHeatingControls = group === AUTO_FLOOR_HEATING_GROUP;
         return html`
-          <section class="entity-subgroup" aria-label=${title}>
+          <section class="entity-subgroup ${automaticHeatingControls ? "automatic-heating-controls" : ""}" aria-label=${title}>
             <div class="entity-subgroup-heading"><ha-icon icon=${this.subgroupIcon(group)}></ha-icon><span>${title}</span><small>${entities.filter((item) => item.powered).length}/${entities.length}</small></div>
-            <div class="section-entities">${entities.map((item) => this.renderEntity(item, section.id))}</div>
+            <div class="section-entities" style=${gridColumns(entities.length, automaticHeatingControls)}>${entities.map((item) => this.renderEntity(item, section.id))}</div>
           </section>
         `;
       })}
     `;
   }
 
-  private renderFanSectionButton(area: OverviewArea, entities: OverviewEntity[]) {
+  private renderAutomaticSubgroupButton(area: OverviewArea, group: string, entities: OverviewEntity[]) {
     // `ignore_activity` only removes the device from room/Floor summaries. The
-    // expanded control must still reflect the fan's real powered state.
+    // expanded control must still reflect the device's real powered state.
     const activeCount = entities.filter((item) => item.powered).length;
-    const pending = this.quickActionPending(area.id, "fans") || entities.some((item) => this.pendingEntities.has(item.entityId));
-    const title = this.subgroupTitle(AUTO_FAN_GROUP, area, true);
-    const accessibleLabel = `${this.localText("פתיחת בקרת מאווררים", "Open fan controls")}: ${area.name} · ${activeCount}/${entities.length}`;
+    const heatingControls = group === AUTO_FLOOR_HEATING_GROUP;
+    const action: OverviewQuickActionKind = heatingControls ? "heating_controls" : "fans";
+    const icon = heatingControls ? "mdi:radiator" : "mdi:fan";
+    const title = this.subgroupTitle(group, area, true);
+    const pending = this.quickActionPending(area.id, action) || entities.some((item) => this.pendingEntities.has(item.entityId));
+    const accessibleLabel = `${heatingControls
+      ? this.localText("פתיחת בקרת חימום", "Open heating controls")
+      : this.localText("פתיחת בקרת מאווררים", "Open fan controls")}: ${area.name} · ${activeCount}/${entities.length}`;
     return html`
       <button
-        class="section-fan-button ${activeCount ? "active" : "inactive"}"
+        class="section-compact-subgroup-button ${heatingControls ? "section-heating-controls-button" : "section-fan-button"} ${activeCount ? "active" : "inactive"}"
         type="button"
         title=${accessibleLabel}
         aria-label=${accessibleLabel}
         aria-haspopup="dialog"
-        aria-expanded=${this.quickPopup?.areaId === area.id && this.quickPopup.action === "fans"}
+        aria-expanded=${this.quickPopup?.areaId === area.id && this.quickPopup.action === action}
         aria-busy=${pending}
         ?disabled=${pending}
-        @click=${(event: Event) => this.openQuickActionPopup(event, area, "fans")}
-      ><ha-icon icon=${pending ? "mdi:loading" : "mdi:fan"}></ha-icon><span>${title}</span><small>${activeCount}/${entities.length}</small></button>
+        @click=${(event: Event) => this.openQuickActionPopup(event, area, action)}
+      ><ha-icon icon=${pending ? "mdi:loading" : icon}></ha-icon><span>${title}</span><small>${activeCount}/${entities.length}</small></button>
     `;
   }
 
   private fanDisplayMode(area: OverviewArea): "subgroup" | "button" {
     const override = this.config?.area_overrides[area.id] ?? this.config?.area_overrides[area.name];
     return override?.fan_display_mode ?? this.config?.fan_display_mode ?? "subgroup";
+  }
+
+  private heatingControlsDisplayMode(area: OverviewArea): "subgroup" | "button" {
+    const override = this.config?.area_overrides[area.id] ?? this.config?.area_overrides[area.name];
+    return override?.heating_controls_display_mode ?? this.config?.heating_controls_display_mode ?? "subgroup";
   }
 
   private subgroupTitle(group: string, area: OverviewArea, compact = false): string {
@@ -636,7 +658,7 @@ export class AreaBubbleOverviewCard extends LitElement {
     const configured = areaOverride?.subgroup_titles?.[key] || this.config?.subgroup_titles[key];
     if (configured) return configured;
     if (key === "fans") return compact ? this.localText("מאוורר", "Fan") : this.localText("מאווררים", "Fans");
-    if (key === "heating_controls") return this.localText("בקרי חימום", "Heating controls");
+    if (key === "heating_controls") return compact ? this.localText("בקר חימום", "Heating control") : this.localText("בקרי חימום", "Heating controls");
     return group;
   }
 
@@ -696,7 +718,11 @@ export class AreaBubbleOverviewCard extends LitElement {
     const titleId = `overview-quick-popup-title-${safeId}`;
     const onVerb = action === "covers" ? this.localText("פתיחת הכל", "Open all") : this.localText("הפעלת הכל", "Turn all on");
     const offVerb = action === "covers" ? this.localText("סגירת הכל", "Close all") : this.localText("כיבוי הכל", "Turn all off");
-    const popupIcon = action === "fans" ? "mdi:fan" : this.config.quick_action_icons[action];
+    const popupIcon = action === "fans"
+      ? "mdi:fan"
+      : action === "heating_controls"
+        ? "mdi:radiator"
+        : this.config.quick_action_icons[action];
     return html`
       <dialog
         class="quick-action-dialog area-quick-action-dialog"
