@@ -311,6 +311,7 @@ export const overviewCardStyles = css`
     background: var(--aboc-row-bg);
     color: var(--aboc-primary-text);
     transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease;
+    cursor: pointer;
   }
 
   .area-panel.has-active > .area-summary > .area-summary-pill {

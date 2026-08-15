@@ -314,7 +314,11 @@ export class AreaBubbleOverviewCard extends LitElement {
         aria-labelledby=${nameId}
       >
         <header class="area-summary ${this.config.show_area_expand_button ? "" : "without-expand-button"}">
-          <div class="area-summary-pill quick-actions-${this.config.quick_actions_position} climate-tag-${this.config.climate_tag_position} summary-load-${summaryLoad} ${compactStatuses ? "compact-statuses" : ""} ${hasStatuses ? "has-statuses" : "no-statuses"}">
+          <div
+            class="area-summary-pill quick-actions-${this.config.quick_actions_position} climate-tag-${this.config.climate_tag_position} summary-load-${summaryLoad} ${compactStatuses ? "compact-statuses" : ""} ${hasStatuses ? "has-statuses" : "no-statuses"}"
+            tabindex="-1"
+            @click=${(event: MouseEvent) => this.handleAreaSummaryClick(event, area)}
+          >
             <button
               class="area-toggle"
               type="button"
@@ -1247,6 +1251,12 @@ export class AreaBubbleOverviewCard extends LitElement {
   private activateArea(event: Event, area: OverviewArea): void {
     if (this.areaOpenMode(area) === "popup") this.openAreaPopup(event, area);
     else this.toggleArea(area);
+  }
+
+  private handleAreaSummaryClick(event: MouseEvent, area: OverviewArea): void {
+    const target = event.target as HTMLElement | null;
+    if (target?.closest("button, a, input, select, textarea, [role='button']")) return;
+    this.activateArea(event, area);
   }
 
   private toggleArea(area: OverviewArea): void {

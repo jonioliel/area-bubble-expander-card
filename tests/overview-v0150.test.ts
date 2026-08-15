@@ -30,18 +30,23 @@ const hass = (states: HassEntity[]): HomeAssistant => ({
 } as HomeAssistant);
 
 describe("Overview 0.15 auxiliary climate and heating discovery", () => {
-  it("maps named fan switches into a localized automatic fan subgroup", () => {
+  it("maps named fans into Climate while keeping shower vents with lights and switches", () => {
     const discovery = discoverOverview(hass([
       state("switch.room_fan", "on", "Room fan"),
-      state("switch.vent", "off", "מאוורר מקלחת"),
+      state("switch.vent", "off", "וונטה מקלחת"),
+      state("switch.ventilator", "off", "Bathroom ventilator"),
       state("fan.ceiling", "on", "Ceiling fan"),
       state("switch.regular", "off", "Regular switch"),
     ]), resolveOverviewConfig({ type, area: "room", language: "en" }));
     const area = discovery.areas[0];
     const fans = area.sections.find((section) => section.id === "climate")?.entities ?? [];
-    expect(fans.map((item) => item.entityId).sort()).toEqual(["fan.ceiling", "switch.room_fan", "switch.vent"]);
+    expect(fans.map((item) => item.entityId).sort()).toEqual(["fan.ceiling", "switch.room_fan"]);
     expect(fans.every((item) => item.group === AUTO_FAN_GROUP)).toBe(true);
-    expect(area.sections.find((section) => section.id === "lights_switches")?.entities.map((item) => item.entityId)).toEqual(["switch.regular"]);
+    expect(area.sections.find((section) => section.id === "lights_switches")?.entities.map((item) => item.entityId).sort()).toEqual([
+      "switch.regular",
+      "switch.vent",
+      "switch.ventilator",
+    ]);
   });
 
   it("maps both floor-heating thermostats and relays while grouping only compact controls", () => {
@@ -79,5 +84,11 @@ describe("Overview 0.15 auxiliary climate and heating discovery", () => {
   it("documents automatic discovery and manual override in the visual editor", () => {
     expect(editor).toContain("Fans and floor heating are mapped automatically by name and labels");
     expect(editor).toContain("the manual section choice here always takes precedence");
+  });
+
+  it("opens an Area from free summary space without stealing quick-action clicks", () => {
+    expect(source).toContain("@click=${(event: MouseEvent) => this.handleAreaSummaryClick(event, area)}");
+    expect(source).toContain("target?.closest(\"button, a, input, select, textarea, [role='button']\")");
+    expect(source).toContain("this.activateArea(event, area)");
   });
 });

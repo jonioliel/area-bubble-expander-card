@@ -174,7 +174,7 @@ Dimmable lights are detected automatically from Home Assistant's light capabilit
 
 ### Summary tags and lighting tiles
 
-Collapsed Area summaries can keep active quick actions beside the Area name or move them to the opposite logical edge. Climate and active-fan tags stay attached to the temperature cluster and may be placed on its left, right, top, or bottom with a configurable gap. Native fans and switches/input booleans whose names clearly contain `fan`, `מאוורר`, or `ונטה` are mapped into a compact **Fans** sub-group inside Climate. Their tile stays at cover-row height and, while powered, shows the elapsed ON duration from Home Assistant's `last_changed` value. A manual section or sub-group selection in the editor always takes precedence.
+Collapsed Area summaries can keep active quick actions beside the Area name or move them to the opposite logical edge. Every free part of the summary capsule opens the Area's configured Expander or Popup; category buttons keep their own actions. Climate and active-fan tags stay attached to the temperature cluster and may be placed on its left, right, top, or bottom with a configurable gap. Native fans and switches/input booleans whose names clearly contain `fan` or `מאוורר` are mapped into a compact **Fans** sub-group inside Climate. Shower/bathroom vents named `וונטה` or `ventilator` remain in **Lights and switches**. Fan tiles stay at cover-row height and, while powered, show the elapsed ON duration from Home Assistant's `last_changed` value. A manual section or sub-group selection in the editor always takes precedence.
 
 ```yaml
 quick_actions_position: opposite # opposite | near_name

@@ -66,7 +66,7 @@ const classify = (
   if (forced) return forced;
   const searchable = `${entityId} ${name} ${labels.join(" ")}`.toLocaleLowerCase();
   const floorHeatingName = /(?:under[\s_-]*floor|floor[\s_-]*heating|חימום\s*(?:תת[\s_-]*)?רצפתי)/u.test(searchable);
-  const fanName = /(?:^|[\s._-])(?:fan|ventilator|blower|מאוורר(?:ים)?|ו?ו?נטה)(?:$|[\s._-])/u.test(searchable);
+  const fanName = /(?:^|[\s._-])(?:fan|blower|מאוורר(?:ים)?)(?:$|[\s._-])/u.test(searchable);
   if (config.floor_heating_entities.includes(entityId) || labels.some((label) => config.floor_heating_labels.includes(label)) || floorHeatingName) {
     return "floor_heating";
   }
@@ -86,7 +86,7 @@ const automaticGroup = (
   labels: string[],
 ): string | undefined => {
   const searchable = `${entityId} ${name} ${labels.join(" ")}`.toLocaleLowerCase();
-  const fanName = /(?:^|[\s._-])(?:fan|ventilator|blower|מאוורר(?:ים)?|ו?ו?נטה)(?:$|[\s._-])/u.test(searchable);
+  const fanName = /(?:^|[\s._-])(?:fan|blower|מאוורר(?:ים)?)(?:$|[\s._-])/u.test(searchable);
   if (section === "climate" && (domain === "fan" || fanName)) return AUTO_FAN_GROUP;
   if (section === "floor_heating" && ["switch", "input_boolean"].includes(domain)) return AUTO_FLOOR_HEATING_GROUP;
   return undefined;

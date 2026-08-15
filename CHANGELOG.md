@@ -2,6 +2,12 @@
 
 All notable changes to Area Bubble Expander Card will be documented in this file.
 
+## 0.15.1 - 2026-08-15
+
+- Kept shower/bathroom vents (`וונטה` / `ventilator`) in Lights and switches instead of automatically classifying them as Climate fans; native `fan` entities and clearly named fans remain in Climate.
+- Made every non-interactive empty part of an Area summary capsule open its configured Expander or Popup, while quick-action controls keep their independent behavior.
+- Added discovery and summary-click regression coverage; the full suite now contains 198 tests.
+
 ## 0.15.0 - 2026-08-15
 
 - Added conservative automatic mapping of named fan switches/input booleans into the Climate section and named floor-heating thermostats/relays into Floor heating.
