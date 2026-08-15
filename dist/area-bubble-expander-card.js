@@ -3,18 +3,18 @@
  * Copyright 2019 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const je = globalThis, bt = je.ShadowRoot && (je.ShadyCSS === void 0 || je.ShadyCSS.nativeShadow) && "adoptedStyleSheets" in Document.prototype && "replace" in CSSStyleSheet.prototype, mt = Symbol(), At = /* @__PURE__ */ new WeakMap();
-let Wt = class {
+const je = globalThis, mt = je.ShadowRoot && (je.ShadyCSS === void 0 || je.ShadyCSS.nativeShadow) && "adoptedStyleSheets" in Document.prototype && "replace" in CSSStyleSheet.prototype, ft = Symbol(), Pt = /* @__PURE__ */ new WeakMap();
+let ei = class {
   constructor(t, i, a) {
-    if (this._$cssResult$ = !0, a !== mt) throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");
+    if (this._$cssResult$ = !0, a !== ft) throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");
     this.cssText = t, this.t = i;
   }
   get styleSheet() {
     let t = this.o;
     const i = this.t;
-    if (bt && t === void 0) {
+    if (mt && t === void 0) {
       const a = i !== void 0 && i.length === 1;
-      a && (t = At.get(i)), t === void 0 && ((this.o = t = new CSSStyleSheet()).replaceSync(this.cssText), a && At.set(i, t));
+      a && (t = Pt.get(i)), t === void 0 && ((this.o = t = new CSSStyleSheet()).replaceSync(this.cssText), a && Pt.set(i, t));
     }
     return t;
   }
@@ -22,33 +22,33 @@ let Wt = class {
     return this.cssText;
   }
 };
-const wi = (e) => new Wt(typeof e == "string" ? e : e + "", void 0, mt), Ie = (e, ...t) => {
+const Ei = (e) => new ei(typeof e == "string" ? e : e + "", void 0, ft), Oe = (e, ...t) => {
   const i = e.length === 1 ? e[0] : t.reduce((a, o, r) => a + ((n) => {
     if (n._$cssResult$ === !0) return n.cssText;
     if (typeof n == "number") return n;
     throw Error("Value passed to 'css' function must be a 'css' function result: " + n + ". Use 'unsafeCSS' to pass non-literal values, but take care to ensure page security.");
   })(o) + e[r + 1], e[0]);
-  return new Wt(i, e, mt);
-}, ki = (e, t) => {
-  if (bt) e.adoptedStyleSheets = t.map((i) => i instanceof CSSStyleSheet ? i : i.styleSheet);
+  return new ei(i, e, ft);
+}, Ci = (e, t) => {
+  if (mt) e.adoptedStyleSheets = t.map((i) => i instanceof CSSStyleSheet ? i : i.styleSheet);
   else for (const i of t) {
     const a = document.createElement("style"), o = je.litNonce;
     o !== void 0 && a.setAttribute("nonce", o), a.textContent = i.cssText, e.appendChild(a);
   }
-}, Et = bt ? (e) => e : (e) => e instanceof CSSStyleSheet ? ((t) => {
+}, It = mt ? (e) => e : (e) => e instanceof CSSStyleSheet ? ((t) => {
   let i = "";
   for (const a of t.cssRules) i += a.cssText;
-  return wi(i);
+  return Ei(i);
 })(e) : e;
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const { is: Si, defineProperty: Ai, getOwnPropertyDescriptor: Ei, getOwnPropertyNames: Ci, getOwnPropertySymbols: Ti, getPrototypeOf: Pi } = Object, X = globalThis, Ct = X.trustedTypes, Ii = Ct ? Ct.emptyScript : "", Ze = X.reactiveElementPolyfillSupport, $e = (e, t) => e, Be = { toAttribute(e, t) {
+const { is: Ti, defineProperty: Pi, getOwnPropertyDescriptor: Ii, getOwnPropertyNames: Oi, getOwnPropertySymbols: zi, getPrototypeOf: Fi } = Object, X = globalThis, Ot = X.trustedTypes, Ni = Ot ? Ot.emptyScript : "", Ze = X.reactiveElementPolyfillSupport, we = (e, t) => e, Be = { toAttribute(e, t) {
   switch (t) {
     case Boolean:
-      e = e ? Ii : null;
+      e = e ? Ni : null;
       break;
     case Object:
     case Array:
@@ -73,23 +73,23 @@ const { is: Si, defineProperty: Ai, getOwnPropertyDescriptor: Ei, getOwnProperty
       }
   }
   return i;
-} }, ft = (e, t) => !Si(e, t), Tt = { attribute: !0, type: String, converter: Be, reflect: !1, useDefault: !1, hasChanged: ft };
+} }, gt = (e, t) => !Ti(e, t), zt = { attribute: !0, type: String, converter: Be, reflect: !1, useDefault: !1, hasChanged: gt };
 Symbol.metadata ?? (Symbol.metadata = Symbol("metadata")), X.litPropertyMetadata ?? (X.litPropertyMetadata = /* @__PURE__ */ new WeakMap());
-let ue = class extends HTMLElement {
+let he = class extends HTMLElement {
   static addInitializer(t) {
     this._$Ei(), (this.l ?? (this.l = [])).push(t);
   }
   static get observedAttributes() {
     return this.finalize(), this._$Eh && [...this._$Eh.keys()];
   }
-  static createProperty(t, i = Tt) {
+  static createProperty(t, i = zt) {
     if (i.state && (i.attribute = !1), this._$Ei(), this.prototype.hasOwnProperty(t) && ((i = Object.create(i)).wrapped = !0), this.elementProperties.set(t, i), !i.noAccessor) {
       const a = Symbol(), o = this.getPropertyDescriptor(t, a, i);
-      o !== void 0 && Ai(this.prototype, t, o);
+      o !== void 0 && Pi(this.prototype, t, o);
     }
   }
   static getPropertyDescriptor(t, i, a) {
-    const { get: o, set: r } = Ei(this.prototype, t) ?? { get() {
+    const { get: o, set: r } = Ii(this.prototype, t) ?? { get() {
       return this[i];
     }, set(n) {
       this[i] = n;
@@ -100,17 +100,17 @@ let ue = class extends HTMLElement {
     }, configurable: !0, enumerable: !0 };
   }
   static getPropertyOptions(t) {
-    return this.elementProperties.get(t) ?? Tt;
+    return this.elementProperties.get(t) ?? zt;
   }
   static _$Ei() {
-    if (this.hasOwnProperty($e("elementProperties"))) return;
-    const t = Pi(this);
+    if (this.hasOwnProperty(we("elementProperties"))) return;
+    const t = Fi(this);
     t.finalize(), t.l !== void 0 && (this.l = [...t.l]), this.elementProperties = new Map(t.elementProperties);
   }
   static finalize() {
-    if (this.hasOwnProperty($e("finalized"))) return;
-    if (this.finalized = !0, this._$Ei(), this.hasOwnProperty($e("properties"))) {
-      const i = this.properties, a = [...Ci(i), ...Ti(i)];
+    if (this.hasOwnProperty(we("finalized"))) return;
+    if (this.finalized = !0, this._$Ei(), this.hasOwnProperty(we("properties"))) {
+      const i = this.properties, a = [...Oi(i), ...zi(i)];
       for (const o of a) this.createProperty(o, i[o]);
     }
     const t = this[Symbol.metadata];
@@ -129,8 +129,8 @@ let ue = class extends HTMLElement {
     const i = [];
     if (Array.isArray(t)) {
       const a = new Set(t.flat(1 / 0).reverse());
-      for (const o of a) i.unshift(Et(o));
-    } else t !== void 0 && i.push(Et(t));
+      for (const o of a) i.unshift(It(o));
+    } else t !== void 0 && i.push(It(t));
     return i;
   }
   static _$Eu(t, i) {
@@ -159,7 +159,7 @@ let ue = class extends HTMLElement {
   }
   createRenderRoot() {
     const t = this.shadowRoot ?? this.attachShadow(this.constructor.shadowRootOptions);
-    return ki(t, this.constructor.elementStyles), t;
+    return Ci(t, this.constructor.elementStyles), t;
   }
   connectedCallback() {
     var t;
@@ -202,7 +202,7 @@ let ue = class extends HTMLElement {
     var n;
     if (t !== void 0) {
       const s = this.constructor;
-      if (o === !1 && (r = this[t]), a ?? (a = s.getPropertyOptions(t)), !((a.hasChanged ?? ft)(r, i) || a.useDefault && a.reflect && r === ((n = this._$Ej) == null ? void 0 : n.get(t)) && !this.hasAttribute(s._$Eu(t, a)))) return;
+      if (o === !1 && (r = this[t]), a ?? (a = s.getPropertyOptions(t)), !((a.hasChanged ?? gt)(r, i) || a.useDefault && a.reflect && r === ((n = this._$Ej) == null ? void 0 : n.get(t)) && !this.hasAttribute(s._$Eu(t, a)))) return;
       this.C(t, i, a);
     }
     this.isUpdatePending === !1 && (this._$ES = this._$EP());
@@ -278,56 +278,56 @@ let ue = class extends HTMLElement {
   firstUpdated(t) {
   }
 };
-ue.elementStyles = [], ue.shadowRootOptions = { mode: "open" }, ue[$e("elementProperties")] = /* @__PURE__ */ new Map(), ue[$e("finalized")] = /* @__PURE__ */ new Map(), Ze == null || Ze({ ReactiveElement: ue }), (X.reactiveElementVersions ?? (X.reactiveElementVersions = [])).push("2.1.2");
+he.elementStyles = [], he.shadowRootOptions = { mode: "open" }, he[we("elementProperties")] = /* @__PURE__ */ new Map(), he[we("finalized")] = /* @__PURE__ */ new Map(), Ze == null || Ze({ ReactiveElement: he }), (X.reactiveElementVersions ?? (X.reactiveElementVersions = [])).push("2.1.2");
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const we = globalThis, Pt = (e) => e, Ve = we.trustedTypes, It = Ve ? Ve.createPolicy("lit-html", { createHTML: (e) => e }) : void 0, Yt = "$lit$", Y = `lit$${Math.random().toFixed(9).slice(2)}$`, Xt = "?" + Y, Oi = `<${Xt}>`, se = document, Ae = () => se.createComment(""), Ee = (e) => e === null || typeof e != "object" && typeof e != "function", gt = Array.isArray, zi = (e) => gt(e) || typeof (e == null ? void 0 : e[Symbol.iterator]) == "function", et = `[ 	
-\f\r]`, _e = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, Ot = /-->/g, zt = />/g, ie = RegExp(`>|${et}(?:([^\\s"'>=/]+)(${et}*=${et}*(?:[^ 	
-\f\r"'\`<>=]|("|')|))|$)`, "g"), Nt = /'/g, Ft = /"/g, Zt = /^(?:script|style|textarea|title)$/i, Ni = (e) => (t, ...i) => ({ _$litType$: e, strings: t, values: i }), d = Ni(1), be = Symbol.for("lit-noChange"), h = Symbol.for("lit-nothing"), qt = /* @__PURE__ */ new WeakMap(), oe = se.createTreeWalker(se, 129);
-function ei(e, t) {
-  if (!gt(e) || !e.hasOwnProperty("raw")) throw Error("invalid template strings array");
-  return It !== void 0 ? It.createHTML(t) : t;
+const ke = globalThis, Ft = (e) => e, Ve = ke.trustedTypes, Nt = Ve ? Ve.createPolicy("lit-html", { createHTML: (e) => e }) : void 0, ti = "$lit$", Y = `lit$${Math.random().toFixed(9).slice(2)}$`, ii = "?" + Y, Mi = `<${ii}>`, ce = document, Ee = () => ce.createComment(""), Ce = (e) => e === null || typeof e != "object" && typeof e != "function", _t = Array.isArray, qi = (e) => _t(e) || typeof (e == null ? void 0 : e[Symbol.iterator]) == "function", et = `[ 	
+\f\r]`, ve = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, Mt = /-->/g, qt = />/g, ae = RegExp(`>|${et}(?:([^\\s"'>=/]+)(${et}*=${et}*(?:[^ 	
+\f\r"'\`<>=]|("|')|))|$)`, "g"), Rt = /'/g, Dt = /"/g, ai = /^(?:script|style|textarea|title)$/i, Ri = (e) => (t, ...i) => ({ _$litType$: e, strings: t, values: i }), d = Ri(1), me = Symbol.for("lit-noChange"), h = Symbol.for("lit-nothing"), Lt = /* @__PURE__ */ new WeakMap(), re = ce.createTreeWalker(ce, 129);
+function oi(e, t) {
+  if (!_t(e) || !e.hasOwnProperty("raw")) throw Error("invalid template strings array");
+  return Nt !== void 0 ? Nt.createHTML(t) : t;
 }
-const Fi = (e, t) => {
+const Di = (e, t) => {
   const i = e.length - 1, a = [];
-  let o, r = t === 2 ? "<svg>" : t === 3 ? "<math>" : "", n = _e;
+  let o, r = t === 2 ? "<svg>" : t === 3 ? "<math>" : "", n = ve;
   for (let s = 0; s < i; s++) {
     const c = e[s];
     let p, b, m = -1, l = 0;
-    for (; l < c.length && (n.lastIndex = l, b = n.exec(c), b !== null); ) l = n.lastIndex, n === _e ? b[1] === "!--" ? n = Ot : b[1] !== void 0 ? n = zt : b[2] !== void 0 ? (Zt.test(b[2]) && (o = RegExp("</" + b[2], "g")), n = ie) : b[3] !== void 0 && (n = ie) : n === ie ? b[0] === ">" ? (n = o ?? _e, m = -1) : b[1] === void 0 ? m = -2 : (m = n.lastIndex - b[2].length, p = b[1], n = b[3] === void 0 ? ie : b[3] === '"' ? Ft : Nt) : n === Ft || n === Nt ? n = ie : n === Ot || n === zt ? n = _e : (n = ie, o = void 0);
-    const v = n === ie && e[s + 1].startsWith("/>") ? " " : "";
-    r += n === _e ? c + Oi : m >= 0 ? (a.push(p), c.slice(0, m) + Yt + c.slice(m) + Y + v) : c + Y + (m === -2 ? s : v);
+    for (; l < c.length && (n.lastIndex = l, b = n.exec(c), b !== null); ) l = n.lastIndex, n === ve ? b[1] === "!--" ? n = Mt : b[1] !== void 0 ? n = qt : b[2] !== void 0 ? (ai.test(b[2]) && (o = RegExp("</" + b[2], "g")), n = ae) : b[3] !== void 0 && (n = ae) : n === ae ? b[0] === ">" ? (n = o ?? ve, m = -1) : b[1] === void 0 ? m = -2 : (m = n.lastIndex - b[2].length, p = b[1], n = b[3] === void 0 ? ae : b[3] === '"' ? Dt : Rt) : n === Dt || n === Rt ? n = ae : n === Mt || n === qt ? n = ve : (n = ae, o = void 0);
+    const g = n === ae && e[s + 1].startsWith("/>") ? " " : "";
+    r += n === ve ? c + Mi : m >= 0 ? (a.push(p), c.slice(0, m) + ti + c.slice(m) + Y + g) : c + Y + (m === -2 ? s : g);
   }
-  return [ei(e, r + (e[i] || "<?>") + (t === 2 ? "</svg>" : t === 3 ? "</math>" : "")), a];
+  return [oi(e, r + (e[i] || "<?>") + (t === 2 ? "</svg>" : t === 3 ? "</math>" : "")), a];
 };
-class Ce {
+class Te {
   constructor({ strings: t, _$litType$: i }, a) {
     let o;
     this.parts = [];
     let r = 0, n = 0;
-    const s = t.length - 1, c = this.parts, [p, b] = Fi(t, i);
-    if (this.el = Ce.createElement(p, a), oe.currentNode = this.el.content, i === 2 || i === 3) {
+    const s = t.length - 1, c = this.parts, [p, b] = Di(t, i);
+    if (this.el = Te.createElement(p, a), re.currentNode = this.el.content, i === 2 || i === 3) {
       const m = this.el.content.firstChild;
       m.replaceWith(...m.childNodes);
     }
-    for (; (o = oe.nextNode()) !== null && c.length < s; ) {
+    for (; (o = re.nextNode()) !== null && c.length < s; ) {
       if (o.nodeType === 1) {
-        if (o.hasAttributes()) for (const m of o.getAttributeNames()) if (m.endsWith(Yt)) {
-          const l = b[n++], v = o.getAttribute(m).split(Y), y = /([.?@])?(.*)/.exec(l);
-          c.push({ type: 1, index: r, name: y[2], strings: v, ctor: y[1] === "." ? Mi : y[1] === "?" ? Ri : y[1] === "@" ? Li : We }), o.removeAttribute(m);
+        if (o.hasAttributes()) for (const m of o.getAttributeNames()) if (m.endsWith(ti)) {
+          const l = b[n++], g = o.getAttribute(m).split(Y), y = /([.?@])?(.*)/.exec(l);
+          c.push({ type: 1, index: r, name: y[2], strings: g, ctor: y[1] === "." ? ji : y[1] === "?" ? Hi : y[1] === "@" ? Ui : We }), o.removeAttribute(m);
         } else m.startsWith(Y) && (c.push({ type: 6, index: r }), o.removeAttribute(m));
-        if (Zt.test(o.tagName)) {
+        if (ai.test(o.tagName)) {
           const m = o.textContent.split(Y), l = m.length - 1;
           if (l > 0) {
             o.textContent = Ve ? Ve.emptyScript : "";
-            for (let v = 0; v < l; v++) o.append(m[v], Ae()), oe.nextNode(), c.push({ type: 2, index: ++r });
-            o.append(m[l], Ae());
+            for (let g = 0; g < l; g++) o.append(m[g], Ee()), re.nextNode(), c.push({ type: 2, index: ++r });
+            o.append(m[l], Ee());
           }
         }
-      } else if (o.nodeType === 8) if (o.data === Xt) c.push({ type: 2, index: r });
+      } else if (o.nodeType === 8) if (o.data === ii) c.push({ type: 2, index: r });
       else {
         let m = -1;
         for (; (m = o.data.indexOf(Y, m + 1)) !== -1; ) c.push({ type: 7, index: r }), m += Y.length - 1;
@@ -336,18 +336,18 @@ class Ce {
     }
   }
   static createElement(t, i) {
-    const a = se.createElement("template");
+    const a = ce.createElement("template");
     return a.innerHTML = t, a;
   }
 }
-function me(e, t, i = e, a) {
+function fe(e, t, i = e, a) {
   var n, s;
-  if (t === be) return t;
+  if (t === me) return t;
   let o = a !== void 0 ? (n = i._$Co) == null ? void 0 : n[a] : i._$Cl;
-  const r = Ee(t) ? void 0 : t._$litDirective$;
-  return (o == null ? void 0 : o.constructor) !== r && ((s = o == null ? void 0 : o._$AO) == null || s.call(o, !1), r === void 0 ? o = void 0 : (o = new r(e), o._$AT(e, i, a)), a !== void 0 ? (i._$Co ?? (i._$Co = []))[a] = o : i._$Cl = o), o !== void 0 && (t = me(e, o._$AS(e, t.values), o, a)), t;
+  const r = Ce(t) ? void 0 : t._$litDirective$;
+  return (o == null ? void 0 : o.constructor) !== r && ((s = o == null ? void 0 : o._$AO) == null || s.call(o, !1), r === void 0 ? o = void 0 : (o = new r(e), o._$AT(e, i, a)), a !== void 0 ? (i._$Co ?? (i._$Co = []))[a] = o : i._$Cl = o), o !== void 0 && (t = fe(e, o._$AS(e, t.values), o, a)), t;
 }
-class qi {
+class Li {
   constructor(t, i) {
     this._$AV = [], this._$AN = void 0, this._$AD = t, this._$AM = i;
   }
@@ -358,24 +358,24 @@ class qi {
     return this._$AM._$AU;
   }
   u(t) {
-    const { el: { content: i }, parts: a } = this._$AD, o = ((t == null ? void 0 : t.creationScope) ?? se).importNode(i, !0);
-    oe.currentNode = o;
-    let r = oe.nextNode(), n = 0, s = 0, c = a[0];
+    const { el: { content: i }, parts: a } = this._$AD, o = ((t == null ? void 0 : t.creationScope) ?? ce).importNode(i, !0);
+    re.currentNode = o;
+    let r = re.nextNode(), n = 0, s = 0, c = a[0];
     for (; c !== void 0; ) {
       if (n === c.index) {
         let p;
-        c.type === 2 ? p = new Oe(r, r.nextSibling, this, t) : c.type === 1 ? p = new c.ctor(r, c.name, c.strings, this, t) : c.type === 6 && (p = new Di(r, this, t)), this._$AV.push(p), c = a[++s];
+        c.type === 2 ? p = new ze(r, r.nextSibling, this, t) : c.type === 1 ? p = new c.ctor(r, c.name, c.strings, this, t) : c.type === 6 && (p = new Bi(r, this, t)), this._$AV.push(p), c = a[++s];
       }
-      n !== (c == null ? void 0 : c.index) && (r = oe.nextNode(), n++);
+      n !== (c == null ? void 0 : c.index) && (r = re.nextNode(), n++);
     }
-    return oe.currentNode = se, o;
+    return re.currentNode = ce, o;
   }
   p(t) {
     let i = 0;
     for (const a of this._$AV) a !== void 0 && (a.strings !== void 0 ? (a._$AI(t, a, i), i += a.strings.length - 2) : a._$AI(t[i])), i++;
   }
 }
-class Oe {
+class ze {
   get _$AU() {
     var t;
     return ((t = this._$AM) == null ? void 0 : t._$AU) ?? this._$Cv;
@@ -395,7 +395,7 @@ class Oe {
     return this._$AB;
   }
   _$AI(t, i = this) {
-    t = me(this, t, i), Ee(t) ? t === h || t == null || t === "" ? (this._$AH !== h && this._$AR(), this._$AH = h) : t !== this._$AH && t !== be && this._(t) : t._$litType$ !== void 0 ? this.$(t) : t.nodeType !== void 0 ? this.T(t) : zi(t) ? this.k(t) : this._(t);
+    t = fe(this, t, i), Ce(t) ? t === h || t == null || t === "" ? (this._$AH !== h && this._$AR(), this._$AH = h) : t !== this._$AH && t !== me && this._(t) : t._$litType$ !== void 0 ? this.$(t) : t.nodeType !== void 0 ? this.T(t) : qi(t) ? this.k(t) : this._(t);
   }
   O(t) {
     return this._$AA.parentNode.insertBefore(t, this._$AB);
@@ -404,33 +404,33 @@ class Oe {
     this._$AH !== t && (this._$AR(), this._$AH = this.O(t));
   }
   _(t) {
-    this._$AH !== h && Ee(this._$AH) ? this._$AA.nextSibling.data = t : this.T(se.createTextNode(t)), this._$AH = t;
+    this._$AH !== h && Ce(this._$AH) ? this._$AA.nextSibling.data = t : this.T(ce.createTextNode(t)), this._$AH = t;
   }
   $(t) {
     var r;
-    const { values: i, _$litType$: a } = t, o = typeof a == "number" ? this._$AC(t) : (a.el === void 0 && (a.el = Ce.createElement(ei(a.h, a.h[0]), this.options)), a);
+    const { values: i, _$litType$: a } = t, o = typeof a == "number" ? this._$AC(t) : (a.el === void 0 && (a.el = Te.createElement(oi(a.h, a.h[0]), this.options)), a);
     if (((r = this._$AH) == null ? void 0 : r._$AD) === o) this._$AH.p(i);
     else {
-      const n = new qi(o, this), s = n.u(this.options);
+      const n = new Li(o, this), s = n.u(this.options);
       n.p(i), this.T(s), this._$AH = n;
     }
   }
   _$AC(t) {
-    let i = qt.get(t.strings);
-    return i === void 0 && qt.set(t.strings, i = new Ce(t)), i;
+    let i = Lt.get(t.strings);
+    return i === void 0 && Lt.set(t.strings, i = new Te(t)), i;
   }
   k(t) {
-    gt(this._$AH) || (this._$AH = [], this._$AR());
+    _t(this._$AH) || (this._$AH = [], this._$AR());
     const i = this._$AH;
     let a, o = 0;
-    for (const r of t) o === i.length ? i.push(a = new Oe(this.O(Ae()), this.O(Ae()), this, this.options)) : a = i[o], a._$AI(r), o++;
+    for (const r of t) o === i.length ? i.push(a = new ze(this.O(Ee()), this.O(Ee()), this, this.options)) : a = i[o], a._$AI(r), o++;
     o < i.length && (this._$AR(a && a._$AB.nextSibling, o), i.length = o);
   }
   _$AR(t = this._$AA.nextSibling, i) {
     var a;
     for ((a = this._$AP) == null ? void 0 : a.call(this, !1, !0, i); t !== this._$AB; ) {
-      const o = Pt(t).nextSibling;
-      Pt(t).remove(), t = o;
+      const o = Ft(t).nextSibling;
+      Ft(t).remove(), t = o;
     }
   }
   setConnected(t) {
@@ -451,11 +451,11 @@ class We {
   _$AI(t, i = this, a, o) {
     const r = this.strings;
     let n = !1;
-    if (r === void 0) t = me(this, t, i, 0), n = !Ee(t) || t !== this._$AH && t !== be, n && (this._$AH = t);
+    if (r === void 0) t = fe(this, t, i, 0), n = !Ce(t) || t !== this._$AH && t !== me, n && (this._$AH = t);
     else {
       const s = t;
       let c, p;
-      for (t = r[0], c = 0; c < r.length - 1; c++) p = me(this, s[a + c], i, c), p === be && (p = this._$AH[c]), n || (n = !Ee(p) || p !== this._$AH[c]), p === h ? t = h : t !== h && (t += (p ?? "") + r[c + 1]), this._$AH[c] = p;
+      for (t = r[0], c = 0; c < r.length - 1; c++) p = fe(this, s[a + c], i, c), p === me && (p = this._$AH[c]), n || (n = !Ce(p) || p !== this._$AH[c]), p === h ? t = h : t !== h && (t += (p ?? "") + r[c + 1]), this._$AH[c] = p;
     }
     n && !o && this.j(t);
   }
@@ -463,7 +463,7 @@ class We {
     t === h ? this.element.removeAttribute(this.name) : this.element.setAttribute(this.name, t ?? "");
   }
 }
-class Mi extends We {
+class ji extends We {
   constructor() {
     super(...arguments), this.type = 3;
   }
@@ -471,7 +471,7 @@ class Mi extends We {
     this.element[this.name] = t === h ? void 0 : t;
   }
 }
-class Ri extends We {
+class Hi extends We {
   constructor() {
     super(...arguments), this.type = 4;
   }
@@ -479,12 +479,12 @@ class Ri extends We {
     this.element.toggleAttribute(this.name, !!t && t !== h);
   }
 }
-class Li extends We {
+class Ui extends We {
   constructor(t, i, a, o, r) {
     super(t, i, a, o, r), this.type = 5;
   }
   _$AI(t, i = this) {
-    if ((t = me(this, t, i, 0) ?? h) === be) return;
+    if ((t = fe(this, t, i, 0) ?? h) === me) return;
     const a = this._$AH, o = t === h && a !== h || t.capture !== a.capture || t.once !== a.once || t.passive !== a.passive, r = t !== h && (a === h || o);
     o && this.element.removeEventListener(this.name, this, a), r && this.element.addEventListener(this.name, this, t), this._$AH = t;
   }
@@ -493,7 +493,7 @@ class Li extends We {
     typeof this._$AH == "function" ? this._$AH.call(((i = this.options) == null ? void 0 : i.host) ?? this.element, t) : this._$AH.handleEvent(t);
   }
 }
-class Di {
+class Bi {
   constructor(t, i, a) {
     this.element = t, this.type = 6, this._$AN = void 0, this._$AM = i, this.options = a;
   }
@@ -501,17 +501,17 @@ class Di {
     return this._$AM._$AU;
   }
   _$AI(t) {
-    me(this, t);
+    fe(this, t);
   }
 }
-const tt = we.litHtmlPolyfillSupport;
-tt == null || tt(Ce, Oe), (we.litHtmlVersions ?? (we.litHtmlVersions = [])).push("3.3.3");
-const ji = (e, t, i) => {
+const tt = ke.litHtmlPolyfillSupport;
+tt == null || tt(Te, ze), (ke.litHtmlVersions ?? (ke.litHtmlVersions = [])).push("3.3.3");
+const Vi = (e, t, i) => {
   const a = (i == null ? void 0 : i.renderBefore) ?? t;
   let o = a._$litPart$;
   if (o === void 0) {
     const r = (i == null ? void 0 : i.renderBefore) ?? null;
-    a._$litPart$ = o = new Oe(t.insertBefore(Ae(), r), r, void 0, i ?? {});
+    a._$litPart$ = o = new ze(t.insertBefore(Ee(), r), r, void 0, i ?? {});
   }
   return o._$AI(e), o;
 };
@@ -520,8 +520,8 @@ const ji = (e, t, i) => {
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const re = globalThis;
-class Z extends ue {
+const ne = globalThis;
+class Z extends he {
   constructor() {
     super(...arguments), this.renderOptions = { host: this }, this._$Do = void 0;
   }
@@ -532,7 +532,7 @@ class Z extends ue {
   }
   update(t) {
     const i = this.render();
-    this.hasUpdated || (this.renderOptions.isConnected = this.isConnected), super.update(t), this._$Do = ji(i, this.renderRoot, this.renderOptions);
+    this.hasUpdated || (this.renderOptions.isConnected = this.isConnected), super.update(t), this._$Do = Vi(i, this.renderRoot, this.renderOptions);
   }
   connectedCallback() {
     var t;
@@ -543,14 +543,14 @@ class Z extends ue {
     super.disconnectedCallback(), (t = this._$Do) == null || t.setConnected(!1);
   }
   render() {
-    return be;
+    return me;
   }
 }
-var Qt;
-Z._$litElement$ = !0, Z.finalized = !0, (Qt = re.litElementHydrateSupport) == null || Qt.call(re, { LitElement: Z });
-const it = re.litElementPolyfillSupport;
+var Zt;
+Z._$litElement$ = !0, Z.finalized = !0, (Zt = ne.litElementHydrateSupport) == null || Zt.call(ne, { LitElement: Z });
+const it = ne.litElementPolyfillSupport;
 it == null || it({ LitElement: Z });
-(re.litElementVersions ?? (re.litElementVersions = [])).push("4.2.2");
+(ne.litElementVersions ?? (ne.litElementVersions = [])).push("4.2.2");
 /**
  * @license
  * Copyright 2017 Google LLC
@@ -566,7 +566,7 @@ const Ye = (e) => (t, i) => {
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const Hi = { attribute: !0, type: String, converter: Be, reflect: !1, hasChanged: ft }, Ui = (e = Hi, t, i) => {
+const Gi = { attribute: !0, type: String, converter: Be, reflect: !1, hasChanged: gt }, Ki = (e = Gi, t, i) => {
   const { kind: a, metadata: o } = i;
   let r = globalThis.litPropertyMetadata.get(o);
   if (r === void 0 && globalThis.litPropertyMetadata.set(o, r = /* @__PURE__ */ new Map()), a === "setter" && ((e = Object.create(e)).wrapped = !0), r.set(i.name, e), a === "accessor") {
@@ -587,8 +587,8 @@ const Hi = { attribute: !0, type: String, converter: Be, reflect: !1, hasChanged
   }
   throw Error("Unsupported decorator location: " + a);
 };
-function ze(e) {
-  return (t, i) => typeof i == "object" ? Ui(e, t, i) : ((a, o, r) => {
+function Fe(e) {
+  return (t, i) => typeof i == "object" ? Ki(e, t, i) : ((a, o, r) => {
     const n = o.hasOwnProperty(r);
     return o.constructor.createProperty(r, a), n ? Object.getOwnPropertyDescriptor(o, r) : void 0;
   })(e, t, i);
@@ -599,9 +599,9 @@ function ze(e) {
  * SPDX-License-Identifier: BSD-3-Clause
  */
 function C(e) {
-  return ze({ ...e, state: !0, attribute: !1 });
+  return Fe({ ...e, state: !0, attribute: !1 });
 }
-const Bi = "custom:area-bubble-expander-card", Vi = "area-bubble-expander-card", ti = "area-bubble-expander-card-editor", Gi = "area-bubble-expander-card", Ki = ["light", "switch", "fan", "climate", "media_player"], Ji = [
+const Ji = "custom:area-bubble-expander-card", Qi = "area-bubble-expander-card", ri = "area-bubble-expander-card-editor", Wi = "area-bubble-expander-card", Yi = ["light", "switch", "fan", "climate", "media_player"], Xi = [
   "sensor",
   "automation",
   "script",
@@ -614,7 +614,7 @@ const Bi = "custom:area-bubble-expander-card", Vi = "area-bubble-expander-card",
   "person",
   "camera",
   "alarm_control_panel"
-], Qi = {
+], Zi = {
   light: ["on"],
   switch: ["on"],
   fan: ["on"],
@@ -623,9 +623,9 @@ const Bi = "custom:area-bubble-expander-card", Vi = "area-bubble-expander-card",
   lock: ["unlocked"],
   binary_sensor: ["on"],
   input_boolean: ["on"]
-}, Wi = {
+}, ea = {
   climate: ["off", "unavailable", "unknown"]
-}, Yi = /* @__PURE__ */ new Set(["unavailable", "unknown", "none", ""]), Xi = ["always_on", "critical", "infrastructure", "no_turn_off"], Zi = [
+}, ta = /* @__PURE__ */ new Set(["unavailable", "unknown", "none", ""]), ia = ["always_on", "critical", "infrastructure", "no_turn_off"], aa = [
   "switch.router",
   "switch.server",
   "switch.nvr",
@@ -633,7 +633,7 @@ const Bi = "custom:area-bubble-expander-card", Vi = "area-bubble-expander-card",
   "switch.main_network",
   "switch.alarm_bypass",
   "switch.irrigation_main_valve"
-], ea = {
+], oa = {
   light: "light.turn_off",
   switch: "switch.turn_off",
   fan: "fan.turn_off",
@@ -642,7 +642,7 @@ const Bi = "custom:area-bubble-expander-card", Vi = "area-bubble-expander-card",
   cover: "cover.close_cover",
   lock: "lock.lock",
   input_boolean: "input_boolean.turn_off"
-}, ii = {
+}, ni = {
   light: "mdi:lightbulb",
   switch: "mdi:toggle-switch",
   fan: "mdi:fan",
@@ -676,7 +676,7 @@ const Bi = "custom:area-bubble-expander-card", Vi = "area-bubble-expander-card",
   chip_background: "rgba(255,255,255,0.11)",
   text_size: 15,
   secondary_text_size: 12
-}, ta = {
+}, ra = {
   bubble_glass: {},
   bubble_solid: {
     glass: !1,
@@ -735,8 +735,8 @@ const Bi = "custom:area-bubble-expander-card", Vi = "area-bubble-expander-card",
     text_size: 14,
     secondary_text_size: 11
   }
-}, ve = {
-  type: Bi,
+}, ye = {
+  type: Ji,
   language: "auto",
   rtl: "auto",
   show_header: !0,
@@ -761,23 +761,23 @@ const Bi = "custom:area-bubble-expander-card", Vi = "area-bubble-expander-card",
   confirm_entity_turn_off: !1,
   confirm_global_turn_off: !0,
   area_turn_off_mode: "safe_displayed_entities",
-  domains: Ki,
-  exclude_domains: Ji,
+  domains: Yi,
+  exclude_domains: Xi,
   exclude_labels: [],
   exclude_entity_category: ["diagnostic", "config"],
   exclude_hidden_entities: !0,
   exclude_unavailable: !0,
-  active_states: Qi,
-  inactive_states: Wi,
+  active_states: Zi,
+  inactive_states: ea,
   paused_media_players_active: !0,
-  protected_labels: Xi,
-  protected_entities: Zi,
+  protected_labels: ia,
+  protected_entities: aa,
   protected_entity_behavior: "show_disabled",
   disable_turn_off_for_domains: [],
   dangerous_domains: ["switch", "lock", "cover"],
   safety_mode: "normal",
-  service_mapping: ea,
-  domain_icons: ii,
+  service_mapping: oa,
+  domain_icons: ni,
   tap_action: { action: "more-info" },
   hold_action: { action: "none" },
   double_tap_action: { action: "none" },
@@ -795,7 +795,7 @@ const Bi = "custom:area-bubble-expander-card", Vi = "area-bubble-expander-card",
   debug: !1,
   enable_animations: !0,
   respect_reduced_motion: !0
-}, ia = Ie`
+}, na = Oe`
   :host {
     display: block;
     color: var(--primary-text-color);
@@ -1393,9 +1393,9 @@ const Bi = "custom:area-bubble-expander-card", Vi = "area-bubble-expander-card",
       transition-duration: 0.001ms !important;
     }
   }
-`, j = (e) => Array.isArray(e) ? [...e] : [], J = (e) => e && typeof e == "object" && !Array.isArray(e) ? e : {}, he = (e) => {
-  const t = J(e.style), i = typeof t.preset == "string" ? t.preset : nt.preset, a = ta[i] ?? {}, o = { ...nt, ...a, ...t }, r = {
-    ...ve,
+`, H = (e) => Array.isArray(e) ? [...e] : [], J = (e) => e && typeof e == "object" && !Array.isArray(e) ? e : {}, be = (e) => {
+  const t = J(e.style), i = typeof t.preset == "string" ? t.preset : nt.preset, a = ra[i] ?? {}, o = { ...nt, ...a, ...t }, r = {
+    ...ye,
     ...e,
     style: o
   };
@@ -1405,35 +1405,35 @@ const Bi = "custom:area-bubble-expander-card", Vi = "area-bubble-expander-card",
     title: r.title ?? "",
     empty_title: r.empty_title ?? "",
     empty_subtitle: r.empty_subtitle ?? "",
-    include_entities: j(r.include_entities),
-    exclude_entities: j(r.exclude_entities),
-    include_areas: j(r.include_areas),
-    exclude_areas: j(r.exclude_areas),
-    exclude_labels: j(r.exclude_labels),
-    exclude_entity_category: j(r.exclude_entity_category),
-    exclude_by_regex: j(r.exclude_by_regex),
-    active_states: { ...ve.active_states ?? {}, ...J(e.active_states) },
-    inactive_states: { ...ve.inactive_states ?? {}, ...J(e.inactive_states) },
-    protected_entities: j(r.protected_entities),
-    disable_turn_off_for_domains: j(r.disable_turn_off_for_domains),
-    dangerous_domains: j(r.dangerous_domains),
-    service_mapping: { ...ve.service_mapping ?? {}, ...J(e.service_mapping) },
-    custom_area_order: j(r.custom_area_order),
-    custom_entity_order: j(r.custom_entity_order),
+    include_entities: H(r.include_entities),
+    exclude_entities: H(r.exclude_entities),
+    include_areas: H(r.include_areas),
+    exclude_areas: H(r.exclude_areas),
+    exclude_labels: H(r.exclude_labels),
+    exclude_entity_category: H(r.exclude_entity_category),
+    exclude_by_regex: H(r.exclude_by_regex),
+    active_states: { ...ye.active_states ?? {}, ...J(e.active_states) },
+    inactive_states: { ...ye.inactive_states ?? {}, ...J(e.inactive_states) },
+    protected_entities: H(r.protected_entities),
+    disable_turn_off_for_domains: H(r.disable_turn_off_for_domains),
+    dangerous_domains: H(r.dangerous_domains),
+    service_mapping: { ...ye.service_mapping ?? {}, ...J(e.service_mapping) },
+    custom_area_order: H(r.custom_area_order),
+    custom_entity_order: H(r.custom_entity_order),
     areas: { ...J(r.areas) },
     entity_overrides: { ...J(r.entity_overrides) },
     labels: { ...J(r.labels) },
     domain_labels: { ...J(r.domain_labels) },
-    domain_icons: { ...ve.domain_icons ?? {}, ...J(r.domain_icons) },
+    domain_icons: { ...ye.domain_icons ?? {}, ...J(r.domain_icons) },
     style: o
   };
-}, aa = (e) => {
+}, sa = (e) => {
   if (!e || typeof e != "object")
     throw new Error("Invalid Area Bubble Expander Card configuration.");
   if (e.type && e.type !== "custom:area-bubble-expander-card")
     throw new Error("Card type must be custom:area-bubble-expander-card.");
-}, Me = (e) => Array.isArray(e) ? e.map(String).map((t) => t.trim()).filter(Boolean) : typeof e != "string" ? [] : e.split(/[\n,]/).map((t) => t.trim()).filter(Boolean), oa = (e) => Array.isArray(e) ? e.join(`
-`) : "", Mt = {
+}, qe = (e) => Array.isArray(e) ? e.map(String).map((t) => t.trim()).filter(Boolean) : typeof e != "string" ? [] : e.split(/[\n,]/).map((t) => t.trim()).filter(Boolean), ca = (e) => Array.isArray(e) ? e.join(`
+`) : "", jt = {
   he: {
     title: "מה דלוק בבית",
     empty_title: "הכל כבוי",
@@ -1488,7 +1488,7 @@ const Bi = "custom:area-bubble-expander-card", Vi = "area-bubble-expander-card",
     entities: "entities",
     debug_skipped: "Skipped"
   }
-}, ra = {
+}, la = {
   he: {
     light: "תאורה",
     switch: "מתגים",
@@ -1511,25 +1511,25 @@ const Bi = "custom:area-bubble-expander-card", Vi = "area-bubble-expander-card",
     binary_sensor: "Binary sensors",
     input_boolean: "Booleans"
   }
-}, fe = (e, t) => {
+}, ge = (e, t) => {
   var a;
   if (t === "he" || t === "en") return t;
   const i = ((a = e == null ? void 0 : e.locale) == null ? void 0 : a.language) ?? (e == null ? void 0 : e.language) ?? document.documentElement.lang;
   return i != null && i.toLowerCase().startsWith("he") ? "he" : "en";
-}, ai = (e, t) => {
+}, si = (e, t) => {
   if (typeof t.rtl == "boolean") return t.rtl;
-  const i = fe(e, t.language), a = document.documentElement.dir;
+  const i = ge(e, t.language), a = document.documentElement.dir;
   return i === "he" || a === "rtl";
-}, T = (e, t, i, a = {}) => {
-  const o = fe(t, e.language);
-  let n = e.labels[i] ?? Mt[o][i] ?? Mt.en[i] ?? i;
+}, P = (e, t, i, a = {}) => {
+  const o = ge(t, e.language);
+  let n = e.labels[i] ?? jt[o][i] ?? jt.en[i] ?? i;
   for (const [s, c] of Object.entries(a))
     n = n.replace(new RegExp(`\\{${s}\\}`, "g"), String(c));
   return n;
-}, Rt = (e, t, i) => {
-  const a = fe(t, e.language);
-  return e.domain_labels[i] ?? ra[a][i] ?? i.replace(/_/g, " ");
-}, na = (e) => {
+}, Ht = (e, t, i) => {
+  const a = ge(t, e.language);
+  return e.domain_labels[i] ?? la[a][i] ?? i.replace(/_/g, " ");
+}, da = (e) => {
   const t = /* @__PURE__ */ new Map();
   for (const [i, a] of Object.entries((e == null ? void 0 : e.areas) ?? {})) {
     const o = a.area_id ?? a.id ?? i;
@@ -1538,40 +1538,40 @@ const Bi = "custom:area-bubble-expander-card", Vi = "area-bubble-expander-card",
   return t;
 }, st = (e, t, i) => {
   var m, l;
-  const a = na(e), o = (m = e == null ? void 0 : e.entities) == null ? void 0 : m[i], r = o != null && o.device_id ? (l = e == null ? void 0 : e.devices) == null ? void 0 : l[o.device_id] : void 0, n = (o == null ? void 0 : o.area_id) ?? (r == null ? void 0 : r.area_id) ?? "no_area", s = n ? a.get(n) : void 0, c = t.areas[n] ?? t.areas[(s == null ? void 0 : s.name) ?? ""], p = (s == null ? void 0 : s.name) ?? T(t, e, "no_area"), b = (c == null ? void 0 : c.name) ?? p;
+  const a = da(e), o = (m = e == null ? void 0 : e.entities) == null ? void 0 : m[i], r = o != null && o.device_id ? (l = e == null ? void 0 : e.devices) == null ? void 0 : l[o.device_id] : void 0, n = (o == null ? void 0 : o.area_id) ?? (r == null ? void 0 : r.area_id) ?? "no_area", s = n ? a.get(n) : void 0, c = t.areas[n] ?? t.areas[(s == null ? void 0 : s.name) ?? ""], p = (s == null ? void 0 : s.name) ?? P(t, e, "no_area"), b = (c == null ? void 0 : c.name) ?? p;
   return {
     id: n || "no_area",
     name: b,
     icon: (c == null ? void 0 : c.icon) ?? (s == null ? void 0 : s.icon) ?? (n === "no_area" ? "mdi:home-question" : "mdi:floor-plan")
   };
-}, sa = (e, t, i) => {
+}, pa = (e, t, i) => {
   const a = i.areas[e] ?? i.areas[t];
   return a != null && a.hidden || i.include_areas.length && !i.include_areas.includes(e) && !i.include_areas.includes(t) ? !1 : !i.exclude_areas.includes(e) && !i.exclude_areas.includes(t);
-}, ye = (e, t) => {
+}, xe = (e, t) => {
   const i = e.attributes[t];
   return typeof i == "number" && Number.isFinite(i) ? i : void 0;
-}, ca = (e, t) => t ?? String(e.attributes.friendly_name ?? e.entity_id), la = (e, t, i, a) => {
-  if (e.state === "unavailable") return T(i, a, "not_available");
+}, ua = (e, t) => t ?? String(e.attributes.friendly_name ?? e.entity_id), ha = (e, t, i, a) => {
+  if (e.state === "unavailable") return P(i, a, "not_available");
   if (t === "light" && i.show_brightness) {
-    const o = ye(e, "brightness");
+    const o = xe(e, "brightness");
     if (o !== void 0) return `${Math.round(o / 255 * 100)}%`;
   }
   if (t === "fan") {
-    const o = ye(e, "percentage");
+    const o = xe(e, "percentage");
     if (o !== void 0) return `${o}%`;
   }
   if (t === "climate") {
-    const o = String(e.attributes.hvac_action ?? e.state), r = ye(e, "current_temperature"), n = ye(e, "temperature");
+    const o = String(e.attributes.hvac_action ?? e.state), r = xe(e, "current_temperature"), n = xe(e, "temperature");
     return i.show_temperature && (r !== void 0 || n !== void 0) ? [o, r !== void 0 ? `${r}°` : "", n !== void 0 ? `→ ${n}°` : ""].filter(Boolean).join(" ") : o;
   }
   if (t === "media_player" && i.show_media_title)
     return String(e.attributes.media_title ?? e.attributes.source ?? e.state);
   if (t === "cover") {
-    const o = ye(e, "current_position");
+    const o = xe(e, "current_position");
     return o !== void 0 ? `${o}%` : e.state;
   }
   return String(e.state);
-}, da = (e) => {
+}, ba = (e) => {
   const t = new Date(e.last_changed).getTime();
   if (!Number.isFinite(t)) return "";
   const i = Math.max(0, Math.round((Date.now() - t) / 6e4));
@@ -1579,40 +1579,40 @@ const Bi = "custom:area-bubble-expander-card", Vi = "area-bubble-expander-card",
   if (i < 60) return `${i}m`;
   const a = Math.round(i / 60);
   return a < 24 ? `${a}h` : `${Math.round(a / 24)}d`;
-}, pa = (e, t) => {
+}, ma = (e, t) => {
   const i = [e.secondary];
-  return e.protected && i.push(T(t, void 0, "protected")), t.show_entity_ids && i.push(e.entityId), t.show_last_changed && i.push(da(e.entity)), i.filter(Boolean).join(" · ");
-}, ua = /* @__PURE__ */ new Set(["cooling", "heating", "drying", "fan"]), ha = (e, t, i) => {
+  return e.protected && i.push(P(t, void 0, "protected")), t.show_entity_ids && i.push(e.entityId), t.show_last_changed && i.push(ba(e.entity)), i.filter(Boolean).join(" · ");
+}, fa = /* @__PURE__ */ new Set(["cooling", "heating", "drying", "fan"]), ga = (e, t, i) => {
   var n, s;
   const a = String(e.state ?? "").toLowerCase();
-  if (Yi.has(a) || t === "media_player" && !i.paused_media_players_active && a === "paused")
+  if (ta.has(a) || t === "media_player" && !i.paused_media_players_active && a === "paused")
     return !1;
   if (t === "climate") {
     const c = String(e.attributes.hvac_action ?? "").toLowerCase();
-    if (ua.has(c)) return !0;
+    if (fa.has(c)) return !0;
   }
   const o = (n = i.inactive_states[t]) == null ? void 0 : n.map((c) => c.toLowerCase());
   if (o != null && o.includes(a)) return !1;
   const r = (s = i.active_states[t]) == null ? void 0 : s.map((c) => c.toLowerCase());
   return r != null && r.length ? r.includes(a) : o != null && o.length ? !0 : a === "on";
-}, ba = (e, t) => {
+}, _a = (e, t) => {
   var o, r;
   const i = (o = e == null ? void 0 : e.entities) == null ? void 0 : o[t], a = i != null && i.device_id ? (r = e == null ? void 0 : e.devices) == null ? void 0 : r[i.device_id] : void 0;
   return [...(i == null ? void 0 : i.labels) ?? [], ...(a == null ? void 0 : a.labels) ?? []];
-}, ma = (e, t, i) => {
+}, va = (e, t, i) => {
   const a = i.entity_overrides[e];
   return a != null && a.protected || i.protected_entities.includes(e) ? !0 : t.some((o) => i.protected_labels.includes(o));
-}, oi = (e, t) => {
+}, ci = (e, t) => {
   const i = t.entity_overrides[e.entityId];
   if ((i == null ? void 0 : i.allow_turn_off) === !1) return "Entity override disabled turn-off";
-  if (e.protected) return T(t, void 0, "locked_by_safety");
+  if (e.protected) return P(t, void 0, "locked_by_safety");
   if (t.disable_turn_off_for_domains.includes(e.domain)) return "Domain disabled for turn-off";
   if (!t.service_mapping[e.domain]) return "Unsupported turn-off service";
   if (t.safety_mode === "strict" && e.domain === "switch") return "Strict safety mode protects switches";
-}, fa = (e, t) => {
+}, ya = (e, t) => {
   var i;
   return !e.protected || (i = t.entity_overrides[e.entityId]) != null && i.show_disabled ? !0 : t.protected_entity_behavior !== "hide";
-}, He = (e, t) => e.filter((i) => !oi(i, t)), Ge = (e, t, i) => {
+}, He = (e, t) => e.filter((i) => !ci(i, t)), Ge = (e, t, i) => {
   const a = e.indexOf(t);
   if (a >= 0) return a;
   if (i) {
@@ -1620,55 +1620,55 @@ const Bi = "custom:area-bubble-expander-card", Vi = "area-bubble-expander-card",
     if (o >= 0) return o;
   }
   return Number.MAX_SAFE_INTEGER;
-}, ga = (e, t) => {
+}, xa = (e, t) => {
   const i = [...e];
   return t.area_sort === "original" ? i : t.area_sort === "name" ? i.sort((a, o) => a.name.localeCompare(o.name)) : t.area_sort === "count_asc" ? i.sort((a, o) => a.entities.length - o.entities.length || a.name.localeCompare(o.name)) : t.area_sort === "custom" ? i.sort(
     (a, o) => Ge(t.custom_area_order, a.id, a.name) - Ge(t.custom_area_order, o.id, o.name) || a.name.localeCompare(o.name)
   ) : i.sort((a, o) => o.entities.length - a.entities.length || a.name.localeCompare(o.name));
-}, _a = (e, t) => {
+}, $a = (e, t) => {
   const i = [...e];
   return t.entity_sort === "name" ? i.sort((a, o) => a.name.localeCompare(o.name)) : t.entity_sort === "state" ? i.sort((a, o) => a.entity.state.localeCompare(o.entity.state) || a.name.localeCompare(o.name)) : t.entity_sort === "last_changed" ? i.sort((a, o) => new Date(o.entity.last_changed).getTime() - new Date(a.entity.last_changed).getTime()) : t.entity_sort === "custom" ? i.sort((a, o) => Ge(t.custom_entity_order, a.entityId) - Ge(t.custom_entity_order, o.entityId)) : i.sort((a, o) => a.domain.localeCompare(o.domain) || a.name.localeCompare(o.name));
-}, va = (e) => e.split(".")[0] ?? "", ya = (e) => e.flatMap((t) => {
+}, wa = (e) => e.split(".")[0] ?? "", ka = (e) => e.flatMap((t) => {
   try {
     return [new RegExp(t)];
   } catch {
     return [];
   }
-}), xa = (e, t) => t.some((i) => i.test(e)), ct = (e, t) => {
+}), Sa = (e, t) => t.some((i) => i.test(e)), ct = (e, t) => {
   var p;
   if (!(e != null && e.states)) return { groups: [], skipped: [] };
-  const i = /* @__PURE__ */ new Map(), a = [], o = ya(t.exclude_by_regex), r = new Set(t.domains), n = new Set(t.exclude_domains), s = new Set(t.include_entities);
+  const i = /* @__PURE__ */ new Map(), a = [], o = ka(t.exclude_by_regex), r = new Set(t.domains), n = new Set(t.exclude_domains), s = new Set(t.include_entities);
   for (const b of Object.values(e.states)) {
-    const m = b.entity_id, l = va(m), v = (p = e.entities) == null ? void 0 : p[m], y = t.entity_overrides[m], w = ba(e, m), f = [];
-    y != null && y.hidden && f.push("hidden by entity override"), t.exclude_entities.includes(m) && f.push("excluded entity"), t.exclude_unavailable && b.state === "unavailable" && f.push("unavailable"), t.exclude_hidden_entities && (v != null && v.hidden_by || v != null && v.hidden) && f.push("hidden entity"), v != null && v.disabled_by && f.push("disabled entity"), v != null && v.entity_category && t.exclude_entity_category.includes(v.entity_category) && f.push("excluded entity category"), n.has(l) && f.push("excluded domain"), !r.has(l) && !s.has(m) && f.push("domain not included"), w.some((x) => t.exclude_labels.includes(x)) && f.push("excluded label"), xa(m, o) && f.push("excluded by regex");
+    const m = b.entity_id, l = wa(m), g = (p = e.entities) == null ? void 0 : p[m], y = t.entity_overrides[m], w = _a(e, m), f = [];
+    y != null && y.hidden && f.push("hidden by entity override"), t.exclude_entities.includes(m) && f.push("excluded entity"), t.exclude_unavailable && b.state === "unavailable" && f.push("unavailable"), t.exclude_hidden_entities && (g != null && g.hidden_by || g != null && g.hidden) && f.push("hidden entity"), g != null && g.disabled_by && f.push("disabled entity"), g != null && g.entity_category && t.exclude_entity_category.includes(g.entity_category) && f.push("excluded entity category"), n.has(l) && f.push("excluded domain"), !r.has(l) && !s.has(m) && f.push("domain not included"), w.some((v) => t.exclude_labels.includes(v)) && f.push("excluded label"), Sa(m, o) && f.push("excluded by regex");
     const _ = st(e, t, m);
-    if (sa(_.id, _.name, t) || f.push("excluded area"), ha(b, l, t) || f.push("inactive state"), f.length) {
+    if (pa(_.id, _.name, t) || f.push("excluded area"), ga(b, l, t) || f.push("inactive state"), f.length) {
       a.push({ entity_id: m, reasons: f });
       continue;
     }
-    const u = ma(m, w, t), g = {
+    const $ = va(m, w, t), x = {
       entity: b,
       entityId: m,
       domain: l,
-      name: ca(b, y == null ? void 0 : y.name),
-      icon: (y == null ? void 0 : y.icon) ?? String(b.attributes.icon ?? t.domain_icons[l] ?? ii[l] ?? "mdi:toggle-switch-outline"),
+      name: ua(b, y == null ? void 0 : y.name),
+      icon: (y == null ? void 0 : y.icon) ?? String(b.attributes.icon ?? t.domain_icons[l] ?? ni[l] ?? "mdi:toggle-switch-outline"),
       areaId: _.id,
       areaName: _.name,
       areaIcon: _.icon,
       labels: w,
-      category: v == null ? void 0 : v.entity_category,
-      hidden: !!(v != null && v.hidden_by || v != null && v.hidden),
+      category: g == null ? void 0 : g.entity_category,
+      hidden: !!(g != null && g.hidden_by || g != null && g.hidden),
       active: !0,
-      protected: u,
+      protected: $,
       controllable: !0,
-      secondary: la(b, l, t, e),
+      secondary: ha(b, l, t, e),
       skipReasons: []
     };
-    if (g.disabledReason = oi(g, t), g.controllable = !g.disabledReason, !fa(g, t)) {
+    if (x.disabledReason = ci(x, t), x.controllable = !x.disabledReason, !ya(x, t)) {
       a.push({ entity_id: m, reasons: ["protected hidden"] });
       continue;
     }
-    const $ = i.get(_.id) ?? {
+    const u = i.get(_.id) ?? {
       id: _.id,
       name: _.name,
       icon: _.icon,
@@ -1676,15 +1676,15 @@ const Bi = "custom:area-bubble-expander-card", Vi = "area-bubble-expander-card",
       domainCounts: {},
       protectedCount: 0
     };
-    $.entities.push(g), $.domainCounts[l] = ($.domainCounts[l] ?? 0) + 1, u && ($.protectedCount += 1), i.set(_.id, $);
+    u.entities.push(x), u.domainCounts[l] = (u.domainCounts[l] ?? 0) + 1, $ && (u.protectedCount += 1), i.set(_.id, u);
   }
-  const c = [...i.values()].map((b) => ({ ...b, entities: _a(b.entities, t) }));
-  return { groups: ga(c, t), skipped: a };
+  const c = [...i.values()].map((b) => ({ ...b, entities: $a(b.entities, t) }));
+  return { groups: xa(c, t), skipped: a };
 };
-var $a = Object.defineProperty, wa = Object.getOwnPropertyDescriptor, D = (e, t, i, a) => {
-  for (var o = a > 1 ? void 0 : a ? wa(t, i) : t, r = e.length - 1, n; r >= 0; r--)
+var Aa = Object.defineProperty, Ea = Object.getOwnPropertyDescriptor, j = (e, t, i, a) => {
+  for (var o = a > 1 ? void 0 : a ? Ea(t, i) : t, r = e.length - 1, n; r >= 0; r--)
     (n = e[r]) && (o = (a ? n(t, i, o) : n(o)) || o);
-  return a && o && $a(t, i, o), o;
+  return a && o && Aa(t, i, o), o;
 };
 const B = [
   { id: "General", icon: "mdi:tune", title: { en: "General", he: "כללי" }, description: { en: "Title and summary behavior.", he: "כותרת והתנהגות הסיכום של הכרטיס." } },
@@ -1700,7 +1700,7 @@ const B = [
   { id: "Advanced", icon: "mdi:cog-outline", title: { en: "Advanced", he: "מתקדם" }, description: { en: "Secondary data and animation preferences.", he: "מידע משני והעדפות הנפשה." } },
   { id: "Debug", icon: "mdi:bug-outline", title: { en: "Debug", he: "ניפוי שגיאות" }, description: { en: "Diagnostics and the resulting raw configuration.", he: "אבחון והתצורה הגולמית המתקבלת." } },
   { id: "Badge", icon: "mdi:counter", title: { en: "Badge helper", he: "עזר לתג" }, description: { en: "Generate optional template sensors and badge YAML.", he: "יצירת חיישני Template ו־YAML אופציונלי לתג." } }
-], ka = [
+], Ca = [
   { section: "General", key: "id", label: "Stable card ID", type: "text" },
   { section: "General", key: "title", label: "Card title", type: "text" },
   { section: "General", key: "show_header", label: "Show header", type: "boolean" },
@@ -1894,7 +1894,7 @@ const B = [
   { section: "Debug", key: "show_debug", label: "Show skipped/protected diagnostics", type: "boolean" },
   { section: "Debug", key: "show_entity_ids", label: "Show entity IDs", type: "boolean" },
   { section: "Debug", key: "show_area_ids", label: "Show area IDs", type: "boolean" }
-], Sa = {
+], Ta = {
   id: "מזהה קבוע לכרטיס",
   title: "כותרת הכרטיס",
   show_header: "הצגת כותרת",
@@ -1990,7 +1990,7 @@ const B = [
   show_debug: "הצגת אבחון ישויות שסוננו",
   show_entity_ids: "הצגת מזהי ישויות",
   show_area_ids: "הצגת מזהי אזורים"
-}, Aa = {
+}, Pa = {
   icons: "סמלים",
   text: "טקסט",
   icons_and_text: "סמלים וטקסט",
@@ -2115,7 +2115,7 @@ let z = class extends Z {
     e.has("hass") && this.labelRegistryStatus === "idle" && this.loadLabelRegistry();
   }
   render() {
-    const e = he(this.config), t = fe(this.hass, e.language), i = ai(this.hass, e), a = B.find((r) => r.id === this.activeSection) ?? B[0], o = ka.filter((r) => r.section === this.activeSection);
+    const e = be(this.config), t = ge(this.hass, e.language), i = si(this.hass, e), a = B.find((r) => r.id === this.activeSection) ?? B[0], o = Ca.filter((r) => r.section === this.activeSection);
     return d`
       <div class="editor" dir=${i ? "rtl" : "ltr"} lang=${t}>
         <header class="editor-heading">
@@ -2577,14 +2577,14 @@ tap_action:
     const t = (o = (a = this.hass) == null ? void 0 : a.entities) == null ? void 0 : o[e], i = t != null && t.device_id ? (n = (r = this.hass) == null ? void 0 : r.devices) == null ? void 0 : n[t.device_id] : void 0;
     return [.../* @__PURE__ */ new Set([...(t == null ? void 0 : t.labels) ?? [], ...(i == null ? void 0 : i.labels) ?? []])];
   }
-  editorLanguage(e = he(this.config)) {
-    return fe(this.hass, e.language);
+  editorLanguage(e = be(this.config)) {
+    return ge(this.hass, e.language);
   }
   fieldLabel(e, t) {
-    return t === "he" ? Sa[e.key] ?? e.label : e.label;
+    return t === "he" ? Ta[e.key] ?? e.label : e.label;
   }
   optionLabel(e, t, i) {
-    return i === "he" ? Aa[e] ?? t : t;
+    return i === "he" ? Pa[e] ?? t : t;
   }
   fieldId(e) {
     return `abec-field-${e.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
@@ -2612,13 +2612,13 @@ tap_action:
     t === "area" && (this.areaSearch = i), t === "entity" && (this.entitySearch = i), t === "label" && (this.labelSearch = i);
   }
   moveArea(e, t) {
-    const i = he(this.config), a = this.orderedAreaOptions(i).map((s) => s.id), o = a.indexOf(e), r = o + t;
+    const i = be(this.config), a = this.orderedAreaOptions(i).map((s) => s.id), o = a.indexOf(e), r = o + t;
     if (o < 0 || r < 0 || r >= a.length) return;
     const n = [...a];
     [n[o], n[r]] = [n[r], n[o]], this.updateKeys({ area_sort: "custom", custom_area_order: n });
   }
   enableCustomAreaOrder(e) {
-    const t = Me(this.readPath("custom_area_order"));
+    const t = qe(this.readPath("custom_area_order"));
     this.updateKeys({
       area_sort: "custom",
       custom_area_order: t.length ? t : e.map((i) => i.id)
@@ -2635,7 +2635,7 @@ tap_action:
     e.preventDefault();
     const i = this.draggedAreaId ?? ((c = e.dataTransfer) == null ? void 0 : c.getData("text/plain"));
     if (this.endAreaDrag(), !i || i === t) return;
-    const a = this.orderedAreaOptions(he(this.config)).map((p) => p.id), o = a.indexOf(i), r = a.indexOf(t);
+    const a = this.orderedAreaOptions(be(this.config)).map((p) => p.id), o = a.indexOf(i), r = a.indexOf(t);
     if (o < 0 || r < 0) return;
     const n = [...a];
     n.splice(o, 1);
@@ -2655,8 +2655,8 @@ tap_action:
     return Number.MAX_SAFE_INTEGER;
   }
   toggleListValue(e, t, i, a = [t]) {
-    const o = Me(this.readPath(e)), r = a.some((c) => o.includes(c)), n = r ? o.filter((c) => !a.includes(c)) : [...o.filter((c) => !a.includes(c)), t], s = { [e]: n };
-    !r && i && (s[i] = Me(this.readPath(i)).filter((c) => !a.includes(c))), this.updateKeys(s);
+    const o = qe(this.readPath(e)), r = a.some((c) => o.includes(c)), n = r ? o.filter((c) => !a.includes(c)) : [...o.filter((c) => !a.includes(c)), t], s = { [e]: n };
+    !r && i && (s[i] = qe(this.readPath(i)).filter((c) => !a.includes(c))), this.updateKeys(s);
   }
   renderField(e, t) {
     var s;
@@ -2710,7 +2710,7 @@ tap_action:
       return d`
         <div class="field">
           <label class="field-label" for=${r}>${n}</label>
-          <textarea id=${r} .value=${oa(o ?? this.readResolvedPath(t, e.key))} @change=${(c) => this.updateField(e, Me(c.target.value))}></textarea>
+          <textarea id=${r} .value=${ca(o ?? this.readResolvedPath(t, e.key))} @change=${(c) => this.updateField(e, qe(c.target.value))}></textarea>
           <span class="field-helper">${a.configKey}: <code>${e.key}</code></span>
         </div>
       `;
@@ -2806,7 +2806,7 @@ tap_action:
     delete t[e], delete i[e], delete this.jsonDraftBaselines[e], this.jsonDrafts = t, this.jsonErrors = i;
   }
   jsonCommittedText(e, t = this.config) {
-    const i = he(t), o = this.readResolvedPath(t, e) ?? this.readResolvedPath(i, e);
+    const i = be(t), o = this.readResolvedPath(t, e) ?? this.readResolvedPath(i, e);
     return this.textareaValue(o);
   }
   updateField(e, t) {
@@ -2862,47 +2862,47 @@ tap_action:
     return e === "rtl" ? t === "true" ? !0 : t === "false" ? !1 : "auto" : t;
   }
 };
-z.styles = ia;
-D([
-  ze({ attribute: !1 })
+z.styles = na;
+j([
+  Fe({ attribute: !1 })
 ], z.prototype, "hass", 2);
-D([
+j([
   C()
 ], z.prototype, "config", 2);
-D([
+j([
   C()
 ], z.prototype, "activeSection", 2);
-D([
+j([
   C()
 ], z.prototype, "areaSearch", 2);
-D([
+j([
   C()
 ], z.prototype, "entitySearch", 2);
-D([
+j([
   C()
 ], z.prototype, "labelSearch", 2);
-D([
+j([
   C()
 ], z.prototype, "registryLabels", 2);
-D([
+j([
   C()
 ], z.prototype, "labelRegistryStatus", 2);
-D([
+j([
   C()
 ], z.prototype, "jsonDrafts", 2);
-D([
+j([
   C()
 ], z.prototype, "jsonErrors", 2);
-D([
+j([
   C()
 ], z.prototype, "draggedAreaId", 2);
-D([
+j([
   C()
 ], z.prototype, "dragOverAreaId", 2);
-z = D([
-  Ye(ti)
+z = j([
+  Ye(ri)
 ], z);
-const Ea = Ie`
+const Ia = Oe`
   :host {
     display: block;
     direction: var(--abec-direction, ltr);
@@ -3342,7 +3342,7 @@ const Ea = Ie`
     }
   }
 `;
-Ie`
+Oe`
   :host {
     display: block;
   }
@@ -3573,27 +3573,27 @@ Ie`
     }
   }
 `;
-const ri = (e) => `${Gi}:${e}:expanded`, Ca = (e) => {
+const li = (e) => `${Wi}:${e}:expanded`, Oa = (e) => {
   try {
-    const t = localStorage.getItem(ri(e));
+    const t = localStorage.getItem(li(e));
     return t ? JSON.parse(t) : {};
   } catch {
     return {};
   }
-}, Ta = (e, t) => {
+}, za = (e, t) => {
   try {
-    localStorage.setItem(ri(e), JSON.stringify(t));
+    localStorage.setItem(li(e), JSON.stringify(t));
   } catch {
   }
-}, ni = (e) => {
+}, di = (e) => {
   const [t, i] = e.split(".");
   return { domain: t, service: i };
-}, Pa = async (e, t, i) => {
+}, Fa = async (e, t, i) => {
   const a = i.service_mapping[t.domain];
   if (!a) throw new Error(`No turn-off service configured for ${t.domain}`);
-  const o = ni(a);
+  const o = di(a);
   await e.callService(o.domain, o.service, void 0, { entity_id: t.entityId });
-}, Lt = async (e, t, i) => {
+}, Ut = async (e, t, i) => {
   const a = /* @__PURE__ */ new Map();
   for (const o of He(t, i)) {
     const r = i.service_mapping[o.domain];
@@ -3603,31 +3603,31 @@ const ri = (e) => `${Gi}:${e}:expanded`, Ca = (e) => {
   }
   await Promise.all(
     [...a.entries()].map(([o, r]) => {
-      const n = ni(o);
+      const n = di(o);
       return e.callService(n.domain, n.service, void 0, { entity_id: r });
     })
   );
-}, Ia = async (e, t) => {
+}, Na = async (e, t) => {
   await e.callService("homeassistant", "turn_off", void 0, { area_id: t });
 };
-var Oa = Object.defineProperty, za = Object.getOwnPropertyDescriptor, Ne = (e, t, i, a) => {
-  for (var o = a > 1 ? void 0 : a ? za(t, i) : t, r = e.length - 1, n; r >= 0; r--)
+var Ma = Object.defineProperty, qa = Object.getOwnPropertyDescriptor, Ne = (e, t, i, a) => {
+  for (var o = a > 1 ? void 0 : a ? qa(t, i) : t, r = e.length - 1, n; r >= 0; r--)
     (n = e[r]) && (o = (a ? n(t, i, o) : n(o)) || o);
-  return a && o && Oa(t, i, o), o;
+  return a && o && Ma(t, i, o), o;
 };
-let ce = class extends Z {
+let le = class extends Z {
   constructor() {
     super(...arguments), this.expanded = {}, this.cardId = Math.random().toString(36).slice(2);
   }
   static getConfigElement() {
-    return document.createElement(ti);
+    return document.createElement(ri);
   }
   static getStubConfig() {
     return { language: "auto", rtl: "auto" };
   }
   setConfig(e) {
     try {
-      aa(e), this.config = he(e), this.cardId = e.id || this.stableCardId(e), this.expanded = this.config.remember_expanded_state ? Ca(this.cardId) : {}, this.error = void 0;
+      sa(e), this.config = be(e), this.cardId = e.id || this.stableCardId(e), this.expanded = this.config.remember_expanded_state ? Oa(this.cardId) : {}, this.error = void 0;
     } catch (t) {
       this.error = t instanceof Error ? t.message : String(t);
     }
@@ -3643,7 +3643,7 @@ let ce = class extends Z {
   render() {
     if (this.error) return d`<ha-card><div class="root">${this.error}</div></ha-card>`;
     if (!this.config) return h;
-    const e = ai(this.hass, this.config);
+    const e = si(this.hass, this.config);
     this.style.setProperty("--abec-direction", e ? "rtl" : "ltr"), this.setAttribute("dir", e ? "rtl" : "ltr"), this.toggleAttribute("animations-disabled", !this.config.enable_animations), this.toggleAttribute("respect-reduced-motion", this.config.respect_reduced_motion), this.toggleAttribute("compact", this.config.style.compact), this.applyStyleVars();
     const { groups: t, skipped: i } = ct(this.hass, this.config), a = t.reduce((r, n) => r + n.entities.length, 0), o = t.length;
     return d`
@@ -3658,9 +3658,9 @@ let ce = class extends Z {
   }
   renderHeader(e, t, i) {
     if (!this.config) return h;
-    const a = this.config.title || T(this.config, this.hass, "title"), o = [
-      this.config.show_total_count ? `${t} ${T(this.config, this.hass, "active_entities")}` : "",
-      this.config.show_active_area_count ? `${i} ${T(this.config, this.hass, "active_areas")}` : ""
+    const a = this.config.title || P(this.config, this.hass, "title"), o = [
+      this.config.show_total_count ? `${t} ${P(this.config, this.hass, "active_entities")}` : "",
+      this.config.show_active_area_count ? `${i} ${P(this.config, this.hass, "active_areas")}` : ""
     ].filter(Boolean).join(" · ");
     return d`
       <div class="header">
@@ -3671,8 +3671,8 @@ let ce = class extends Z {
         ${this.config.show_global_turn_off ? d`
               <button
                 class="icon-button danger"
-                title=${T(this.config, this.hass, "turn_off_all")}
-                aria-label=${T(this.config, this.hass, "turn_off_all")}
+                title=${P(this.config, this.hass, "turn_off_all")}
+                aria-label=${P(this.config, this.hass, "turn_off_all")}
                 @click=${(r) => this.turnOffGlobal(r, e)}
               >
                 <ha-icon icon="mdi:power"></ha-icon>
@@ -3691,7 +3691,7 @@ let ce = class extends Z {
             class="area-toggle"
             type="button"
             aria-expanded=${t}
-            aria-label=${`${T(this.config, this.hass, t ? "collapse_area" : "expand_area")}: ${e.name}`}
+            aria-label=${`${P(this.config, this.hass, t ? "collapse_area" : "expand_area")}: ${e.name}`}
             ?disabled=${!this.config.expand_on_header_tap}
             @click=${() => this.toggleArea(e)}
           >
@@ -3699,7 +3699,7 @@ let ce = class extends Z {
             <span class="area-main">
               <span class="area-line">
                 <span class="area-name">${e.name}</span>
-                <span class="count">${e.entities.length} ${T(this.config, this.hass, "active_entities")}</span>
+                <span class="count">${e.entities.length} ${P(this.config, this.hass, "active_entities")}</span>
               </span>
               ${this.config.show_preview_entities && !t && i ? d`<span class="preview">${i}</span>` : h}
               ${this.config.show_domain_chips ? this.renderDomainChips(e) : h}
@@ -3711,8 +3711,8 @@ let ce = class extends Z {
                   <button
                     class="icon-button danger"
                     ?disabled=${!r}
-                    title=${T(this.config, this.hass, "turn_off_area")}
-                    aria-label=${T(this.config, this.hass, "turn_off_area")}
+                    title=${P(this.config, this.hass, "turn_off_area")}
+                    aria-label=${P(this.config, this.hass, "turn_off_area")}
                     @click=${(c) => this.turnOffArea(c, e)}
                   >
                     <ha-icon icon="mdi:power"></ha-icon>
@@ -3724,7 +3724,7 @@ let ce = class extends Z {
         ${t ? d`
               <div class="entities">
                 ${n.map((c) => this.renderEntity(c))}
-                ${s > 0 ? d`<div class="secondary">${s} ${T(this.config, this.hass, "show_more")}</div>` : h}
+                ${s > 0 ? d`<div class="secondary">${s} ${P(this.config, this.hass, "show_more")}</div>` : h}
               </div>
             ` : h}
       </section>
@@ -3737,9 +3737,9 @@ let ce = class extends Z {
       var o;
       const a = ((o = this.config) == null ? void 0 : o.domain_chip_mode) ?? "icons";
       return d`
-            <span class="chip" title=${Rt(this.config, this.hass, t)}>
+            <span class="chip" title=${Ht(this.config, this.hass, t)}>
               ${a !== "text" ? d`<ha-icon icon=${this.config.domain_icons[t] ?? "mdi:circle"}></ha-icon>` : h}
-              ${a !== "icons" ? d`<span>${i} ${Rt(this.config, this.hass, t)}</span>` : d`<span>${i}</span>`}
+              ${a !== "icons" ? d`<span>${i} ${Ht(this.config, this.hass, t)}</span>` : d`<span>${i}</span>`}
             </span>
           `;
     })}
@@ -3748,7 +3748,7 @@ let ce = class extends Z {
   }
   renderEntity(e) {
     if (!this.config) return h;
-    const t = this.config.show_entity_secondary_info ? pa(e, this.config) : "";
+    const t = this.config.show_entity_secondary_info ? ma(e, this.config) : "";
     return d`
       <div
         class="entity-row"
@@ -3770,7 +3770,7 @@ let ce = class extends Z {
           <span class="entity-main">
             <span class="entity-line">
               <span class="entity-name">${e.name}</span>
-              ${e.protected ? d`<span class="protected-badge"><ha-icon icon="mdi:lock"></ha-icon>${T(this.config, this.hass, "protected")}</span>` : h}
+              ${e.protected ? d`<span class="protected-badge"><ha-icon icon="mdi:lock"></ha-icon>${P(this.config, this.hass, "protected")}</span>` : h}
             </span>
             ${t ? d`<span class="secondary">${t}</span>` : h}
           </span>
@@ -3779,8 +3779,8 @@ let ce = class extends Z {
               <button
                 class="icon-button danger"
                 ?disabled=${!e.controllable}
-                title=${e.disabledReason ?? T(this.config, this.hass, "turn_off_entity")}
-                aria-label=${T(this.config, this.hass, "turn_off_entity")}
+                title=${e.disabledReason ?? P(this.config, this.hass, "turn_off_entity")}
+                aria-label=${P(this.config, this.hass, "turn_off_entity")}
                 @click=${(i) => this.turnOffEntity(i, e)}
               >
                 <ha-icon icon=${e.protected ? "mdi:lock" : "mdi:power"}></ha-icon>
@@ -3793,8 +3793,8 @@ let ce = class extends Z {
     return !this.config || !this.config.show_empty ? h : d`
       <div class="empty">
         <ha-icon icon="mdi:home-check-outline"></ha-icon>
-        <div class="empty-title">${this.config.empty_title || T(this.config, this.hass, "empty_title")}</div>
-        <div class="subtitle">${this.config.empty_subtitle || T(this.config, this.hass, "empty_subtitle")}</div>
+        <div class="empty-title">${this.config.empty_title || P(this.config, this.hass, "empty_title")}</div>
+        <div class="subtitle">${this.config.empty_subtitle || P(this.config, this.hass, "empty_subtitle")}</div>
       </div>
     `;
   }
@@ -3805,16 +3805,16 @@ let ce = class extends Z {
   }
   toggleArea(e) {
     var t;
-    (t = this.config) != null && t.expand_on_header_tap && (this.expanded = { ...this.expanded, [e.id]: !this.isExpanded(e) }, this.config.remember_expanded_state && Ta(this.cardId, this.expanded));
+    (t = this.config) != null && t.expand_on_header_tap && (this.expanded = { ...this.expanded, [e.id]: !this.isExpanded(e) }, this.config.remember_expanded_state && za(this.cardId, this.expanded));
   }
   handleHoldAction(e, t) {
     var i;
     e.preventDefault(), this.handleAction(t, ((i = this.config) == null ? void 0 : i.hold_action) ?? { action: "none" });
   }
   async turnOffEntity(e, t) {
-    if (e.stopPropagation(), !(!this.hass || !this.config || !t.controllable || (this.config.confirm_entity_turn_off || this.config.dangerous_domains.includes(t.domain)) && !window.confirm(T(this.config, this.hass, "confirm_entity_turn_off", { entity: t.name }))))
+    if (e.stopPropagation(), !(!this.hass || !this.config || !t.controllable || (this.config.confirm_entity_turn_off || this.config.dangerous_domains.includes(t.domain)) && !window.confirm(P(this.config, this.hass, "confirm_entity_turn_off", { entity: t.name }))))
       try {
-        await Pa(this.hass, t, this.config);
+        await Fa(this.hass, t, this.config);
       } catch (a) {
         this.reportError(a);
       }
@@ -3823,15 +3823,15 @@ let ce = class extends Z {
     if (e.stopPropagation(), !this.hass || !this.config) return;
     const i = He(t.entities, this.config);
     if (!i.length) return;
-    const a = this.config.areas[t.id] ?? this.config.areas[t.name], o = this.config.confirm_area_turn_off || this.config.area_turn_off_mode === "homeassistant_area" || i.some((s) => this.config.dangerous_domains.includes(s.domain)), r = (a == null ? void 0 : a.confirm_turn_off) ?? o, n = `${T(this.config, this.hass, "confirm_area_turn_off", { area: t.name, count: i.length })}
-${T(
+    const a = this.config.areas[t.id] ?? this.config.areas[t.name], o = this.config.confirm_area_turn_off || this.config.area_turn_off_mode === "homeassistant_area" || i.some((s) => this.config.dangerous_domains.includes(s.domain)), r = (a == null ? void 0 : a.confirm_turn_off) ?? o, n = `${P(this.config, this.hass, "confirm_area_turn_off", { area: t.name, count: i.length })}
+${P(
       this.config,
       this.hass,
       "protected_will_remain"
     )}`;
     if (!(r && !window.confirm(n)))
       try {
-        this.config.area_turn_off_mode === "homeassistant_area" ? await Ia(this.hass, t.id) : await Lt(this.hass, i, this.config);
+        this.config.area_turn_off_mode === "homeassistant_area" ? await Na(this.hass, t.id) : await Ut(this.hass, i, this.config);
       } catch (s) {
         this.reportError(s);
       }
@@ -3839,9 +3839,9 @@ ${T(
   async turnOffGlobal(e, t) {
     if (e.stopPropagation(), !this.hass || !this.config) return;
     const i = He(t.flatMap((o) => o.entities), this.config);
-    if (!(!i.length || (this.config.confirm_global_turn_off || i.some((o) => this.config.dangerous_domains.includes(o.domain))) && !window.confirm(T(this.config, this.hass, "confirm_global_turn_off"))))
+    if (!(!i.length || (this.config.confirm_global_turn_off || i.some((o) => this.config.dangerous_domains.includes(o.domain))) && !window.confirm(P(this.config, this.hass, "confirm_global_turn_off"))))
       try {
-        await Lt(this.hass, i, this.config);
+        await Ut(this.hass, i, this.config);
       } catch (o) {
         this.reportError(o);
       }
@@ -3889,22 +3889,22 @@ ${T(
     return `card-${(i >>> 0).toString(36)}`;
   }
 };
-ce.styles = Ea;
+le.styles = Ia;
 Ne([
-  ze({ attribute: !1 })
-], ce.prototype, "hass", 2);
-Ne([
-  C()
-], ce.prototype, "config", 2);
+  Fe({ attribute: !1 })
+], le.prototype, "hass", 2);
 Ne([
   C()
-], ce.prototype, "expanded", 2);
+], le.prototype, "config", 2);
 Ne([
   C()
-], ce.prototype, "error", 2);
-ce = Ne([
-  Ye(Vi)
-], ce);
+], le.prototype, "expanded", 2);
+Ne([
+  C()
+], le.prototype, "error", 2);
+le = Ne([
+  Ye(Qi)
+], le);
 window.customCards = window.customCards ?? [];
 window.customCards.some((e) => e.type === "area-bubble-expander-card") || window.customCards.push({
   type: "area-bubble-expander-card",
@@ -3914,26 +3914,26 @@ window.customCards.some((e) => e.type === "area-bubble-expander-card") || window
   documentationURL: "https://github.com/jonioliel/area-bubble-expander-card"
 });
 console.info(
-  `%c AREA-BUBBLE-CARDS %c 0.16.0 ${fe(void 0, "auto")}`,
+  `%c AREA-BUBBLE-CARDS %c 0.17.0 ${ge(void 0, "auto")}`,
   "color: white; background: #03a9f4; font-weight: 700;",
   "color: #03a9f4; font-weight: 700;"
 );
-const ne = "custom:area-bubble-overview-card", lt = "area-bubble-overview-card", si = "area-bubble-overview-card-editor", Dt = "area-bubble-overview-card", Te = "__area_bubble_auto_fans__", Pe = "__area_bubble_auto_floor_heating_controls__", ae = {
+const se = "custom:area-bubble-overview-card", lt = "area-bubble-overview-card", pi = "area-bubble-overview-card-editor", Bt = "area-bubble-overview-card", Pe = "__area_bubble_auto_fans__", Ie = "__area_bubble_auto_floor_heating_controls__", oe = {
   TARGET_TEMPERATURE: 1,
   TARGET_TEMPERATURE_RANGE: 2,
   FAN_MODE: 8,
   TURN_OFF: 128,
   TURN_ON: 256
-}, ke = {
+}, Se = {
   PAUSE: 1,
   VOLUME_SET: 4,
   TURN_ON: 128,
   TURN_OFF: 256,
   PLAY: 16384
-}, ci = {
+}, ui = {
   TARGET_TEMPERATURE: 1,
   ON_OFF: 8
-}, V = ["climate", "floor_heating", "covers", "lights_switches", "media"], li = ["lights", "climate", "floor_heating", "switches", "covers", "media"], di = {
+}, V = ["climate", "floor_heating", "covers", "lights_switches", "media"], hi = ["lights", "climate", "floor_heating", "switches", "covers", "media"], bi = {
   climate: "mdi:air-conditioner",
   floor_heating: "mdi:heating-coil",
   covers: "mdi:window-shutter",
@@ -4073,7 +4073,7 @@ const ne = "custom:area-bubble-overview-card", lt = "area-bubble-overview-card",
     active_text_color: "#183029",
     control_text_color: "#f7faf8"
   }
-}, q = {
+}, M = {
   border_radius: 26,
   blur: 18,
   section_gap: 12,
@@ -4117,7 +4117,7 @@ const ne = "custom:area-bubble-overview-card", lt = "area-bubble-overview-card",
   section_action_icon_size: 22,
   category_gap: 12
 }, Re = {
-  type: ne,
+  type: se,
   target_icon: "",
   language: "auto",
   rtl: "auto",
@@ -4138,6 +4138,8 @@ const ne = "custom:area-bubble-overview-card", lt = "area-bubble-overview-card",
   light_tile_shape: "rectangle",
   light_icon_position: "start",
   light_show_state: !0,
+  entity_card_size: "medium",
+  subgroup_titles: {},
   show_empty_sections: !1,
   default_expanded: !1,
   floor_default_expanded: !0,
@@ -4148,7 +4150,7 @@ const ne = "custom:area-bubble-overview-card", lt = "area-bubble-overview-card",
   section_action_presentation: "icon",
   climate_mode_presentation: "both",
   section_action_icons: Ke,
-  quick_actions: li,
+  quick_actions: hi,
   quick_action_icons: {},
   area_order: [],
   floor_heating_labels: ["floor_heating", "underfloor_heating"],
@@ -4160,68 +4162,68 @@ const ne = "custom:area-bubble-overview-card", lt = "area-bubble-overview-card",
   protected_entities: [],
   area_overrides: {},
   entity_overrides: {},
-  style: q,
+  style: M,
   debug: !1
-}, H = (e, t) => {
+}, U = (e, t) => {
   const i = e.attributes.supported_features;
   return typeof i != "number" || (i & t) !== 0;
-}, pi = (e) => Array.isArray(e.entity.attributes.hvac_modes) ? e.entity.attributes.hvac_modes.map(String) : [], Na = /* @__PURE__ */ new Set(["onoff", "unknown"]), Fa = (e) => {
+}, mi = (e) => Array.isArray(e.entity.attributes.hvac_modes) ? e.entity.attributes.hvac_modes.map(String) : [], Ra = /* @__PURE__ */ new Set(["onoff", "unknown"]), Da = (e) => {
   if (e.domain !== "light") return !1;
   const t = Array.isArray(e.entity.attributes.supported_color_modes) ? e.entity.attributes.supported_color_modes.map(String) : [], i = typeof e.entity.attributes.color_mode == "string" ? [e.entity.attributes.color_mode] : [];
-  return [...t, ...i].some((a) => !Na.has(a)) || typeof e.entity.attributes.brightness == "number";
-}, jt = (e) => {
+  return [...t, ...i].some((a) => !Ra.has(a)) || typeof e.entity.attributes.brightness == "number";
+}, Vt = (e) => {
   if (!e.powered) return 0;
   const t = e.entity.attributes.brightness;
   return typeof t != "number" || !Number.isFinite(t) ? 100 : Math.min(100, Math.max(0, Math.round(t / 255 * 100)));
-}, pe = (e) => e.powered && e.domain !== "cover" && e.ignoreActivity !== !0, Q = (e, t) => {
+}, ue = (e) => e.powered && e.domain !== "cover" && e.ignoreActivity !== !0, Q = (e, t) => {
   if (e.domain === "climate") {
-    const i = t ? ae.TURN_ON : ae.TURN_OFF;
-    if (H(e.entity, i)) return { service: t ? "turn_on" : "turn_off" };
-    const a = pi(e);
+    const i = t ? oe.TURN_ON : oe.TURN_OFF;
+    if (U(e.entity, i)) return { service: t ? "turn_on" : "turn_off" };
+    const a = mi(e);
     if (!t && a.includes("off")) return { service: "set_hvac_mode", data: { hvac_mode: "off" } };
     const o = a.find((r) => r !== "off");
     return t && o ? { service: "set_hvac_mode", data: { hvac_mode: o } } : void 0;
   }
   if (e.domain === "media_player") {
-    const i = t ? ke.TURN_ON : ke.TURN_OFF;
-    return H(e.entity, i) ? { service: t ? "turn_on" : "turn_off" } : void 0;
+    const i = t ? Se.TURN_ON : Se.TURN_OFF;
+    return U(e.entity, i) ? { service: t ? "turn_on" : "turn_off" } : void 0;
   }
   if (e.domain === "water_heater")
-    return H(e.entity, ci.ON_OFF) ? { service: t ? "turn_on" : "turn_off" } : void 0;
+    return U(e.entity, ui.ON_OFF) ? { service: t ? "turn_on" : "turn_off" } : void 0;
   if (["light", "switch", "fan", "input_boolean"].includes(e.domain))
     return { service: t ? "turn_on" : "turn_off" };
-}, ui = 2, hi = 1, bi = (e, t) => t === "lights" ? e.domain === "light" : t === "switches" ? e.domain === "switch" && e.section === "lights_switches" : t === "climate" ? e.section === "climate" : t === "floor_heating" ? e.section === "floor_heating" : t === "covers" ? e.domain === "cover" : e.domain === "media_player", Se = (e, t) => e.allEntities.filter((i) => bi(i, t)), qa = (e, t) => t.map((i) => ({ action: i, entities: Se(e, i) })).filter(({ entities: i }) => i.some((a) => a.powered && a.ignoreActivity !== !0)), pt = (e, t, i) => {
-  if (bi(t, e)) {
+}, fi = 2, gi = 1, _i = (e, t) => t === "lights" ? e.domain === "light" : t === "switches" ? e.domain === "switch" && e.section === "lights_switches" : t === "climate" ? e.section === "climate" : t === "floor_heating" ? e.section === "floor_heating" : t === "covers" ? e.domain === "cover" : e.domain === "media_player", Ae = (e, t) => e.allEntities.filter((i) => _i(i, t)), La = (e, t) => t.map((i) => ({ action: i, entities: Ae(e, i) })).filter(({ entities: i }) => i.some((a) => a.powered && a.ignoreActivity !== !0)), pt = (e, t, i) => {
+  if (_i(t, e)) {
     if (e === "covers") {
-      const a = i ? hi : ui;
-      return t.domain !== "cover" || !H(t.entity, a) ? void 0 : { service: i ? "open_cover" : "close_cover" };
+      const a = i ? gi : fi;
+      return t.domain !== "cover" || !U(t.entity, a) ? void 0 : { service: i ? "open_cover" : "close_cover" };
     }
     return Q(t, i);
   }
-}, _t = (e) => {
+}, vt = (e) => {
   const t = /* @__PURE__ */ new Map();
   for (const { entity: i, service: a } of e) {
     const o = `${a.domain}.${a.service}:${JSON.stringify(a.data ?? {})}`, r = t.get(o) ?? { ...a, entityIds: [] };
     r.entityIds.push(i.entityId), t.set(o, r);
   }
   return [...t.values()];
-}, vt = async (e, t, i) => {
+}, yt = async (e, t, i) => {
   const a = await Promise.allSettled(
     t.map((r) => e.callService(r.domain, r.service, r.data, { entity_id: r.entityIds }))
   ), o = a.filter((r) => r.status === "rejected");
   if (o.length) throw new Error(`${o.length} of ${a.length} ${i} failed.`);
-}, mi = (e, t, i) => {
+}, vi = (e, t, i) => {
   const a = [];
-  for (const o of Se(e, t)) {
+  for (const o of Ae(e, t)) {
     if (!o.available || o.protected || o.powered === i) continue;
     const r = pt(t, o, i);
     r && a.push({ entity: o, service: { domain: o.domain, ...r } });
   }
   return a;
-}, at = (e, t, i) => mi(e, t, i).map(({ entity: a }) => a), Ma = async (e, t, i, a) => {
-  const o = mi(t, i, a);
-  await vt(e, _t(o), "area actions");
-}, fi = (e, t) => {
+}, at = (e, t, i) => vi(e, t, i).map(({ entity: a }) => a), ja = async (e, t, i, a) => {
+  const o = vi(t, i, a);
+  await yt(e, vt(o), "area actions");
+}, yi = (e, t) => {
   const i = [];
   for (const a of e.allEntities) {
     if (a.domain === "cover" || !a.available || a.protected || a.powered === t) continue;
@@ -4229,52 +4231,58 @@ const ne = "custom:area-bubble-overview-card", lt = "area-bubble-overview-card",
     o && i.push({ entity: a, service: { domain: a.domain, ...o } });
   }
   return i;
-}, Le = (e, t = !1) => fi(e, t).map(({ entity: i }) => i), Ht = async (e, t, i) => {
-  await vt(e, _t(fi(t, i)), "room actions");
-}, Ra = (e, t, i) => {
+}, De = (e, t = !1) => yi(e, t).map(({ entity: i }) => i), Gt = async (e, t, i) => {
+  await yt(e, vt(yi(t, i)), "room actions");
+}, Ha = (e, t, i) => {
   if (e.id === "covers") {
-    const o = i ? hi : ui;
-    return t.domain !== "cover" || !H(t.entity, o) ? void 0 : { domain: "cover", service: i ? "open_cover" : "close_cover" };
+    const o = i ? gi : fi;
+    return t.domain !== "cover" || !U(t.entity, o) ? void 0 : { domain: "cover", service: i ? "open_cover" : "close_cover" };
   }
   const a = Q(t, i);
   return a ? { domain: t.domain, ...a } : void 0;
-}, gi = (e, t) => {
+}, xi = (e, t) => {
   const i = [];
   for (const a of e.entities) {
     if (!a.available || a.protected || a.powered === t) continue;
-    const o = Ra(e, a, t);
+    const o = Ha(e, a, t);
     o && i.push({ entity: a, service: o });
   }
   return i;
-}, ot = (e, t = !1) => gi(e, t).map(({ entity: i }) => i), La = async (e, t, i) => {
-  const a = gi(t, i);
-  await vt(e, _t(a), "section actions");
+}, ot = (e, t = !1) => xi(e, t).map(({ entity: i }) => i), Ua = async (e, t, i) => {
+  const a = xi(t, i);
+  await yt(e, vt(a), "section actions");
 }, G = (e, t, i, a) => {
   const o = t.split(".")[0] ?? "homeassistant";
   return e.callService(o, i, a, { entity_id: t });
-}, U = (e) => !!e && typeof e == "object" && !Array.isArray(e), L = (e) => Array.isArray(e) ? e.map(String).map((t) => t.trim()).filter(Boolean) : [], _i = (e) => {
-  const t = new Set(V), i = L(e).filter((a) => t.has(a));
+}, L = (e) => !!e && typeof e == "object" && !Array.isArray(e), D = (e) => Array.isArray(e) ? e.map(String).map((t) => t.trim()).filter(Boolean) : [], $i = (e) => {
+  const t = new Set(V), i = D(e).filter((a) => t.has(a));
   return [.../* @__PURE__ */ new Set([...i, ...V])];
 }, ut = (e) => {
-  if (!U(e)) return {};
+  if (!L(e)) return {};
   const t = {};
   for (const i of V) {
-    const a = L(e[i]);
+    const a = D(e[i]);
     a.length && (t[i] = a);
   }
   return t;
-}, vi = (e) => {
-  if (!U(e)) return {};
+}, wi = (e) => {
+  if (!L(e)) return {};
   const t = {};
   for (const i of V)
     typeof e[i] == "string" && (t[i] = e[i]);
   return t;
-}, yi = (e) => {
-  if (!U(e)) return {};
+}, ht = (e) => {
+  if (!L(e)) return {};
+  const t = {};
+  for (const i of ["fans", "heating_controls"])
+    typeof e[i] == "string" && e[i].trim() && (t[i] = e[i].trim());
+  return t;
+}, ki = (e) => {
+  if (!L(e)) return {};
   const t = {};
   for (const i of V) {
     const a = e[i];
-    if (!U(a)) continue;
+    if (!L(a)) continue;
     const o = typeof a.background == "string" ? a.background.trim() : "", r = typeof a.border_color == "string" ? a.border_color.trim() : "", n = typeof a.border_width == "number" && Number.isFinite(a.border_width) ? Math.min(8, Math.max(0, a.border_width)) : void 0, s = /* @__PURE__ */ new Set(["solid", "dashed", "dotted"]), c = typeof a.border_style == "string" && s.has(a.border_style) ? a.border_style : void 0, p = typeof a.columns == "number" && Number.isFinite(a.columns) ? Math.min(i === "covers" ? 2 : 3, Math.max(1, Math.round(a.columns))) : void 0, b = typeof a.entity_height == "number" && Number.isFinite(a.entity_height) ? Math.min(140, Math.max(44, a.entity_height)) : void 0, m = /* @__PURE__ */ new Set(["icon", "text", "both"]), l = typeof a.action_presentation == "string" && m.has(a.action_presentation) ? a.action_presentation : void 0;
     t[i] = {
       ...o ? { background: o } : {},
@@ -4288,30 +4296,32 @@ const ne = "custom:area-bubble-overview-card", lt = "area-bubble-overview-card",
     };
   }
   return t;
-}, Da = (e) => {
-  const t = U(e) ? e : {};
+}, Ba = (e) => {
+  const t = L(e) ? e : {};
   return Object.fromEntries(
     Object.keys(Ke).map((i) => {
       const a = typeof t[i] == "string" ? t[i].trim() : "";
       return [i, a || Ke[i]];
     })
   );
-}, ja = (e) => {
+}, Va = (e) => {
   const t = /* @__PURE__ */ new Set(["lights", "climate", "floor_heating", "switches", "covers", "media"]);
-  return [...new Set(L(e).filter((i) => t.has(i)))];
-}, Ha = (e) => {
-  const t = U(e) ? e : {};
+  return [...new Set(D(e).filter((i) => t.has(i)))];
+}, Ga = (e) => {
+  const t = L(e) ? e : {};
   return Object.fromEntries(
     Object.keys(dt).map((i) => {
       const a = typeof t[i] == "string" ? t[i].trim() : "";
       return [i, a || dt[i]];
     })
   );
-}, Ua = (e) => {
-  if (!U(e)) return {};
+}, Ka = (e) => {
+  if (!L(e)) return {};
   const t = {};
-  for (const [i, a] of Object.entries(e))
-    U(a) && (t[i] = {
+  for (const [i, a] of Object.entries(e)) {
+    if (!L(a)) continue;
+    const o = /* @__PURE__ */ new Set(["compact", "medium", "wide"]);
+    t[i] = {
       ...typeof a.name == "string" && a.name.trim() ? { name: a.name.trim() } : {},
       ...typeof a.icon == "string" && a.icon.trim() ? { icon: a.icon.trim() } : {},
       ...typeof a.parent_area == "string" && a.parent_area.trim() ? { parent_area: a.parent_area.trim() } : {},
@@ -4321,21 +4331,24 @@ const ne = "custom:area-bubble-overview-card", lt = "area-bubble-overview-card",
       ...a.open_mode === "expander" || a.open_mode === "popup" ? { open_mode: a.open_mode } : {},
       ...typeof a.temperature_entity == "string" && a.temperature_entity.trim() ? { temperature_entity: a.temperature_entity.trim() } : {},
       ...typeof a.occupancy_count_entity == "string" && a.occupancy_count_entity.trim() ? { occupancy_count_entity: a.occupancy_count_entity.trim() } : {},
-      occupancy_entities: L(a.occupancy_entities),
-      ...Array.isArray(a.section_order) ? { section_order: _i(a.section_order) } : {},
-      ...Array.isArray(a.subarea_order) ? { subarea_order: L(a.subarea_order) } : {},
-      section_titles: vi(a.section_titles),
-      section_styles: yi(a.section_styles),
+      occupancy_entities: D(a.occupancy_entities),
+      ...Array.isArray(a.section_order) ? { section_order: $i(a.section_order) } : {},
+      ...Array.isArray(a.subarea_order) ? { subarea_order: D(a.subarea_order) } : {},
+      subgroup_titles: ht(a.subgroup_titles),
+      ...typeof a.entity_card_size == "string" && o.has(a.entity_card_size) ? { entity_card_size: a.entity_card_size } : {},
+      section_titles: wi(a.section_titles),
+      section_styles: ki(a.section_styles),
       entity_order: ut(a.entity_order),
       include_entities: ut(a.include_entities),
-      exclude_entities: L(a.exclude_entities)
-    });
+      exclude_entities: D(a.exclude_entities)
+    };
+  }
   return t;
-}, Ba = (e) => {
-  if (!U(e)) return {};
+}, Ja = (e) => {
+  if (!L(e)) return {};
   const t = new Set(V), i = {}, a = /* @__PURE__ */ new Set(["rectangle", "square"]), o = /* @__PURE__ */ new Set(["start", "left", "right", "center"]), r = /* @__PURE__ */ new Set(["auto", "he", "en"]);
   for (const [n, s] of Object.entries(e))
-    U(s) && (i[n] = {
+    L(s) && (i[n] = {
       ...typeof s.name == "string" && s.name.trim() ? { name: s.name.trim() } : {},
       ...typeof s.strip_area_name == "boolean" ? { strip_area_name: s.strip_area_name } : {},
       ...typeof s.icon == "string" && s.icon.trim() ? { icon: s.icon.trim() } : {},
@@ -4350,17 +4363,17 @@ const ne = "custom:area-bubble-overview-card", lt = "area-bubble-overview-card",
       ...typeof s.state_language == "string" && r.has(s.state_language) ? { state_language: s.state_language } : {}
     });
   return i;
-}, xe = (e) => {
-  const t = { ...Re, ...e }, i = vi(e.section_titles), a = U(e.style) ? e.style : {}, r = (/* @__PURE__ */ new Set(["classic", "elegant", "light", "dark", "modern"])).has(e.theme_preset) ? e.theme_preset : "classic", n = { ...Je[r], ...a }, s = n.area_name_size, c = typeof s == "number" && Number.isFinite(s) ? Math.min(24, Math.max(11, s)) : q.area_name_size, p = typeof n.card_background == "string" && n.card_background.trim() ? n.card_background.trim() : q.card_background, b = typeof n.card_transparent == "boolean" ? n.card_transparent : q.card_transparent, m = (_) => {
-    const u = n[_];
-    return typeof u == "string" && u.trim() || q[_];
-  }, l = (_, u, g) => {
-    const $ = n[_];
-    return typeof $ == "number" && Number.isFinite($) ? Math.min(g, Math.max(u, $)) : q[_];
-  }, v = /* @__PURE__ */ new Set(["auto", "he", "en"]), y = /* @__PURE__ */ new Set(["rectangle", "square"]), w = /* @__PURE__ */ new Set(["start", "left", "right", "center"]), f = /* @__PURE__ */ new Set(["icon", "text", "both"]);
+}, $e = (e) => {
+  const t = { ...Re, ...e }, i = wi(e.section_titles), a = L(e.style) ? e.style : {}, r = (/* @__PURE__ */ new Set(["classic", "elegant", "light", "dark", "modern"])).has(e.theme_preset) ? e.theme_preset : "classic", n = { ...Je[r], ...a }, s = n.area_name_size, c = typeof s == "number" && Number.isFinite(s) ? Math.min(24, Math.max(11, s)) : M.area_name_size, p = typeof n.card_background == "string" && n.card_background.trim() ? n.card_background.trim() : M.card_background, b = typeof n.card_transparent == "boolean" ? n.card_transparent : M.card_transparent, m = ($) => {
+    const x = n[$];
+    return typeof x == "string" && x.trim() || M[$];
+  }, l = ($, x, u) => {
+    const v = n[$];
+    return typeof v == "number" && Number.isFinite(v) ? Math.min(u, Math.max(x, v)) : M[$];
+  }, g = /* @__PURE__ */ new Set(["auto", "he", "en"]), y = /* @__PURE__ */ new Set(["rectangle", "square"]), w = /* @__PURE__ */ new Set(["start", "left", "right", "center"]), f = /* @__PURE__ */ new Set(["icon", "text", "both"]), _ = /* @__PURE__ */ new Set(["compact", "medium", "wide"]);
   return {
     ...t,
-    type: ne,
+    type: se,
     id: typeof e.id == "string" ? e.id : "",
     area: typeof e.area == "string" && e.area ? e.area : void 0,
     floor: typeof e.floor == "string" && e.floor ? e.floor : void 0,
@@ -4374,35 +4387,40 @@ const ne = "custom:area-bubble-overview-card", lt = "area-bubble-overview-card",
     climate_tag_position: ["left", "right", "top", "bottom"].includes(String(e.climate_tag_position)) ? e.climate_tag_position : "left",
     show_fan_tag: typeof e.show_fan_tag == "boolean" ? e.show_fan_tag : !0,
     strip_area_name_from_entity_names: typeof e.strip_area_name_from_entity_names == "boolean" ? e.strip_area_name_from_entity_names : Re.strip_area_name_from_entity_names,
-    entity_state_language: v.has(e.entity_state_language) ? e.entity_state_language : "auto",
+    entity_state_language: g.has(e.entity_state_language) ? e.entity_state_language : "auto",
     light_tile_shape: y.has(e.light_tile_shape) ? e.light_tile_shape : "rectangle",
     light_icon_position: w.has(e.light_icon_position) ? e.light_icon_position : "start",
     light_show_state: typeof e.light_show_state == "boolean" ? e.light_show_state : !0,
-    section_order: _i(e.section_order),
+    entity_card_size: _.has(e.entity_card_size) ? e.entity_card_size : "medium",
+    section_order: $i(e.section_order),
     section_titles: Object.fromEntries(
-      V.map((_) => [_, typeof i[_] == "string" ? i[_] : ""])
+      V.map(($) => [$, typeof i[$] == "string" ? i[$] : ""])
     ),
     section_styles: Object.fromEntries(
-      V.map((_) => [_, yi(e.section_styles)[_] ?? {}])
+      V.map(($) => [$, ki(e.section_styles)[$] ?? {}])
     ),
     section_action_mode: e.section_action_mode === "toggle" ? "toggle" : "dual",
     section_action_presentation: f.has(e.section_action_presentation) ? e.section_action_presentation : "icon",
     climate_mode_presentation: f.has(e.climate_mode_presentation) ? e.climate_mode_presentation : "both",
-    section_action_icons: Da(e.section_action_icons),
-    quick_actions: ja(e.quick_actions ?? t.quick_actions),
-    quick_action_icons: Ha(e.quick_action_icons),
-    area_order: L(e.area_order),
-    floor_heating_labels: L(t.floor_heating_labels),
-    floor_heating_entities: L(t.floor_heating_entities),
-    occupancy_device_classes: L(t.occupancy_device_classes),
+    section_action_icons: Ba(e.section_action_icons),
+    subgroup_titles: {
+      fans: ht(e.subgroup_titles).fans ?? "",
+      heating_controls: ht(e.subgroup_titles).heating_controls ?? ""
+    },
+    quick_actions: Va(e.quick_actions ?? t.quick_actions),
+    quick_action_icons: Ga(e.quick_action_icons),
+    area_order: D(e.area_order),
+    floor_heating_labels: D(t.floor_heating_labels),
+    floor_heating_entities: D(t.floor_heating_entities),
+    occupancy_device_classes: D(t.occupancy_device_classes),
     include_entities: ut(e.include_entities),
-    exclude_entities: L(t.exclude_entities),
-    protected_labels: L(t.protected_labels),
-    protected_entities: L(t.protected_entities),
-    area_overrides: Ua(e.area_overrides),
-    entity_overrides: Ba(e.entity_overrides),
+    exclude_entities: D(t.exclude_entities),
+    protected_labels: D(t.protected_labels),
+    protected_entities: D(t.protected_entities),
+    area_overrides: Ka(e.area_overrides),
+    entity_overrides: Ja(e.entity_overrides),
     style: {
-      ...q,
+      ...M,
       ...Je[r],
       ...a,
       area_name_size: c,
@@ -4414,12 +4432,12 @@ const ne = "custom:area-bubble-overview-card", lt = "area-bubble-overview-card",
       control_text_color: m("control_text_color"),
       entity_active_surface: m("entity_active_surface"),
       area_frame_color: m("area_frame_color"),
-      area_frame_width: typeof n.area_frame_width == "number" && Number.isFinite(n.area_frame_width) ? Math.min(8, Math.max(0, n.area_frame_width)) : q.area_frame_width,
+      area_frame_width: typeof n.area_frame_width == "number" && Number.isFinite(n.area_frame_width) ? Math.min(8, Math.max(0, n.area_frame_width)) : M.area_frame_width,
       entity_frame_color: m("entity_frame_color"),
-      entity_frame_width: typeof n.entity_frame_width == "number" && Number.isFinite(n.entity_frame_width) ? Math.min(6, Math.max(0, n.entity_frame_width)) : q.entity_frame_width,
-      climate_tag_gap: typeof n.climate_tag_gap == "number" && Number.isFinite(n.climate_tag_gap) ? Math.min(20, Math.max(0, n.climate_tag_gap)) : q.climate_tag_gap,
-      link_section_frame_color: typeof n.link_section_frame_color == "boolean" ? n.link_section_frame_color : q.link_section_frame_color,
-      section_frame_brightness: typeof n.section_frame_brightness == "number" && Number.isFinite(n.section_frame_brightness) ? Math.min(100, Math.max(-100, n.section_frame_brightness)) : q.section_frame_brightness,
+      entity_frame_width: typeof n.entity_frame_width == "number" && Number.isFinite(n.entity_frame_width) ? Math.min(6, Math.max(0, n.entity_frame_width)) : M.entity_frame_width,
+      climate_tag_gap: typeof n.climate_tag_gap == "number" && Number.isFinite(n.climate_tag_gap) ? Math.min(20, Math.max(0, n.climate_tag_gap)) : M.climate_tag_gap,
+      link_section_frame_color: typeof n.link_section_frame_color == "boolean" ? n.link_section_frame_color : M.link_section_frame_color,
+      section_frame_brightness: typeof n.section_frame_brightness == "number" && Number.isFinite(n.section_frame_brightness) ? Math.min(100, Math.max(-100, n.section_frame_brightness)) : M.section_frame_brightness,
       occupancy_active_color: m("occupancy_active_color"),
       occupancy_vacant_color: m("occupancy_vacant_color"),
       occupancy_unknown_color: m("occupancy_unknown_color"),
@@ -4430,13 +4448,13 @@ const ne = "custom:area-bubble-overview-card", lt = "area-bubble-overview-card",
       category_gap: l("category_gap", 0, 40)
     }
   };
-}, Va = (e) => {
-  if (!U(e)) throw new Error("Invalid Area Bubble Overview Card configuration.");
-  if (e.type && e.type !== ne) throw new Error(`Card type must be ${ne}.`);
+}, Qa = (e) => {
+  if (!L(e)) throw new Error("Invalid Area Bubble Overview Card configuration.");
+  if (e.type && e.type !== se) throw new Error(`Card type must be ${se}.`);
   if (e.area && e.floor) throw new Error("Choose either an area or a floor, not both.");
   if (e.section_order && new Set(e.section_order).size !== e.section_order.length)
     throw new Error("section_order cannot contain duplicates.");
-}, Ga = {
+}, Wa = {
   he: {
     card_name: "סקירת אזור",
     choose_target: "בחרו אזור או קומה בהגדרות הכרטיס",
@@ -4475,7 +4493,7 @@ const ne = "custom:area-bubble-overview-card", lt = "area-bubble-overview-card",
     expand: "Expand area",
     collapse: "Collapse area"
   }
-}, Ka = {
+}, Ya = {
   he: {
     climate: "מיזוג אוויר",
     floor_heating: "חימום רצפתי",
@@ -4490,7 +4508,7 @@ const ne = "custom:area-bubble-overview-card", lt = "area-bubble-overview-card",
     lights_switches: "Lights and switches",
     media: "Music"
   }
-}, Ja = {
+}, Xa = {
   he: {
     lights: "תאורה",
     climate: "מיזוג אוויר",
@@ -4512,27 +4530,27 @@ const ne = "custom:area-bubble-overview-card", lt = "area-bubble-overview-card",
   if (t.language === "he" || t.language === "en") return t.language;
   const i = ((a = e == null ? void 0 : e.locale) == null ? void 0 : a.language) ?? (e == null ? void 0 : e.language) ?? document.documentElement.lang;
   return i != null && i.toLowerCase().startsWith("he") ? "he" : "en";
-}, Qa = (e, t) => typeof t.rtl == "boolean" ? t.rtl : W(e, t) === "he" || document.documentElement.dir === "rtl", F = (e, t, i) => Ga[W(e, t)][i], Wa = (e, t, i, a) => a || t.section_titles[i] || Ka[W(e, t)][i], Ut = (e, t, i) => Ja[W(e, t)][i], ge = (e) => e.split(".")[0] ?? "", ht = (e) => typeof e == "number" && Number.isFinite(e) ? e : typeof e == "string" && e.trim() && Number.isFinite(Number(e)) ? Number(e) : void 0, Ya = (e) => {
+}, Za = (e, t) => typeof t.rtl == "boolean" ? t.rtl : W(e, t) === "he" || document.documentElement.dir === "rtl", N = (e, t, i) => Wa[W(e, t)][i], eo = (e, t, i, a) => a || t.section_titles[i] || Ya[W(e, t)][i], Kt = (e, t, i) => Xa[W(e, t)][i], _e = (e) => e.split(".")[0] ?? "", bt = (e) => typeof e == "number" && Number.isFinite(e) ? e : typeof e == "string" && e.trim() && Number.isFinite(Number(e)) ? Number(e) : void 0, to = (e) => {
   const t = /* @__PURE__ */ new Map();
   for (const [i, a] of Object.entries((e == null ? void 0 : e.areas) ?? {})) t.set(a.area_id ?? a.id ?? i, a);
   return t;
-}, Xa = (e) => Object.entries((e == null ? void 0 : e.floors) ?? {}).map(([t, i]) => ({ ...i, id: i.floor_id ?? i.id ?? t })), Ue = (e, t) => {
+}, io = (e) => Object.entries((e == null ? void 0 : e.floors) ?? {}).map(([t, i]) => ({ ...i, id: i.floor_id ?? i.id ?? t })), Ue = (e, t) => {
   var o, r;
   const i = (o = e == null ? void 0 : e.entities) == null ? void 0 : o[t], a = i != null && i.device_id ? (r = e == null ? void 0 : e.devices) == null ? void 0 : r[i.device_id] : void 0;
   return (i == null ? void 0 : i.area_id) ?? (a == null ? void 0 : a.area_id) ?? void 0;
-}, Za = (e, t) => {
+}, ao = (e, t) => {
   var o, r;
   const i = (o = e == null ? void 0 : e.entities) == null ? void 0 : o[t], a = i != null && i.device_id ? (r = e == null ? void 0 : e.devices) == null ? void 0 : r[i.device_id] : void 0;
   return [.../* @__PURE__ */ new Set([...(i == null ? void 0 : i.labels) ?? [], ...(a == null ? void 0 : a.labels) ?? []])];
-}, eo = (e, t, i, a) => {
+}, oo = (e, t, i, a) => {
   var n, s, c;
   const o = e.entity_overrides[a];
   if (o != null && o.section) return o.section;
   const r = e.area_overrides[t] ?? e.area_overrides[i ?? ""];
   for (const p of e.section_order)
     if ((s = (n = r == null ? void 0 : r.include_entities) == null ? void 0 : n[p]) != null && s.includes(a) || (c = e.include_entities[p]) != null && c.includes(a)) return p;
-}, to = (e, t, i, a, o, r, n) => {
-  const s = eo(e, t, i, a);
+}, ro = (e, t, i, a, o, r, n) => {
+  const s = oo(e, t, i, a);
   if (s) return s;
   const c = `${a} ${r} ${n.join(" ")}`.toLocaleLowerCase(), p = /(?:under[\s_-]*floor|floor[\s_-]*heating|חימום\s*(?:תת[\s_-]*)?רצפתי)/u.test(c), b = /(?:^|[\s._-])(?:fan|blower|מאוורר(?:ים)?)(?:$|[\s._-])/u.test(c);
   if (e.floor_heating_entities.includes(a) || n.some((m) => e.floor_heating_labels.includes(m)) || p)
@@ -4541,17 +4559,17 @@ const ne = "custom:area-bubble-overview-card", lt = "area-bubble-overview-card",
   if (o === "cover") return "covers";
   if (o === "light" || o === "switch") return "lights_switches";
   if (o === "media_player") return "media";
-}, io = (e, t, i, a, o) => {
+}, no = (e, t, i, a, o) => {
   const r = `${i} ${a} ${o.join(" ")}`.toLocaleLowerCase(), n = /(?:^|[\s._-])(?:fan|blower|מאוורר(?:ים)?)(?:$|[\s._-])/u.test(r);
-  if (e === "climate" && (t === "fan" || n)) return Te;
-  if (e === "floor_heating" && ["switch", "input_boolean"].includes(t)) return Pe;
-}, ao = (e, t = ge(e.entity_id)) => {
+  if (e === "climate" && (t === "fan" || n)) return Pe;
+  if (e === "floor_heating" && ["switch", "input_boolean"].includes(t)) return Ie;
+}, so = (e, t = _e(e.entity_id)) => {
   const i = String(e.state ?? "").toLowerCase();
   return ["", "unknown", "unavailable", "off", "closed", "idle", "standby"].includes(i) ? !1 : t === "climate" || t === "water_heater" ? i !== "off" : t === "cover" ? ["open", "opening", "closing"].includes(i) : t === "media_player" ? ["on", "playing", "paused", "buffering"].includes(i) : i === "on";
-}, xi = (e, t = ge(e.entity_id)) => {
+}, Si = (e, t = _e(e.entity_id)) => {
   const i = String(e.state ?? "").toLowerCase();
   return ["", "unknown", "unavailable"].includes(i) ? !1 : t === "media_player" ? !["off", "standby"].includes(i) : t === "climate" || t === "water_heater" ? i !== "off" : t === "cover" ? ["open", "opening", "closing"].includes(i) : i === "on";
-}, oo = (e) => {
+}, co = (e) => {
   const t = e.filter((o) => o.domain === "climate" && o.section === "climate" && o.available);
   if (!t.length) return "none";
   const i = /* @__PURE__ */ new Set();
@@ -4561,52 +4579,52 @@ const ne = "custom:area-bubble-overview-card", lt = "area-bubble-overview-card",
   }
   const a = [...i].filter((o) => o !== "off");
   return a.length ? new Set(a).size > 1 || i.has("active") ? "active" : i.has("heat") ? "heat" : i.has("cool") ? "cool" : "active" : "off";
-}, ro = (e, t, i) => {
+}, lo = (e, t, i) => {
   var a;
   return i || ((a = e == null ? void 0 : e.formatEntityName) == null ? void 0 : a.call(e, t)) || String(t.attributes.friendly_name ?? t.entity_id);
-}, no = (e) => e.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), so = (e, t) => {
+}, po = (e) => e.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), uo = (e, t) => {
   let i = e.trim();
   const a = [...new Set(t.map((o) => o == null ? void 0 : o.trim()).filter((o) => !!o))].sort((o, r) => r.length - o.length);
   for (const o of a) {
-    const r = no(o).replace(/\s+/g, "\\s+"), n = "[\\s._\\-–—·|/\\\\]";
+    const r = po(o).replace(/\s+/g, "\\s+"), n = "[\\s._\\-–—·|/\\\\]";
     i = i.replace(new RegExp(`(?:^|${n})${r}(?=$|${n})`, "giu"), " ");
   }
   return i = i.replace(/^[\s._\-–—·|/\\]+|[\s._\-–—·|/\\]+$/gu, "").replace(/\s{2,}/g, " "), i || e.trim();
-}, co = (e, t, i) => i || (typeof e.attributes.icon == "string" ? e.attributes.icon : {
+}, ho = (e, t, i) => i || (typeof e.attributes.icon == "string" ? e.attributes.icon : {
   climate: "mdi:air-conditioner",
   fan: "mdi:fan",
   cover: "mdi:window-shutter",
   light: "mdi:lightbulb",
   switch: "mdi:toggle-switch",
   media_player: "mdi:speaker"
-}[t] ?? "mdi:circle-outline"), Bt = (e, t) => {
+}[t] ?? "mdi:circle-outline"), Jt = (e, t) => {
   const i = (e == null ? void 0 : e.indexOf(t)) ?? -1;
   return i < 0 ? Number.MAX_SAFE_INTEGER : i;
 }, rt = (e) => {
   if (!e) return {};
-  const t = ht(e.attributes.current_temperature), i = ht(e.state), a = t ?? i, o = typeof e.attributes.unit_of_measurement == "string" ? e.attributes.unit_of_measurement : void 0;
+  const t = bt(e.attributes.current_temperature), i = bt(e.state), a = t ?? i, o = typeof e.attributes.unit_of_measurement == "string" ? e.attributes.unit_of_measurement : void 0;
   return { value: a, unit: o };
-}, Vt = (e) => {
+}, Qt = (e) => {
   if (!e.length) return;
   const t = [...e].sort((a, o) => a - o), i = Math.floor(t.length / 2);
   return t.length % 2 ? t[i] : (t[i - 1] + t[i]) / 2;
-}, lo = (e, t, i, a, o, r) => {
+}, bo = (e, t, i, a, o, r) => {
   var b, m;
   const n = o.area_overrides[t] ?? o.area_overrides[(i == null ? void 0 : i.name) ?? ""], s = [...new Set([n == null ? void 0 : n.temperature_entity, i == null ? void 0 : i.temperature_entity_id].filter((l) => !!l).filter((l) => !r.has(l)))];
   for (const l of s) {
-    const v = rt(e == null ? void 0 : e.states[l]);
-    if (v.value !== void 0) return { temperature: v.value, unit: v.unit };
+    const g = rt(e == null ? void 0 : e.states[l]);
+    if (g.value !== void 0) return { temperature: g.value, unit: g.unit };
   }
-  const c = a.map((l) => e == null ? void 0 : e.states[l]).filter((l) => !!l).filter((l) => ge(l.entity_id) === "sensor" && l.attributes.device_class === "temperature").map(rt).filter((l) => l.value !== void 0);
-  if (c.length) return { temperature: Vt(c.map((l) => l.value)), unit: (b = c.find((l) => l.unit)) == null ? void 0 : b.unit };
-  const p = a.map((l) => e == null ? void 0 : e.states[l]).filter((l) => l !== void 0 && ge(l.entity_id) === "climate").map(rt).filter((l) => l.value !== void 0);
-  return { temperature: Vt(p.map((l) => l.value)), unit: (m = p.find((l) => l.unit)) == null ? void 0 : m.unit };
-}, po = (e, t, i, a, o, r) => {
+  const c = a.map((l) => e == null ? void 0 : e.states[l]).filter((l) => !!l).filter((l) => _e(l.entity_id) === "sensor" && l.attributes.device_class === "temperature").map(rt).filter((l) => l.value !== void 0);
+  if (c.length) return { temperature: Qt(c.map((l) => l.value)), unit: (b = c.find((l) => l.unit)) == null ? void 0 : b.unit };
+  const p = a.map((l) => e == null ? void 0 : e.states[l]).filter((l) => l !== void 0 && _e(l.entity_id) === "climate").map(rt).filter((l) => l.value !== void 0);
+  return { temperature: Qt(p.map((l) => l.value)), unit: (m = p.find((l) => l.unit)) == null ? void 0 : m.unit };
+}, mo = (e, t, i, a, o, r) => {
   const n = o.area_overrides[t] ?? o.area_overrides[i ?? ""], s = n == null ? void 0 : n.occupancy_count_entity;
   if (s && !r.has(s)) {
     const y = e == null ? void 0 : e.states[s];
     if (y) {
-      const w = ht(y.state);
+      const w = bt(y.state);
       if (w !== void 0) {
         const f = Math.max(0, Math.round(w));
         return { occupancy: f > 0 ? "occupied" : "vacant", count: f, countSource: "entity", entities: [s] };
@@ -4616,63 +4634,63 @@ const ne = "custom:area-bubble-overview-card", lt = "area-bubble-overview-card",
   }
   const c = ((n == null ? void 0 : n.occupancy_entities) ?? []).filter((y) => !r.has(y)), p = c.length ? c : a.filter((y) => {
     const w = e == null ? void 0 : e.states[y];
-    return ge(y) === "binary_sensor" && o.occupancy_device_classes.includes(String((w == null ? void 0 : w.attributes.device_class) ?? ""));
+    return _e(y) === "binary_sensor" && o.occupancy_device_classes.includes(String((w == null ? void 0 : w.attributes.device_class) ?? ""));
   });
   if (!p.length) return { occupancy: "none", countSource: "none", entities: [] };
   const b = p.map((y) => {
     var w;
     return String(((w = e == null ? void 0 : e.states[y]) == null ? void 0 : w.state) ?? "unknown").toLowerCase();
-  }), m = /* @__PURE__ */ new Set(["on", "home", "occupied", "present", "detected"]), l = /* @__PURE__ */ new Set(["off", "not_home", "away", "vacant", "clear"]), v = b.filter((y) => m.has(y)).length;
-  return v > 0 ? { occupancy: "occupied", count: v, countSource: "sensors", entities: p } : b.every((y) => l.has(y)) ? { occupancy: "vacant", count: 0, countSource: "sensors", entities: p } : { occupancy: "unknown", countSource: "sensors", entities: p };
-}, uo = (e, t, i, a, o) => {
-  var w, f, _, u, g, $;
+  }), m = /* @__PURE__ */ new Set(["on", "home", "occupied", "present", "detected"]), l = /* @__PURE__ */ new Set(["off", "not_home", "away", "vacant", "clear"]), g = b.filter((y) => m.has(y)).length;
+  return g > 0 ? { occupancy: "occupied", count: g, countSource: "sensors", entities: p } : b.every((y) => l.has(y)) ? { occupancy: "vacant", count: 0, countSource: "sensors", entities: p } : { occupancy: "unknown", countSource: "sensors", entities: p };
+}, fo = (e, t, i, a, o) => {
+  var w, f, _, $, x, u;
   const r = t.area_overrides[i] ?? t.area_overrides[(a == null ? void 0 : a.name) ?? ""];
   if (r != null && r.hidden) return;
   const n = Object.values((r == null ? void 0 : r.include_entities) ?? {}).flat(), s = [.../* @__PURE__ */ new Set([...o, ...n])], c = /* @__PURE__ */ new Set([...t.exclude_entities, ...(r == null ? void 0 : r.exclude_entities) ?? []]);
-  for (const [x, S] of Object.entries(t.entity_overrides))
-    S.hidden === !0 && c.add(x);
-  for (const x of s)
-    ((w = t.entity_overrides[x]) == null ? void 0 : w.hidden) === !0 && c.add(x);
-  const p = s.filter((x) => !c.has(x)), b = [];
-  for (const x of s) {
-    const S = e == null ? void 0 : e.states[x];
-    if (!S || c.has(x)) continue;
-    const k = (f = e == null ? void 0 : e.entities) == null ? void 0 : f[x], O = k != null && k.device_id ? (_ = e == null ? void 0 : e.devices) == null ? void 0 : _[k.device_id] : void 0, A = t.entity_overrides[x];
-    if (A != null && A.hidden || k != null && k.hidden || k != null && k.hidden_by || k != null && k.disabled_by || O != null && O.disabled_by || (k == null ? void 0 : k.entity_category) === "config" || (k == null ? void 0 : k.entity_category) === "diagnostic") continue;
-    const E = ge(x), N = Za(e, x), le = ro(e, S, A == null ? void 0 : A.name), Fe = (A == null ? void 0 : A.strip_area_name) ?? t.strip_area_name_from_entity_names ? so(le, [r == null ? void 0 : r.name, a == null ? void 0 : a.name]) : le, de = to(t, i, a == null ? void 0 : a.name, x, E, le, N);
-    de && b.push({
-      entity: S,
-      entityId: x,
+  for (const [v, k] of Object.entries(t.entity_overrides))
+    k.hidden === !0 && c.add(v);
+  for (const v of s)
+    ((w = t.entity_overrides[v]) == null ? void 0 : w.hidden) === !0 && c.add(v);
+  const p = s.filter((v) => !c.has(v)), b = [];
+  for (const v of s) {
+    const k = e == null ? void 0 : e.states[v];
+    if (!k || c.has(v)) continue;
+    const A = (f = e == null ? void 0 : e.entities) == null ? void 0 : f[v], T = A != null && A.device_id ? (_ = e == null ? void 0 : e.devices) == null ? void 0 : _[A.device_id] : void 0, S = t.entity_overrides[v];
+    if (S != null && S.hidden || A != null && A.hidden || A != null && A.hidden_by || A != null && A.disabled_by || T != null && T.disabled_by || (A == null ? void 0 : A.entity_category) === "config" || (A == null ? void 0 : A.entity_category) === "diagnostic") continue;
+    const E = _e(v), F = ao(e, v), de = lo(e, k, S == null ? void 0 : S.name), Xe = (S == null ? void 0 : S.strip_area_name) ?? t.strip_area_name_from_entity_names ? uo(de, [r == null ? void 0 : r.name, a == null ? void 0 : a.name]) : de, pe = ro(t, i, a == null ? void 0 : a.name, v, E, de, F);
+    pe && b.push({
+      entity: k,
+      entityId: v,
       domain: E,
-      name: Fe,
-      icon: co(S, E, A == null ? void 0 : A.icon),
+      name: Xe,
+      icon: ho(k, E, S == null ? void 0 : S.icon),
       areaId: i,
-      section: de,
-      labels: N,
-      available: !["unavailable", "unknown"].includes(S.state),
-      active: ao(S, E),
-      powered: xi(S, E),
-      protected: (A == null ? void 0 : A.protected) === !0 || t.protected_entities.includes(x) || N.some((qe) => t.protected_labels.includes(qe)),
-      ignoreActivity: (A == null ? void 0 : A.ignore_activity) === !0,
-      group: (A == null ? void 0 : A.group) ?? io(de, E, x, le, N)
+      section: pe,
+      labels: F,
+      available: !["unavailable", "unknown"].includes(k.state),
+      active: so(k, E),
+      powered: Si(k, E),
+      protected: (S == null ? void 0 : S.protected) === !0 || t.protected_entities.includes(v) || F.some((Me) => t.protected_labels.includes(Me)),
+      ignoreActivity: (S == null ? void 0 : S.ignore_activity) === !0,
+      group: (S == null ? void 0 : S.group) ?? no(pe, E, v, de, F)
     });
   }
-  const l = ((u = r == null ? void 0 : r.section_order) != null && u.length ? r.section_order : t.section_order).map((x) => {
-    var k;
-    const S = b.filter((O) => O.section === x).sort(
-      (O, A) => {
-        var E, N;
-        return Bt((E = r == null ? void 0 : r.entity_order) == null ? void 0 : E[x], O.entityId) - Bt((N = r == null ? void 0 : r.entity_order) == null ? void 0 : N[x], A.entityId) || O.name.localeCompare(A.name);
+  const l = (($ = r == null ? void 0 : r.section_order) != null && $.length ? r.section_order : t.section_order).map((v) => {
+    var A;
+    const k = b.filter((T) => T.section === v).sort(
+      (T, S) => {
+        var E, F;
+        return Jt((E = r == null ? void 0 : r.entity_order) == null ? void 0 : E[v], T.entityId) - Jt((F = r == null ? void 0 : r.entity_order) == null ? void 0 : F[v], S.entityId) || T.name.localeCompare(S.name);
       }
     );
     return {
-      id: x,
-      title: Wa(e, t, x, (k = r == null ? void 0 : r.section_titles) == null ? void 0 : k[x]),
-      icon: di[x],
-      entities: S,
-      activeCount: S.filter((O) => O.powered).length
+      id: v,
+      title: eo(e, t, v, (A = r == null ? void 0 : r.section_titles) == null ? void 0 : A[v]),
+      icon: bi[v],
+      entities: k,
+      activeCount: k.filter((T) => T.powered).length
     };
-  }).filter((x) => t.show_empty_sections || x.entities.length > 0), v = lo(e, i, a, p, t, c), y = po(e, i, a == null ? void 0 : a.name, p, t, c);
+  }).filter((v) => t.show_empty_sections || v.entities.length > 0), g = bo(e, i, a, p, t, c), y = mo(e, i, a == null ? void 0 : a.name, p, t, c);
   return {
     id: i,
     name: (r == null ? void 0 : r.name) ?? (a == null ? void 0 : a.name) ?? i,
@@ -4682,15 +4700,15 @@ const ne = "custom:area-bubble-overview-card", lt = "area-bubble-overview-card",
     showWhenParentCollapsed: (r == null ? void 0 : r.show_when_parent_collapsed) === !0,
     sections: l,
     allEntities: b,
-    temperature: v.temperature,
-    temperatureUnit: v.unit ?? (($ = (g = e == null ? void 0 : e.config) == null ? void 0 : g.unit_system) == null ? void 0 : $.temperature) ?? "°C",
-    temperatureMode: oo(b.filter((x) => x.ignoreActivity !== !0)),
+    temperature: g.temperature,
+    temperatureUnit: g.unit ?? ((u = (x = e == null ? void 0 : e.config) == null ? void 0 : x.unit_system) == null ? void 0 : u.temperature) ?? "°C",
+    temperatureMode: co(b.filter((v) => v.ignoreActivity !== !0)),
     occupancy: y.occupancy,
     occupancyCount: y.count,
     occupancyCountSource: y.countSource,
     occupancyEntities: y.entities
   };
-}, ho = (e, t, i) => {
+}, go = (e, t, i) => {
   if (t.area) {
     const a = [...i.entries()].find(([r, n]) => r === t.area || n.name === t.area);
     if (!a) return { ids: [], targetName: t.area, targetIcon: "mdi:map-marker-alert", kind: "area", warnings: [`Area not found: ${t.area}`] };
@@ -4698,7 +4716,7 @@ const ne = "custom:area-bubble-overview-card", lt = "area-bubble-overview-card",
     return { ids: [a[0]], targetName: a[1].name, targetIcon: t.target_icon || (o == null ? void 0 : o.icon) || a[1].icon || "mdi:floor-plan", kind: "area", warnings: [] };
   }
   if (t.floor) {
-    const a = Xa(e).find((r) => r.id === t.floor || r.name === t.floor);
+    const a = io(e).find((r) => r.id === t.floor || r.name === t.floor);
     if (!a) return { ids: [], targetName: t.floor, targetIcon: "mdi:home-floor-0", kind: "floor", warnings: [`Floor not found: ${t.floor}`] };
     const o = [...i.entries()].filter(([, r]) => r.floor_id === a.id).map(([r]) => r);
     return { ids: o, targetName: a.name, targetIcon: t.target_icon || a.icon || "mdi:home-floor-0", kind: "floor", warnings: o.length ? [] : [`Floor has no areas: ${a.name}`] };
@@ -4706,20 +4724,20 @@ const ne = "custom:area-bubble-overview-card", lt = "area-bubble-overview-card",
   return { ids: [], targetName: "", targetIcon: "mdi:floor-plan", kind: "none", warnings: ["No area or floor configured"] };
 }, Qe = (e, t) => {
   var w;
-  const i = Ya(e), a = ho(e, t, i), o = /* @__PURE__ */ new Map();
+  const i = to(e), a = go(e, t, i), o = /* @__PURE__ */ new Map();
   for (const f of Object.keys((e == null ? void 0 : e.states) ?? {})) {
     const _ = Ue(e, f);
     if (!_) continue;
-    const u = o.get(_) ?? [];
-    u.push(f), o.set(_, u);
+    const $ = o.get(_) ?? [];
+    $.push(f), o.set(_, $);
   }
   const r = (f, _) => {
-    const u = t.area_order.findIndex((g) => g === f || g === _);
-    return u < 0 ? Number.MAX_SAFE_INTEGER : u;
-  }, n = a.ids.map((f) => uo(e, t, f, i.get(f), o.get(f) ?? [])).filter((f) => !!f).sort((f, _) => r(f.id, f.name) - r(_.id, _.name) || f.name.localeCompare(_.name)), s = /* @__PURE__ */ new Map(), c = /* @__PURE__ */ new Map(), p = (f, _) => {
+    const $ = t.area_order.findIndex((x) => x === f || x === _);
+    return $ < 0 ? Number.MAX_SAFE_INTEGER : $;
+  }, n = a.ids.map((f) => fo(e, t, f, i.get(f), o.get(f) ?? [])).filter((f) => !!f).sort((f, _) => r(f.id, f.name) - r(_.id, _.name) || f.name.localeCompare(_.name)), s = /* @__PURE__ */ new Map(), c = /* @__PURE__ */ new Map(), p = (f, _) => {
     if (!f) return;
-    const u = c.get(f) ?? /* @__PURE__ */ new Set();
-    u.add(_), c.set(f, u);
+    const $ = c.get(f) ?? /* @__PURE__ */ new Set();
+    $.add(_), c.set(f, $);
   };
   for (const f of n) {
     s.set(f.id, f.id), p(f.name, f.id);
@@ -4733,26 +4751,26 @@ const ne = "custom:area-bubble-overview-card", lt = "area-bubble-overview-card",
     return { ...f, parentAreaId: _ && _ !== f.id ? _ : void 0 };
   }), m = new Map(b.filter((f) => f.parentAreaId).map((f) => [f.id, f.parentAreaId])), l = /* @__PURE__ */ new Set();
   for (const f of b) {
-    const _ = [], u = /* @__PURE__ */ new Map();
-    let g = f.id;
-    for (; g; ) {
-      const $ = u.get(g);
-      if ($ !== void 0) {
-        for (const x of _.slice($)) l.add(x);
+    const _ = [], $ = /* @__PURE__ */ new Map();
+    let x = f.id;
+    for (; x; ) {
+      const u = $.get(x);
+      if (u !== void 0) {
+        for (const v of _.slice(u)) l.add(v);
         break;
       }
-      u.set(g, _.length), _.push(g), g = m.get(g);
+      $.set(x, _.length), _.push(x), x = m.get(x);
     }
   }
-  const v = b.map((f) => l.has(f.id) ? { ...f, parentAreaId: void 0 } : f), y = l.size ? [`Area parent cycle ignored: ${[...l].join(", ")}`] : [];
+  const g = b.map((f) => l.has(f.id) ? { ...f, parentAreaId: void 0 } : f), y = l.size ? [`Area parent cycle ignored: ${[...l].join(", ")}`] : [];
   return {
-    areas: v,
+    areas: g,
     targetName: t.title || a.targetName,
     targetIcon: a.targetIcon,
     targetKind: a.kind,
     warnings: [...a.warnings, ...y]
   };
-}, $i = (e) => {
+}, Ai = (e) => {
   const t = new Map(e.map((n) => [n.id, n])), i = /* @__PURE__ */ new Map();
   for (const n of e)
     n.parentAreaId && n.parentAreaId !== n.id && t.has(n.parentAreaId) && i.set(n.id, n.parentAreaId);
@@ -4780,8 +4798,8 @@ const ne = "custom:area-bubble-overview-card", lt = "area-bubble-overview-card",
     c.push(n), o.set(s, c);
   }
   return { roots: r, children: o };
-}, bo = (e, t) => {
-  const { roots: i, children: a } = $i(e), o = [], r = /* @__PURE__ */ new Set(), n = (s) => {
+}, _o = (e, t) => {
+  const { roots: i, children: a } = Ai(e), o = [], r = /* @__PURE__ */ new Set(), n = (s) => {
     if (r.has(s.id)) return;
     r.add(s.id), o.push(s);
     const c = t(s);
@@ -4790,27 +4808,27 @@ const ne = "custom:area-bubble-overview-card", lt = "area-bubble-overview-card",
   };
   for (const s of i) n(s);
   return o;
-}, Gt = (e) => e === Te || e === Pe, Kt = (e, t) => ({
+}, Wt = (e) => e === Pe || e === Ie, Yt = (e, t) => ({
   ...e,
   entities: t,
   activeCount: t.filter((i) => i.powered).length
-}), Jt = (e, t) => e.filter((i) => t || i.entities.length > 0), mo = (e, t = [], i = !1) => {
+}), Xt = (e, t) => e.filter((i) => t || i.entities.length > 0), vo = (e, t = [], i = !1) => {
   const a = [];
   for (const s of e.sections)
     for (const c of s.entities)
-      !c.group || Gt(c.group) || a.includes(c.group) || a.push(c.group);
+      !c.group || Wt(c.group) || a.includes(c.group) || a.push(c.group);
   const o = [
     ...t.filter((s, c) => a.includes(s) && t.indexOf(s) === c),
     ...a.filter((s) => !t.includes(s))
-  ], r = Jt(
-    e.sections.map((s) => Kt(
+  ], r = Xt(
+    e.sections.map((s) => Yt(
       s,
-      s.entities.filter((c) => !c.group || Gt(c.group))
+      s.entities.filter((c) => !c.group || Wt(c.group))
     )),
     i
   ), n = o.map((s) => {
-    const c = Jt(
-      e.sections.map((p) => Kt(
+    const c = Xt(
+      e.sections.map((p) => Yt(
         p,
         p.entities.filter((b) => b.group === s).map((b) => ({ ...b, group: void 0 }))
       )),
@@ -4820,17 +4838,17 @@ const ne = "custom:area-bubble-overview-card", lt = "area-bubble-overview-card",
   });
   return { generalSections: r, subareas: n };
 };
-var fo = Object.defineProperty, go = Object.getOwnPropertyDescriptor, ee = (e, t, i, a) => {
-  for (var o = a > 1 ? void 0 : a ? go(t, i) : t, r = e.length - 1, n; r >= 0; r--)
+var yo = Object.defineProperty, xo = Object.getOwnPropertyDescriptor, ee = (e, t, i, a) => {
+  for (var o = a > 1 ? void 0 : a ? xo(t, i) : t, r = e.length - 1, n; r >= 0; r--)
     (n = e[r]) && (o = (a ? n(t, i, o) : n(o)) || o);
-  return a && o && fo(t, i, o), o;
+  return a && o && yo(t, i, o), o;
 };
 let K = class extends Z {
   constructor() {
-    super(...arguments), this.config = { type: ne }, this.targetMode = "area", this.activeAreaId = "", this.entitySearch = "", this.candidateEntityId = "", this.candidateSection = "floor_heating";
+    super(...arguments), this.config = { type: se }, this.targetMode = "area", this.activeAreaId = "", this.entitySearch = "", this.candidateEntityId = "", this.candidateSection = "floor_heating";
   }
   setConfig(e) {
-    const t = { ...e, type: ne };
+    const t = { ...e, type: se };
     typeof e.show_area_expand_button != "boolean" && delete t.show_area_expand_button, typeof e.show_floor_expand_button != "boolean" && delete t.show_floor_expand_button, e.area_open_mode !== "expander" && e.area_open_mode !== "popup" && delete t.area_open_mode, ["classic", "elegant", "light", "dark", "modern"].includes(String(e.theme_preset)) || delete t.theme_preset, this.config = t, this.targetMode = e.floor ? "floor" : "area", e.area && (this.activeAreaId = e.area);
   }
   shouldUpdate(e) {
@@ -4839,7 +4857,7 @@ let K = class extends Z {
     return !t || !this.hass || t.areas !== this.hass.areas || t.floors !== this.hass.floors || t.entities !== this.hass.entities || t.devices !== this.hass.devices || t.labels !== this.hass.labels ? !0 : t.states !== this.hass.states;
   }
   render() {
-    const e = xe(this.config), t = W(this.hass, e), i = typeof e.rtl == "boolean" ? e.rtl : t === "he";
+    const e = $e(this.config), t = W(this.hass, e), i = typeof e.rtl == "boolean" ? e.rtl : t === "he";
     this.setAttribute("dir", i ? "rtl" : "ltr"), this.style.setProperty("--overview-editor-direction", i ? "rtl" : "ltr");
     const a = Qe(this.hass, e), o = this.targetAreas(e), r = this.entityMapByArea();
     return o.length && !o.some((n) => n.id === this.activeAreaId) && queueMicrotask(() => this.activeAreaId = o[0].id), d`
@@ -4941,6 +4959,15 @@ let K = class extends Z {
           </div>
           <div class="inline-fields">
             <div class="field">
+              <label>${this.l("גודל כרטיסי הציוד", "Device card size", t)}</label>
+              <select .value=${e.entity_card_size} @change=${(i) => this.commitKey("entity_card_size", i.target.value)}>
+                <option value="compact">${this.l("מצומצם", "Compact", t)}</option>
+                <option value="medium">${this.l("בינוני", "Medium", t)}</option>
+                <option value="wide">${this.l("רחב", "Wide", t)}</option>
+              </select>
+              <div class="hint">${this.l("משנה יחד את הגובה, הרווחים, הטקסט והאייקונים. גובה ידני בקטגוריה ממשיך לגבור.", "Adjusts height, spacing, text, and icons together. A manual category height still takes priority.", t)}</div>
+            </div>
+            <div class="field">
               <label>${this.l("תצוגת כפתורי הקטגוריה", "Category button appearance", t)}</label>
               <select .value=${e.section_action_presentation} @change=${(i) => this.commitKey("section_action_presentation", i.target.value)}>
                 <option value="icon">${this.l("אייקון בלבד", "Icon only", t)}</option>
@@ -4956,6 +4983,10 @@ let K = class extends Z {
                 <option value="both">${this.l("אייקון וטקסט", "Icon and text", t)}</option>
               </select>
             </div>
+          </div>
+          <div class="inline-fields">
+            <div class="field"><label>${this.l("שם תת־קטגוריית מאווררים", "Fans sub-category name", t)}</label><input type="text" .value=${e.subgroup_titles.fans} placeholder=${this.l("מאווררים", "Fans", t)} @change=${(i) => this.setGlobalSubgroupTitle("fans", i.target.value)} /></div>
+            <div class="field"><label>${this.l("שם תת־קטגוריית בקרי חימום", "Heating-controls sub-category name", t)}</label><input type="text" .value=${e.subgroup_titles.heating_controls} placeholder=${this.l("בקרי חימום", "Heating controls", t)} @change=${(i) => this.setGlobalSubgroupTitle("heating_controls", i.target.value)} /></div>
           </div>
           <div class="inline-fields">
             ${["on", "off", "open", "close"].map((i) => {
@@ -4974,7 +5005,7 @@ let K = class extends Z {
       var o, r, n, s;
       return d`
               <div class="order-item">
-                <span class="order-icon"><ha-icon icon=${di[i]}></ha-icon></span>
+                <span class="order-icon"><ha-icon icon=${bi[i]}></ha-icon></span>
                 <div class="order-main field">
                   <label>${this.sectionDefaultName(i, t)}</label>
                   <input type="text" .value=${e.section_titles[i]} placeholder=${this.sectionDefaultName(i, t)} @change=${(c) => this.setSectionTitle(i, c.target.value)} />
@@ -5054,7 +5085,7 @@ let K = class extends Z {
           </div>
           <div class="setting-title">${this.l("פעולות מהירות", "Quick actions", t)}</div>
           <div class="order-list">
-            ${[...e.quick_actions, ...li.filter((i) => !e.quick_actions.includes(i))].map((i) => {
+            ${[...e.quick_actions, ...hi.filter((i) => !e.quick_actions.includes(i))].map((i) => {
       var s;
       const a = e.quick_actions.includes(i), o = e.quick_actions.indexOf(i), r = (s = this.config.quick_action_icons) == null ? void 0 : s[i], n = typeof r == "string" ? r : "";
       return d`
@@ -5096,22 +5127,22 @@ let K = class extends Z {
     `;
   }
   renderAreaEditor(e, t, i, a, o, r) {
-    var f, _;
+    var f, _, $, x;
     const n = a.area_overrides[e.id] ?? a.area_overrides[e.name] ?? {}, s = this.activeAreaId === e.id, c = o.filter(
       (u) => u.entity_id.startsWith("climate.") || u.entity_id.startsWith("sensor.") && u.attributes.device_class === "temperature"
     ), p = o.filter((u) => {
-      const g = u.entity_id.split(".")[0];
-      return g === "binary_sensor" || g === "person" || g === "device_tracker";
+      const v = u.entity_id.split(".")[0];
+      return v === "binary_sensor" || v === "person" || v === "device_tracker";
     }), b = o.filter((u) => {
-      const g = u.entity_id.split(".")[0];
-      return ["sensor", "input_number", "counter"].includes(g ?? "") && (Number.isFinite(Number(u.state)) || u.entity_id === n.occupancy_count_entity);
+      const v = u.entity_id.split(".")[0];
+      return ["sensor", "input_number", "counter"].includes(v ?? "") && (Number.isFinite(Number(u.state)) || u.entity_id === n.occupancy_count_entity);
     }), m = this.targetAreas(a).filter((u) => {
-      const g = a.area_overrides[u.id] ?? a.area_overrides[u.name];
-      return u.id !== e.id && (g == null ? void 0 : g.hidden) !== !0 && !this.wouldCreateAreaCycle(e.id, u.id, a);
-    }), l = n.parent_area ? ((f = this.areaOptions().find((u) => u.id === n.parent_area || u.name === n.parent_area)) == null ? void 0 : f.id) ?? "" : "", v = ((_ = this.areaOptions().find((u) => u.id === l)) == null ? void 0 : _.name) ?? l, y = [...new Set(o.map((u) => {
-      var g;
-      return (g = a.entity_overrides[u.entity_id]) == null ? void 0 : g.group;
-    }).filter((u) => !!u && u !== Te && u !== Pe))], w = [
+      const v = a.area_overrides[u.id] ?? a.area_overrides[u.name];
+      return u.id !== e.id && (v == null ? void 0 : v.hidden) !== !0 && !this.wouldCreateAreaCycle(e.id, u.id, a);
+    }), l = n.parent_area ? ((f = this.areaOptions().find((u) => u.id === n.parent_area || u.name === n.parent_area)) == null ? void 0 : f.id) ?? "" : "", g = ((_ = this.areaOptions().find((u) => u.id === l)) == null ? void 0 : _.name) ?? l, y = [...new Set(o.map((u) => {
+      var v;
+      return (v = a.entity_overrides[u.entity_id]) == null ? void 0 : v.group;
+    }).filter((u) => !!u && u !== Pe && u !== Ie))], w = [
       ...(n.subarea_order ?? []).filter((u) => y.includes(u)),
       ...y.filter((u) => !(n.subarea_order ?? []).includes(u))
     ];
@@ -5143,8 +5174,8 @@ let K = class extends Z {
               ${l ? this.booleanRow(
       this.l("הצג כשהאזור הראשי מכווץ", "Show when parent is collapsed", r),
       this.l(
-        `כבוי כברירת מחדל. כשהאפשרות פעילה, תת־האזור נשאר גלוי בתוך ${v} גם כשהוא מכווץ. החצים בשורת האזור קובעים את הסדר רק בין תתי־אזורים של אותו אזור אב.`,
-        `Off by default. When enabled, this child remains visible inside ${v} while the parent is collapsed. The arrows in the area row order only children of the same parent.`,
+        `כבוי כברירת מחדל. כשהאפשרות פעילה, תת־האזור נשאר גלוי בתוך ${g} גם כשהוא מכווץ. החצים בשורת האזור קובעים את הסדר רק בין תתי־אזורים של אותו אזור אב.`,
+        `Off by default. When enabled, this child remains visible inside ${g} while the parent is collapsed. The arrows in the area row order only children of the same parent.`,
         r
       ),
       n.show_when_parent_collapsed ?? !1,
@@ -5174,28 +5205,28 @@ let K = class extends Z {
                 <div class="hint">${this.l("בחרו חיישן מספרי כדי להציג מספר אנשים אמיתי; אחרת יוצג מספר חיישני הנוכחות הפעילים.", "Choose a numeric sensor for a true people count; otherwise the card shows the number of active presence sensors.", r)}</div>
               </div>
               ${p.length ? d`<div class="field"><label>${this.l("מקורות נוכחות (ריק = אוטומטי)", "Presence sources (empty = automatic)", r)}</label><div class="entity-flags">${p.map((u) => {
-      var $;
-      const g = (($ = n.occupancy_entities) == null ? void 0 : $.includes(u.entity_id)) ?? !1;
-      return d`<label class="check-label"><input type="checkbox" .checked=${g} @change=${(x) => this.toggleAreaList(e.id, "occupancy_entities", u.entity_id, x.target.checked)} />${this.entityName(u)}</label>`;
+      var k;
+      const v = ((k = n.occupancy_entities) == null ? void 0 : k.includes(u.entity_id)) ?? !1;
+      return d`<label class="check-label"><input type="checkbox" .checked=${v} @change=${(A) => this.toggleAreaList(e.id, "occupancy_entities", u.entity_id, A.target.checked)} />${this.entityName(u)}</label>`;
     })}</div></div>` : h}
               <div class="setting-row"><div class="setting-main"><div class="setting-title">${this.l("פתוח כברירת מחדל באזור זה", "Expanded by default for this area", r)}</div></div>${this.switchControl(n.default_expanded ?? a.default_expanded, (u) => this.updateAreaOverride(e.id, { default_expanded: u }), "")}</div>
               <div class="setting-title">${this.l("כותרות סעיפים באזור", "Area section titles", r)}</div>
               <div class="inline-fields">
                 ${a.section_order.map((u) => {
-      var g;
-      return d`<div class="field"><label>${this.sectionDefaultName(u, r)}</label><input type="text" .value=${((g = n.section_titles) == null ? void 0 : g[u]) ?? ""} placeholder=${a.section_titles[u] || this.sectionDefaultName(u, r)} @change=${($) => this.setAreaSectionTitle(e.id, u, $.target.value)} /></div>`;
+      var v;
+      return d`<div class="field"><label>${this.sectionDefaultName(u, r)}</label><input type="text" .value=${((v = n.section_titles) == null ? void 0 : v[u]) ?? ""} placeholder=${a.section_titles[u] || this.sectionDefaultName(u, r)} @change=${(k) => this.setAreaSectionTitle(e.id, u, k.target.value)} /></div>`;
     })}
               </div>
               ${w.length ? d`
                     <div class="setting-title">${this.l("סדר תתי־אזורים בתוך החדר", "Room sub-area order", r)}</div>
                     <div class="hint">${this.l("הקטגוריות של החדר הכללי מוצגות ראשונות. לאחריהן כל תת־אזור מופיע פעם אחת ובתוכו הקטגוריות שלו.", "General room categories are shown first. Each sub-area then appears once with its own category sections.", r)}</div>
                     <div class="order-list">
-                      ${w.map((u, g) => d`
+                      ${w.map((u, v) => d`
                         <div class="order-row">
                           <span class="order-icon"><ha-icon icon="mdi:home-floor-1"></ha-icon></span>
                           <span class="order-main"><span class="order-title">${u}</span></span>
                           ${this.orderButtons(
-      g,
+      v,
       w.length,
       () => this.moveRoomSubarea(e.id, u, -1, w),
       () => this.moveRoomSubarea(e.id, u, 1, w)
@@ -5205,24 +5236,37 @@ let K = class extends Z {
                     </div>
                   ` : h}
               <div class="setting-title">${this.l("מראה קטגוריות בחדר", "Room category appearance", r)}</div>
+              <div class="inline-fields">
+                <div class="field">
+                  <label>${this.l("גודל כרטיסי ציוד בחדר", "Device card size in this room", r)}</label>
+                  <select .value=${n.entity_card_size ?? ""} @change=${(u) => this.updateAreaOverride(e.id, { entity_card_size: u.target.value || void 0 })}>
+                    <option value="">${this.l("לפי ההגדרה הכללית", "Use global setting", r)}</option>
+                    <option value="compact">${this.l("מצומצם", "Compact", r)}</option>
+                    <option value="medium">${this.l("בינוני", "Medium", r)}</option>
+                    <option value="wide">${this.l("רחב", "Wide", r)}</option>
+                  </select>
+                </div>
+                <div class="field"><label>${this.l("שם מאווררים בחדר", "Fans name in this room", r)}</label><input type="text" .value=${(($ = n.subgroup_titles) == null ? void 0 : $.fans) ?? ""} placeholder=${a.subgroup_titles.fans || this.l("מאווררים", "Fans", r)} @change=${(u) => this.setAreaSubgroupTitle(e.id, "fans", u.target.value)} /></div>
+                <div class="field"><label>${this.l("שם בקרי חימום בחדר", "Heating-controls name in this room", r)}</label><input type="text" .value=${((x = n.subgroup_titles) == null ? void 0 : x.heating_controls) ?? ""} placeholder=${a.subgroup_titles.heating_controls || this.l("בקרי חימום", "Heating controls", r)} @change=${(u) => this.setAreaSubgroupTitle(e.id, "heating_controls", u.target.value)} /></div>
+              </div>
               <div class="order-list">
                 ${a.section_order.map((u) => {
-      var x;
-      const g = a.section_styles[u], $ = ((x = n.section_styles) == null ? void 0 : x[u]) ?? {};
+      var A;
+      const v = a.section_styles[u], k = ((A = n.section_styles) == null ? void 0 : A[u]) ?? {};
       return d`
                     <div class="area-card">
                       <div class="setting-title">${this.sectionDefaultName(u, r)}</div>
                       ${this.booleanRow(
         this.l("הצג מסגרת בחדר זה", "Show frame in this room", r),
         "",
-        $.show_border ?? g.show_border ?? !1,
-        (S) => this.setAreaSectionStyle(e.id, u, { show_border: S })
+        k.show_border ?? v.show_border ?? !1,
+        (T) => this.setAreaSectionStyle(e.id, u, { show_border: T })
       )}
                       ${u === "lights_switches" || u === "covers" ? d`<div class="field">
                             <label>${u === "covers" ? this.l("מספר תריסים בשורה בחדר זה", "Covers per row in this room", r) : this.l("מספר תאורות בשורה בחדר זה", "Light tiles per row in this room", r)}</label>
-                            <select .value=${$.columns === void 0 ? "" : String($.columns)} @change=${(S) => {
-        const k = S.target.value;
-        this.setAreaSectionStyle(e.id, u, { columns: k ? Number(k) : void 0 });
+                            <select .value=${k.columns === void 0 ? "" : String(k.columns)} @change=${(T) => {
+        const S = T.target.value;
+        this.setAreaSectionStyle(e.id, u, { columns: S ? Number(S) : void 0 });
       }}>
                               <option value="">${this.l("כמו ההגדרה הכללית", "Use global setting", r)}</option>
                               <option value="1">1</option><option value="2">2</option>${u === "lights_switches" ? d`<option value="3">3</option>` : h}
@@ -5231,14 +5275,14 @@ let K = class extends Z {
                       <div class="inline-fields">
                         <div class="field">
                           <label>${this.l("גובה ציוד בחדר זה", "Device tile height in this room", r)}</label>
-                          <input type="number" min="44" max="140" .value=${$.entity_height === void 0 ? "" : String($.entity_height)} placeholder=${String(g.entity_height ?? (u === "climate" ? 108 : u === "floor_heating" ? 92 : 56))} @change=${(S) => {
-        const k = S.target.value;
-        this.setAreaSectionStyle(e.id, u, { entity_height: k === "" ? void 0 : Number(k) });
+                          <input type="number" min="44" max="140" .value=${k.entity_height === void 0 ? "" : String(k.entity_height)} placeholder=${String(v.entity_height ?? (u === "climate" ? 108 : u === "floor_heating" ? 92 : 56))} @change=${(T) => {
+        const S = T.target.value;
+        this.setAreaSectionStyle(e.id, u, { entity_height: S === "" ? void 0 : Number(S) });
       }} />
                         </div>
                         <div class="field">
                           <label>${this.l("תצוגת כפתורי פעולה בחדר זה", "Action appearance in this room", r)}</label>
-                          <select .value=${$.action_presentation ?? ""} @change=${(S) => this.setAreaSectionStyle(e.id, u, { action_presentation: S.target.value || void 0 })}>
+                          <select .value=${k.action_presentation ?? ""} @change=${(T) => this.setAreaSectionStyle(e.id, u, { action_presentation: T.target.value || void 0 })}>
                             <option value="">${this.l("לפי הגדרת הקטגוריה", "Use category setting", r)}</option>
                             <option value="icon">${this.l("אייקון בלבד", "Icon only", r)}</option>
                             <option value="text">${this.l("טקסט בלבד", "Text only", r)}</option>
@@ -5249,19 +5293,19 @@ let K = class extends Z {
                       <div class="inline-fields">
                         ${this.valueColorField(
         this.l("רקע בחדר זה", "Background in this room", r),
-        $.background ?? g.background ?? "transparent",
+        k.background ?? v.background ?? "transparent",
         "#ffffff",
-        !!$.background,
+        !!k.background,
         r,
-        (S) => this.setAreaSectionStyle(e.id, u, { background: S || void 0 })
+        (T) => this.setAreaSectionStyle(e.id, u, { background: T || void 0 })
       )}
                         ${this.valueColorField(
         this.l("צבע מסגרת בחדר זה", "Frame color in this room", r),
-        $.border_color ?? g.border_color ?? "var(--divider-color)",
+        k.border_color ?? v.border_color ?? "var(--divider-color)",
         "#888888",
-        !!$.border_color,
+        !!k.border_color,
         r,
-        (S) => this.setAreaSectionStyle(e.id, u, { border_color: S || void 0 })
+        (T) => this.setAreaSectionStyle(e.id, u, { border_color: T || void 0 })
       )}
                       </div>
                       <div class="inline-fields">
@@ -5271,17 +5315,17 @@ let K = class extends Z {
                             type="number"
                             min="0"
                             max="8"
-                            .value=${$.border_width === void 0 ? "" : String($.border_width)}
-                            placeholder=${String(g.border_width ?? 1)}
-                            @change=${(S) => {
-        const k = S.target.value;
-        this.setAreaSectionStyle(e.id, u, { border_width: k === "" ? void 0 : Number(k) });
+                            .value=${k.border_width === void 0 ? "" : String(k.border_width)}
+                            placeholder=${String(v.border_width ?? 1)}
+                            @change=${(T) => {
+        const S = T.target.value;
+        this.setAreaSectionStyle(e.id, u, { border_width: S === "" ? void 0 : Number(S) });
       }}
                           />
                         </div>
                         <div class="field">
                           <label>${this.l("סגנון מסגרת בחדר זה", "Frame style in this room", r)}</label>
-                          <select .value=${$.border_style ?? ""} @change=${(S) => this.setAreaSectionStyle(e.id, u, { border_style: S.target.value || void 0 })}>
+                          <select .value=${k.border_style ?? ""} @change=${(T) => this.setAreaSectionStyle(e.id, u, { border_style: T.target.value || void 0 })}>
                             <option value="">${this.l("כמו ההגדרה הכללית", "Use global style", r)}</option>
                             <option value="solid">${this.l("רציף", "Solid", r)}</option>
                             <option value="dashed">${this.l("מקווקו", "Dashed", r)}</option>
@@ -5334,49 +5378,49 @@ let K = class extends Z {
               ` : h}
           <div class="entity-list">
             ${b.length ? b.map((l) => {
-      const v = e.entity_overrides[l.entityId] ?? {}, y = c.filter((g) => g.section === l.section), w = y.findIndex((g) => g.entityId === l.entityId), f = this.isEntityExcluded(o, l.entityId, e), _ = this.isEntityGloballyExcluded(l.entityId, e), u = _ ? this.l("מוסתר גלובלית — ניתן לשנות במתקדם", "Globally hidden — change it in Advanced", a) : f ? this.l("החזר רכיב לאזור", "Restore device to area", a) : this.l("הסתר רכיב לחלוטין מהאזור", "Hide device completely from area", a);
+      const g = e.entity_overrides[l.entityId] ?? {}, y = c.filter((x) => x.section === l.section), w = y.findIndex((x) => x.entityId === l.entityId), f = this.isEntityExcluded(o, l.entityId, e), _ = this.isEntityGloballyExcluded(l.entityId, e), $ = _ ? this.l("מוסתר גלובלית — ניתן לשנות במתקדם", "Globally hidden — change it in Advanced", a) : f ? this.l("החזר רכיב לאזור", "Restore device to area", a) : this.l("הסתר רכיב לחלוטין מהאזור", "Hide device completely from area", a);
       return d`
                     <div class="entity-item ${!f && l.active ? "active" : ""} ${f ? "excluded" : ""}">
-                      <span class="order-icon"><ha-icon icon=${v.icon ?? l.icon}></ha-icon></span>
-                      <div class="order-main"><div class="order-title">${v.name || l.name}</div><div class="meta">${l.entityId}${f ? ` · ${_ ? this.l("מוסתר גלובלית", "globally hidden", a) : this.l("מוסר מהאזור", "removed from area", a)}` : ""}</div></div>
+                      <span class="order-icon"><ha-icon icon=${g.icon ?? l.icon}></ha-icon></span>
+                      <div class="order-main"><div class="order-title">${g.name || l.name}</div><div class="meta">${l.entityId}${f ? ` · ${_ ? this.l("מוסתר גלובלית", "globally hidden", a) : this.l("מוסר מהאזור", "removed from area", a)}` : ""}</div></div>
                       <button
                         class="visibility-button ${f ? "restore" : ""}"
                         type="button"
-                        title=${u}
-                        aria-label=${`${u}: ${l.name}`}
+                        title=${$}
+                        aria-label=${`${$}: ${l.name}`}
                         ?disabled=${_}
                         @click=${() => this.setEntityVisible(o, l.entityId, f)}
                       ><ha-icon icon=${f ? "mdi:restore" : "mdi:eye-off-outline"}></ha-icon></button>
                       <div class="entity-fields">
-                        <div class="field"><label>${this.l("שם מותאם", "Custom name", a)}</label><input type="text" .value=${v.name ?? ""} placeholder=${l.name} @change=${(g) => this.updateEntityOverride(l.entityId, { name: g.target.value || void 0 })} /></div>
+                        <div class="field"><label>${this.l("שם מותאם", "Custom name", a)}</label><input type="text" .value=${g.name ?? ""} placeholder=${l.name} @change=${(x) => this.updateEntityOverride(l.entityId, { name: x.target.value || void 0 })} /></div>
                         <div class="field">
                           <label>${this.l("הסרת שם החדר", "Remove room name", a)}</label>
-                          <select .value=${v.strip_area_name === void 0 ? "" : String(v.strip_area_name)} @change=${(g) => {
-        const $ = g.target.value;
-        this.updateEntityOverride(l.entityId, { strip_area_name: $ === "" ? void 0 : $ === "true" });
+                          <select .value=${g.strip_area_name === void 0 ? "" : String(g.strip_area_name)} @change=${(x) => {
+        const u = x.target.value;
+        this.updateEntityOverride(l.entityId, { strip_area_name: u === "" ? void 0 : u === "true" });
       }}>
                             <option value="">${this.l("לפי ההגדרה הכללית", "Use global setting", a)}</option>
                             <option value="true">${this.l("הסר", "Remove", a)}</option>
                             <option value="false">${this.l("השאר", "Keep", a)}</option>
                           </select>
                         </div>
-                        <div class="field"><label>${this.l("סעיף", "Section", a)}</label><select .value=${v.section ?? l.section} @change=${(g) => this.updateEntityOverride(l.entityId, { section: g.target.value })}>${V.map((g) => d`<option value=${g}>${this.sectionDefaultName(g, a)}</option>`)}</select></div>
-                        <div class="field"><label>${this.l("תת־אזור בתוך החדר", "Sub-area inside room", a)}</label><input type="text" .value=${v.group ?? l.group ?? ""} placeholder=${this.l("לדוגמה: מקלחת", "Example: Shower", a)} @change=${(g) => this.updateEntityOverride(l.entityId, { group: g.target.value.trim() || void 0 })} /><div class="hint">${this.l("רכיבים עם אותו שם יוצגו תחת תת־אזור אחד, ובתוכו יחולקו לפי קטגוריה.", "Devices with the same name are shown under one sub-area, divided into its category sections.", a)}</div></div>
-                        ${this.iconField(this.l("אייקון הרכיב", "Device icon", a), v.icon ?? "", l.icon, a, (g) => this.updateEntityOverride(l.entityId, { icon: g || void 0 }))}
+                        <div class="field"><label>${this.l("סעיף", "Section", a)}</label><select .value=${g.section ?? l.section} @change=${(x) => this.updateEntityOverride(l.entityId, { section: x.target.value })}>${V.map((x) => d`<option value=${x}>${this.sectionDefaultName(x, a)}</option>`)}</select></div>
+                        <div class="field"><label>${this.l("תת־אזור בתוך החדר", "Sub-area inside room", a)}</label><input type="text" .value=${g.group ?? l.group ?? ""} placeholder=${this.l("לדוגמה: מקלחת", "Example: Shower", a)} @change=${(x) => this.updateEntityOverride(l.entityId, { group: x.target.value.trim() || void 0 })} /><div class="hint">${this.l("רכיבים עם אותו שם יוצגו תחת תת־אזור אחד, ובתוכו יחולקו לפי קטגוריה.", "Devices with the same name are shown under one sub-area, divided into its category sections.", a)}</div></div>
+                        ${this.iconField(this.l("אייקון הרכיב", "Device icon", a), g.icon ?? "", l.icon, a, (x) => this.updateEntityOverride(l.entityId, { icon: x || void 0 }))}
                         ${l.section === "lights_switches" ? d`
-                          <div class="field"><label>${this.l("צורת האריח", "Tile shape", a)}</label><select .value=${v.tile_shape ?? ""} @change=${(g) => this.updateEntityOverride(l.entityId, { tile_shape: g.target.value || void 0 })}><option value="">${this.l("כמו ההגדרה הכללית", "Use global setting", a)}</option><option value="rectangle">${this.l("מלבן", "Rectangle", a)}</option><option value="square">${this.l("ריבוע", "Square", a)}</option></select></div>
-                          <div class="field"><label>${this.l("מיקום האייקון", "Icon position", a)}</label><select .value=${v.icon_position ?? ""} @change=${(g) => this.updateEntityOverride(l.entityId, { icon_position: g.target.value || void 0 })}><option value="">${this.l("כמו ההגדרה הכללית", "Use global setting", a)}</option><option value="start">${this.l("תחילת השורה לפי השפה", "Language start", a)}</option><option value="right">${this.l("ימין", "Right", a)}</option><option value="left">${this.l("שמאל", "Left", a)}</option><option value="center">${this.l("מרכז", "Center", a)}</option></select></div>
-                          <div class="field"><label>${this.l("הצגת מידע", "State information", a)}</label><select .value=${v.show_state === void 0 ? "" : String(v.show_state)} @change=${(g) => {
-        const $ = g.target.value;
-        this.updateEntityOverride(l.entityId, { show_state: $ === "" ? void 0 : $ === "true" });
+                          <div class="field"><label>${this.l("צורת האריח", "Tile shape", a)}</label><select .value=${g.tile_shape ?? ""} @change=${(x) => this.updateEntityOverride(l.entityId, { tile_shape: x.target.value || void 0 })}><option value="">${this.l("כמו ההגדרה הכללית", "Use global setting", a)}</option><option value="rectangle">${this.l("מלבן", "Rectangle", a)}</option><option value="square">${this.l("ריבוע", "Square", a)}</option></select></div>
+                          <div class="field"><label>${this.l("מיקום האייקון", "Icon position", a)}</label><select .value=${g.icon_position ?? ""} @change=${(x) => this.updateEntityOverride(l.entityId, { icon_position: x.target.value || void 0 })}><option value="">${this.l("כמו ההגדרה הכללית", "Use global setting", a)}</option><option value="start">${this.l("תחילת השורה לפי השפה", "Language start", a)}</option><option value="right">${this.l("ימין", "Right", a)}</option><option value="left">${this.l("שמאל", "Left", a)}</option><option value="center">${this.l("מרכז", "Center", a)}</option></select></div>
+                          <div class="field"><label>${this.l("הצגת מידע", "State information", a)}</label><select .value=${g.show_state === void 0 ? "" : String(g.show_state)} @change=${(x) => {
+        const u = x.target.value;
+        this.updateEntityOverride(l.entityId, { show_state: u === "" ? void 0 : u === "true" });
       }}><option value="">${this.l("כמו ההגדרה הכללית", "Use global setting", a)}</option><option value="true">${this.l("הצג", "Show", a)}</option><option value="false">${this.l("הסתר", "Hide", a)}</option></select></div>
-                          <div class="field"><label>${this.l("שפת מצב הרכיב", "Device state language", a)}</label><select .value=${v.state_language ?? ""} @change=${(g) => this.updateEntityOverride(l.entityId, { state_language: g.target.value || void 0 })}><option value="">${this.l("כמו ההגדרה הכללית", "Use global setting", a)}</option><option value="auto">Auto</option><option value="he">עברית</option><option value="en">English</option></select></div>
+                          <div class="field"><label>${this.l("שפת מצב הרכיב", "Device state language", a)}</label><select .value=${g.state_language ?? ""} @change=${(x) => this.updateEntityOverride(l.entityId, { state_language: x.target.value || void 0 })}><option value="">${this.l("כמו ההגדרה הכללית", "Use global setting", a)}</option><option value="auto">Auto</option><option value="he">עברית</option><option value="en">English</option></select></div>
                         ` : h}
                       </div>
                       <div class="entity-flags">
-                        <label class="check-label"><input type="checkbox" .checked=${v.protected ?? l.protected} @change=${(g) => this.updateEntityOverride(l.entityId, { protected: g.target.checked })} />${this.l("מוגן מכיבוי קבוצתי", "Protect from group off", a)}</label>
-                        <label class="check-label" title=${this.l("הרכיב נשאר גלוי וניתן לשליטה, אך לא ישפיע על צבע החדר, מצב הקומה או תגי הפעולה המהירה.", "The device stays visible and controllable, but does not affect room color, floor state, or quick-action badges.", a)}><input type="checkbox" .checked=${v.ignore_activity ?? l.ignoreActivity ?? !1} @change=${(g) => this.updateEntityOverride(l.entityId, { ignore_activity: g.target.checked })} />${this.l("אל תשפיע על מצב החדר והקומה", "Ignore in room and floor activity", a)}</label>
-                        ${this.orderButtons(w, y.length, () => this.moveEntity(o, l.section, l.entityId, -1, y.map((g) => g.entityId)), () => this.moveEntity(o, l.section, l.entityId, 1, y.map((g) => g.entityId)))}
+                        <label class="check-label"><input type="checkbox" .checked=${g.protected ?? l.protected} @change=${(x) => this.updateEntityOverride(l.entityId, { protected: x.target.checked })} />${this.l("מוגן מכיבוי קבוצתי", "Protect from group off", a)}</label>
+                        <label class="check-label" title=${this.l("הרכיב נשאר גלוי וניתן לשליטה, אך לא ישפיע על צבע החדר, מצב הקומה או תגי הפעולה המהירה.", "The device stays visible and controllable, but does not affect room color, floor state, or quick-action badges.", a)}><input type="checkbox" .checked=${g.ignore_activity ?? l.ignoreActivity ?? !1} @change=${(x) => this.updateEntityOverride(l.entityId, { ignore_activity: x.target.checked })} />${this.l("אל תשפיע על מצב החדר והקומה", "Ignore in room and floor activity", a)}</label>
+                        ${this.orderButtons(w, y.length, () => this.moveEntity(o, l.section, l.entityId, -1, y.map((x) => x.entityId)), () => this.moveEntity(o, l.section, l.entityId, 1, y.map((x) => x.entityId)))}
                       </div>
                     </div>
                   `;
@@ -5400,7 +5444,7 @@ let K = class extends Z {
       ["dark", this.l("כהה · חצות", "Dark · Midnight", t), this.l("גרפיט עמוק, טורקיז מרוסן וקריאות גבוהה", "Deep graphite, restrained teal, high readability", t)],
       ["modern", this.l("עכשווי · מרווה", "Modern · Sage", t), this.l("גוונים טבעיים, חמים ומינימליסטיים", "Natural, warm, minimalist tones", t)]
     ].map(([i, a, o]) => {
-      const r = { ...q, ...Je[i] };
+      const r = { ...M, ...Je[i] };
       return d`<button
                 class="theme-preset ${e.theme_preset === i ? "selected" : ""}"
                 type="button"
@@ -5626,7 +5670,7 @@ let K = class extends Z {
         labels: [],
         available: !["unavailable", "unknown"].includes(s.state),
         active: !["off", "closed", "idle", "standby", "unavailable", "unknown"].includes(s.state),
-        powered: xi(s, b),
+        powered: Si(s, b),
         protected: p.protected === !0,
         ignoreActivity: p.ignore_activity === !0,
         group: p.group
@@ -5658,16 +5702,20 @@ let K = class extends Z {
   setSectionTitle(e, t) {
     this.commit({ ...this.config, section_titles: { ...this.config.section_titles ?? {}, [e]: t || void 0 } });
   }
+  setGlobalSubgroupTitle(e, t) {
+    const i = { ...this.config.subgroup_titles ?? {} }, a = t.trim();
+    a ? i[e] = a : delete i[e], this.commit({ ...this.config, subgroup_titles: i });
+  }
   moveSection(e, t) {
-    const i = [...xe(this.config).section_order];
+    const i = [...$e(this.config).section_order];
     this.moveValue(i, e, t), this.commitKey("section_order", i);
   }
   toggleQuickAction(e, t) {
-    const i = [...xe(this.config).quick_actions], a = t ? [...i.filter((o) => o !== e), e] : i.filter((o) => o !== e);
+    const i = [...$e(this.config).quick_actions], a = t ? [...i.filter((o) => o !== e), e] : i.filter((o) => o !== e);
     this.commitKey("quick_actions", a);
   }
   moveQuickAction(e, t) {
-    const i = [...xe(this.config).quick_actions];
+    const i = [...$e(this.config).quick_actions];
     this.moveValue(i, e, t), this.commitKey("quick_actions", i);
   }
   setQuickActionIcon(e, t) {
@@ -5725,6 +5773,10 @@ let K = class extends Z {
   setAreaSectionTitle(e, t, i) {
     const a = this.currentAreaOverride(e);
     this.updateAreaOverride(e, { section_titles: { ...a.section_titles ?? {}, [t]: i || void 0 } });
+  }
+  setAreaSubgroupTitle(e, t, i) {
+    const o = { ...this.currentAreaOverride(e).subgroup_titles ?? {} }, r = i.trim();
+    r ? o[t] = r : delete o[t], this.updateAreaOverride(e, { subgroup_titles: o });
   }
   setAreaSectionStyle(e, t, i) {
     const o = { ...this.currentAreaOverride(e).section_styles ?? {} }, r = this.cleanSectionStyle({ ...o[t] ?? {}, ...i });
@@ -5797,7 +5849,7 @@ let K = class extends Z {
     t === "" || t === void 0 ? delete i[e] : i[e] = t, this.commit(i);
   }
   commit(e) {
-    this.config = { ...e, type: ne }, this.dispatchEvent(new CustomEvent("config-changed", { bubbles: !0, composed: !0, detail: { config: this.config } }));
+    this.config = { ...e, type: se }, this.dispatchEvent(new CustomEvent("config-changed", { bubbles: !0, composed: !0, detail: { config: this.config } }));
   }
   moveValue(e, t, i) {
     const a = e.indexOf(t), o = a + i;
@@ -5839,7 +5891,7 @@ let K = class extends Z {
     }[t][e];
   }
 };
-K.styles = Ie`
+K.styles = Oe`
     :host { display: block; color: var(--primary-text-color); }
     * { box-sizing: border-box; }
     .editor { display: grid; gap: 12px; direction: var(--overview-editor-direction, ltr); }
@@ -5976,7 +6028,7 @@ K.styles = Ie`
     @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
   `;
 ee([
-  ze({ attribute: !1 })
+  Fe({ attribute: !1 })
 ], K.prototype, "hass", 2);
 ee([
   C()
@@ -5997,9 +6049,9 @@ ee([
   C()
 ], K.prototype, "candidateSection", 2);
 K = ee([
-  Ye(si)
+  Ye(pi)
 ], K);
-const _o = Ie`
+const $o = Oe`
   :host {
     display: block;
     container-name: overview-card;
@@ -7118,6 +7170,36 @@ const _o = Ie`
     border-color: var(--aboc-section-border-color);
   }
 
+  .device-section.entity-size-compact {
+    --aboc-entity-icon-size: 34px;
+    --aboc-entity-icon-glyph-size: 20px;
+    --aboc-entity-font-size: 13px;
+    --aboc-entity-gap: 5px;
+    --aboc-entity-padding-inline: 6px;
+    --aboc-cover-grid-min-height: 76px;
+    --aboc-light-card-min-height: 82px;
+  }
+
+  .device-section.entity-size-medium {
+    --aboc-entity-icon-size: 44px;
+    --aboc-entity-icon-glyph-size: 25px;
+    --aboc-entity-font-size: 15px;
+    --aboc-entity-gap: 9px;
+    --aboc-entity-padding-inline: 9px;
+    --aboc-cover-grid-min-height: 92px;
+    --aboc-light-card-min-height: 92px;
+  }
+
+  .device-section.entity-size-wide {
+    --aboc-entity-icon-size: 50px;
+    --aboc-entity-icon-glyph-size: 28px;
+    --aboc-entity-font-size: 16px;
+    --aboc-entity-gap: 11px;
+    --aboc-entity-padding-inline: 13px;
+    --aboc-cover-grid-min-height: 108px;
+    --aboc-light-card-min-height: 108px;
+  }
+
   .section-heading {
     direction: var(--aboc-direction, ltr);
     display: grid;
@@ -7280,12 +7362,21 @@ const _o = Ie`
     background: var(--aboc-row-bg);
   }
 
+  .device-section .icon-bubble.small {
+    width: var(--aboc-entity-icon-size, 44px);
+    height: var(--aboc-entity-icon-size, 44px);
+  }
+
+  .device-section .icon-bubble.small ha-icon {
+    --mdc-icon-size: var(--aboc-entity-icon-glyph-size, 25px);
+  }
+
   .entity-lead {
     direction: var(--aboc-direction, ltr);
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
     align-items: center;
-    gap: 9px;
+    gap: var(--aboc-entity-gap, 9px);
     min-width: 0;
     min-height: 44px;
     padding: 0;
@@ -7300,10 +7391,11 @@ const _o = Ie`
   .entity-name {
     display: -webkit-box;
     overflow: hidden;
-    font-size: 15px;
+    font-size: var(--aboc-entity-font-size, 15px);
     font-weight: 720;
     line-height: 1.22;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
+    word-break: normal;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
   }
@@ -7321,10 +7413,10 @@ const _o = Ie`
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
     align-items: center;
-    gap: 9px;
+    gap: var(--aboc-entity-gap, 9px);
     width: 100%;
     min-height: var(--aboc-section-entity-height, max(56px, var(--aboc-row-height)));
-    padding: 4px 9px;
+    padding: 4px var(--aboc-entity-padding-inline, 9px);
     text-align: start;
     cursor: pointer;
     transition: transform 120ms ease, background-color 140ms ease, color 140ms ease;
@@ -7512,8 +7604,8 @@ const _o = Ie`
   .light-card {
     display: grid;
     gap: 7px;
-    min-height: max(92px, var(--aboc-section-entity-height, var(--aboc-row-height)));
-    padding: 8px 10px;
+    min-height: max(var(--aboc-light-card-min-height, 92px), var(--aboc-section-entity-height, var(--aboc-row-height)));
+    padding: 8px var(--aboc-entity-padding-inline, 10px);
   }
 
   .section-lights_switches .light-card {
@@ -7691,9 +7783,9 @@ const _o = Ie`
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
-    gap: 8px;
+    gap: var(--aboc-entity-gap, 8px);
     min-height: var(--aboc-section-entity-height, max(56px, var(--aboc-row-height)));
-    padding: 4px 8px;
+    padding: 4px var(--aboc-entity-padding-inline, 8px);
   }
 
   .cover-card.active {
@@ -7704,20 +7796,37 @@ const _o = Ie`
     grid-template-columns: minmax(0, 1fr);
     align-content: center;
     gap: 2px;
-    min-height: max(92px, var(--aboc-section-entity-height, 92px));
+    min-height: max(var(--aboc-cover-grid-min-height, 92px), var(--aboc-section-entity-height, 92px));
   }
 
   .section-covers.columns-2 .cover-controls {
     justify-content: center;
   }
 
+  .section-covers.columns-2 .section-entities > .cover-card:only-child {
+    grid-column: 1 / -1;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-content: initial;
+    gap: var(--aboc-entity-gap, 8px);
+    min-height: var(--aboc-section-entity-height, max(56px, var(--aboc-row-height)));
+  }
+
+  .section-covers.columns-2 .section-entities > .cover-card:only-child .cover-controls {
+    justify-content: flex-end;
+  }
+
   .section-lights_switches.columns-3 .toggle-tile {
-    gap: 5px;
-    padding-inline: 6px;
+    --aboc-entity-icon-size: 32px;
+    --aboc-entity-icon-glyph-size: 18px;
+    --aboc-entity-font-size: 12.5px;
+    gap: 4px;
+    padding-inline: 5px;
   }
 
   .section-lights_switches.columns-3 .entity-name {
-    font-size: 13px;
+    overflow-wrap: break-word;
+    word-break: normal;
+    -webkit-line-clamp: 3;
   }
 
   .media-card.active {
@@ -8298,16 +8407,16 @@ const _o = Ie`
     }
   }
 `;
-var vo = Object.defineProperty, yo = Object.getOwnPropertyDescriptor, M = (e, t, i, a) => {
-  for (var o = a > 1 ? void 0 : a ? yo(t, i) : t, r = e.length - 1, n; r >= 0; r--)
+var wo = Object.defineProperty, ko = Object.getOwnPropertyDescriptor, q = (e, t, i, a) => {
+  for (var o = a > 1 ? void 0 : a ? ko(t, i) : t, r = e.length - 1, n; r >= 0; r--)
     (n = e[r]) && (o = (a ? n(t, i, o) : n(o)) || o);
-  return a && o && vo(t, i, o), o;
+  return a && o && wo(t, i, o), o;
 };
-const P = (e, t) => {
+const I = (e, t) => {
   const i = e.entity.attributes[t];
   return typeof i == "number" && Number.isFinite(i) ? i : void 0;
-}, De = "__overview_floor__";
-let I = class extends Z {
+}, Le = "__overview_floor__";
+let O = class extends Z {
   constructor() {
     super(...arguments), this.expanded = {}, this.floorExpanded = !0, this.pendingActions = /* @__PURE__ */ new Set(), this.pendingSections = /* @__PURE__ */ new Set(), this.pendingEntities = /* @__PURE__ */ new Set(), this.floorPopupOpen = !1, this.pendingFloor = !1, this.pendingFloorRooms = /* @__PURE__ */ new Set(), this.storageId = "overview", this.suppressClickUntil = 0, this.restoreQuickPopupFocus = !0, this.restoreAreaPopupFocus = !0;
   }
@@ -8315,7 +8424,7 @@ let I = class extends Z {
     super.connectedCallback(), this.durationTimer ?? (this.durationTimer = window.setInterval(() => this.requestUpdate(), 6e4));
   }
   static getConfigElement() {
-    return document.createElement(si);
+    return document.createElement(pi);
   }
   static getStubConfig() {
     return { language: "auto", rtl: "auto" };
@@ -8323,7 +8432,7 @@ let I = class extends Z {
   setConfig(e) {
     this.resetQuickPopup(), this.resetFloorPopup(), this.resetAreaPopup();
     try {
-      Va(e), this.config = xe(e), this.storageId = this.config.id || `${this.config.floor ? "floor" : "area"}:${this.config.floor ?? this.config.area ?? "unconfigured"}`, this.expanded = this.config.remember_expanded_state ? this.readExpanded() : {}, this.floorExpanded = this.config.remember_expanded_state ? this.readFloorExpanded() ?? this.config.floor_default_expanded : this.config.floor_default_expanded, this.error = void 0;
+      Qa(e), this.config = $e(e), this.storageId = this.config.id || `${this.config.floor ? "floor" : "area"}:${this.config.floor ?? this.config.area ?? "unconfigured"}`, this.expanded = this.config.remember_expanded_state ? this.readExpanded() : {}, this.floorExpanded = this.config.remember_expanded_state ? this.readFloorExpanded() ?? this.config.floor_default_expanded : this.config.floor_default_expanded, this.error = void 0;
     } catch (t) {
       this.error = t instanceof Error ? t.message : String(t);
     }
@@ -8332,7 +8441,7 @@ let I = class extends Z {
     if (!this.config) return 3;
     const e = Qe(this.hass, this.config);
     if (e.targetKind === "floor" && this.config.show_header && this.config.show_floor_header && !this.floorExpanded) return 2;
-    const t = bo(e.areas, (i) => this.isExpanded(i));
+    const t = _o(e.areas, (i) => this.isExpanded(i));
     return Math.max(
       2,
       t.reduce(
@@ -8350,16 +8459,16 @@ let I = class extends Z {
   render() {
     if (this.error) return d`<ha-card><div class="root"><div class="warning">${this.error}</div></div></ha-card>`;
     if (!this.config) return h;
-    const e = Qa(this.hass, this.config);
+    const e = Za(this.hass, this.config);
     this.setAttribute("dir", e ? "rtl" : "ltr"), this.style.setProperty("--aboc-direction", e ? "rtl" : "ltr"), this.applyStyleVariables();
     const t = Qe(this.hass, this.config), i = `overview-floor-${this.storageId.replace(/[^a-zA-Z0-9_-]/g, "-")}`, a = t.targetKind === "floor" && this.config.show_header && this.config.show_floor_header;
     return d`
       <ha-card>
         <div class="root">
           ${this.renderOverallHeader(t, i)}
-          ${t.targetKind === "none" ? this.renderEmpty(F(this.hass, this.config, "choose_target"), "mdi:map-marker-plus-outline") : d`
+          ${t.targetKind === "none" ? this.renderEmpty(N(this.hass, this.config, "choose_target"), "mdi:map-marker-plus-outline") : d`
                 <div id=${i} ?hidden=${a && !this.floorExpanded}>
-                  ${t.areas.length ? this.renderAreaHierarchy(t.areas) : this.renderEmpty(F(this.hass, this.config, "no_areas"), "mdi:home-search-outline")}
+                  ${t.areas.length ? this.renderAreaHierarchy(t.areas) : this.renderEmpty(N(this.hass, this.config, "no_areas"), "mdi:home-search-outline")}
                 </div>
               `}
           ${t.warnings.length && t.targetKind !== "none" ? d`<div class="warning">${t.warnings.join(" · ")}</div>` : h}
@@ -8375,7 +8484,7 @@ let I = class extends Z {
     var a, o;
     if (!((a = this.config) != null && a.show_header) || !(e.targetKind === "floor" ? this.config.show_floor_header : !!this.config.title) || !e.targetName) return h;
     if (e.targetKind === "floor") {
-      const r = e.areas.filter((l) => l.allEntities.some(pe)), n = this.floorQuickArea(e), s = Se(n, "climate").filter((l) => l.powered && l.ignoreActivity !== !0), c = this.quickActionPending(De, "climate") || s.some((l) => this.pendingEntities.has(l.entityId)), p = e.areas.filter((l) => l.occupancy === "occupied").length, b = [
+      const r = e.areas.filter((l) => l.allEntities.some(ue)), n = this.floorQuickArea(e), s = Ae(n, "climate").filter((l) => l.powered && l.ignoreActivity !== !0), c = this.quickActionPending(Le, "climate") || s.some((l) => this.pendingEntities.has(l.entityId)), p = e.areas.filter((l) => l.occupancy === "occupied").length, b = [
         `${e.areas.length} ${this.localText("אזורים", "areas")}`,
         r.length ? `${r.length} ${this.localText("פעילים", "active")}` : "",
         this.config.show_occupancy && p ? `${p} ${this.localText("מאוכלסים", "occupied")}` : ""
@@ -8392,7 +8501,7 @@ let I = class extends Z {
                   class="floor-climate-badge"
                   type="button"
                   aria-haspopup="dialog"
-                  aria-expanded=${((o = this.quickPopup) == null ? void 0 : o.areaId) === De && this.quickPopup.action === "climate"}
+                  aria-expanded=${((o = this.quickPopup) == null ? void 0 : o.areaId) === Le && this.quickPopup.action === "climate"}
                   aria-busy=${c}
                   aria-label=${`${this.localText("פתיחת המזגנים הפעילים בקומה", "Open active floor climate controls")}: ${s.length}`}
                   ?disabled=${c}
@@ -8413,7 +8522,7 @@ let I = class extends Z {
     return d`<div class="overview-heading"><span class="icon-bubble small"><ha-icon icon=${e.targetIcon}></ha-icon></span><div class="heading-main"><h2>${e.targetName}</h2></div></div>`;
   }
   renderAreaHierarchy(e) {
-    const { roots: t, children: i } = $i(e), a = /* @__PURE__ */ new Set(), o = (r) => {
+    const { roots: t, children: i } = Ai(e), a = /* @__PURE__ */ new Set(), o = (r) => {
       if (a.has(r.id)) return h;
       a.add(r.id);
       const n = i.get(r.id) ?? [], c = this.isExpanded(r) ? n : n.filter((b) => b.showWhenParentCollapsed), p = c.length ? d`<div class="subareas" role="group" aria-label=${`${this.localText("תתי אזורים של", "Sub-areas of")} ${r.name}`}>${c.map(o)}</div>` : h;
@@ -8427,22 +8536,22 @@ let I = class extends Z {
   }
   renderArea(e, t = h) {
     if (!this.config) return h;
-    const a = this.areaOpenMode(e) === "popup", o = a && this.areaPopupId === e.id, r = !a && this.isExpanded(e), n = e.allEntities.filter(pe).length, s = this.config.show_quick_actions ? qa(e, this.config.quick_actions) : [], c = this.config.show_occupancy && e.occupancy !== "none", p = this.config.show_temperature && e.temperature !== void 0, b = p ? s.find(({ action: E }) => E === "climate") : void 0, m = b ? s.filter(({ action: E }) => E !== "climate") : s, l = (b == null ? void 0 : b.entities.filter((E) => E.domain === "climate" && E.powered && E.ignoreActivity !== !0).length) ?? 0, v = (b == null ? void 0 : b.entities.filter((E) => E.domain === "fan" && E.powered && E.ignoreActivity !== !0).length) ?? 0, y = (b == null ? void 0 : b.entities.filter((E) => E.domain === "climate").length) ?? 0, w = (b == null ? void 0 : b.entities.filter((E) => E.domain === "fan").length) ?? 0, f = c || m.length > 0 || p, _ = p ? this.formatTemperature(e.temperature, e.temperatureUnit) : "", u = {
+    const a = this.areaOpenMode(e) === "popup", o = a && this.areaPopupId === e.id, r = !a && this.isExpanded(e), n = e.allEntities.filter(ue).length, s = this.config.show_quick_actions ? La(e, this.config.quick_actions) : [], c = this.config.show_occupancy && e.occupancy !== "none", p = this.config.show_temperature && e.temperature !== void 0, b = p ? s.find(({ action: E }) => E === "climate") : void 0, m = b ? s.filter(({ action: E }) => E !== "climate") : s, l = (b == null ? void 0 : b.entities.filter((E) => E.domain === "climate" && E.powered && E.ignoreActivity !== !0).length) ?? 0, g = (b == null ? void 0 : b.entities.filter((E) => E.domain === "fan" && E.powered && E.ignoreActivity !== !0).length) ?? 0, y = (b == null ? void 0 : b.entities.filter((E) => E.domain === "climate").length) ?? 0, w = (b == null ? void 0 : b.entities.filter((E) => E.domain === "fan").length) ?? 0, f = c || m.length > 0 || p, _ = p ? this.formatTemperature(e.temperature, e.temperatureUnit) : "", $ = {
       none: this.localText("ללא מצב מיזוג", "No climate mode"),
       off: this.localText("המיזוג כבוי", "Climate off"),
       cool: this.localText("קירור", "Cooling"),
       heat: this.localText("חימום", "Heating"),
       active: this.localText("מצב מיזוג פעיל", "Climate active")
-    }[e.temperatureMode], g = Math.min(8, m.length + Number(c) + Number(p) * 2), $ = g >= 5, x = e.id.replace(/[^a-zA-Z0-9_-]/g, "-"), S = `overview-area-${x}`, k = `overview-area-popup-${x}`, O = `overview-area-name-${x}`, A = a ? `${this.localText("פתיחת חדר בחלון", "Open room in dialog")}: ${e.name}` : `${F(this.hass, this.config, r ? "collapse" : "expand")}: ${e.name}`;
+    }[e.temperatureMode], x = Math.min(8, m.length + Number(c) + Number(p) * 2), u = x >= 5, v = e.id.replace(/[^a-zA-Z0-9_-]/g, "-"), k = `overview-area-${v}`, A = `overview-area-popup-${v}`, T = `overview-area-name-${v}`, S = a ? `${this.localText("פתיחת חדר בחלון", "Open room in dialog")}: ${e.name}` : `${N(this.hass, this.config, r ? "collapse" : "expand")}: ${e.name}`;
     return d`
       <section
         class="area-panel ${n ? "has-active" : "all-off"} ${r ? "expanded" : ""}"
         data-powered=${n ? "true" : "false"}
-        aria-labelledby=${O}
+        aria-labelledby=${T}
       >
         <header class="area-summary ${this.config.show_area_expand_button ? "" : "without-expand-button"}">
           <div
-            class="area-summary-pill quick-actions-${this.config.quick_actions_position} climate-tag-${this.config.climate_tag_position} summary-load-${g} ${$ ? "compact-statuses" : ""} ${f ? "has-statuses" : "no-statuses"}"
+            class="area-summary-pill quick-actions-${this.config.quick_actions_position} climate-tag-${this.config.climate_tag_position} summary-load-${x} ${u ? "compact-statuses" : ""} ${f ? "has-statuses" : "no-statuses"}"
             tabindex="-1"
             @click=${(E) => this.handleAreaSummaryClick(E, e)}
           >
@@ -8451,13 +8560,13 @@ let I = class extends Z {
               type="button"
               aria-expanded=${a ? o : r}
               aria-haspopup=${a ? "dialog" : h}
-              aria-controls=${a ? k : S}
-              aria-label=${A}
+              aria-controls=${a ? A : k}
+              aria-label=${S}
               @click=${(E) => this.activateArea(E, e)}
             >
               <span class="icon-bubble area-icon"><ha-icon icon=${e.icon}></ha-icon></span>
               <span class="area-main">
-                <span class="area-name" id=${O}>${e.name}</span>
+                <span class="area-name" id=${T}>${e.name}</span>
                 ${n ? d`<span class="active-summary">${n} ${this.localText("פעילים", "active")}</span>` : h}
               </span>
             </button>
@@ -8468,10 +8577,10 @@ let I = class extends Z {
                     class="temperature-summary tag-position-${this.config.climate_tag_position}"
                     style=${`--aboc-temperature-tag-gap:${this.config.style.climate_tag_gap}px`}
                   >
-                    ${p ? d`<span class="temperature area-temperature temperature-${e.temperatureMode}" title=${`${_} · ${u}`} aria-label=${`${_} · ${u}`}>${_}</span>` : h}
+                    ${p ? d`<span class="temperature area-temperature temperature-${e.temperatureMode}" title=${`${_} · ${$}`} aria-label=${`${_} · ${$}`}>${_}</span>` : h}
                     <span class="temperature-tags">
                       ${b && l > 0 ? this.renderTemperatureStatusTag(e, this.config.quick_action_icons.climate, l, y, "climate") : h}
-                      ${b && this.config.show_fan_tag && v > 0 ? this.renderTemperatureStatusTag(e, "mdi:fan", v, w, "fan") : h}
+                      ${b && this.config.show_fan_tag && g > 0 ? this.renderTemperatureStatusTag(e, "mdi:fan", g, w, "fan") : h}
                     </span>
                   </span>` : h}
             </div>
@@ -8481,12 +8590,12 @@ let I = class extends Z {
                 type="button"
                 aria-expanded=${a ? o : r}
                 aria-haspopup=${a ? "dialog" : h}
-                aria-controls=${a ? k : S}
-                aria-label=${A}
+                aria-controls=${a ? A : k}
+                aria-label=${S}
                 @click=${(E) => this.activateArea(E, e)}
               ><span class="chevron ${a ? "popup-mode" : ""}" aria-hidden="true"><ha-icon icon=${a ? "mdi:open-in-new" : "mdi:chevron-down"}></ha-icon></span></button>` : h}
         </header>
-        <div class="area-disclosure" id=${S} ?hidden=${!r}>
+        <div class="area-disclosure" id=${k} ?hidden=${!r}>
           <div class="expanded-content">${this.renderAreaContent(e)}</div>
           ${r ? t : h}
         </div>
@@ -8513,7 +8622,7 @@ let I = class extends Z {
   renderOccupancy(e) {
     var n;
     if (!((n = this.config) != null && n.show_occupancy) || e.occupancy === "none") return h;
-    const t = e.occupancy === "occupied", i = e.occupancyCount === void 0 ? "?" : e.occupancyCount > 9 ? "9+" : String(e.occupancyCount), a = t ? "mdi:account-multiple" : e.occupancy === "vacant" ? "mdi:account-multiple-outline" : "mdi:account-question-outline", o = F(this.hass, this.config, e.occupancy === "occupied" ? "occupied" : e.occupancy === "vacant" ? "vacant" : "unknown"), r = e.occupancyCount === void 0 ? o : e.occupancyCountSource === "entity" ? `${e.name}: ${e.occupancyCount} ${this.localText("נוכחים", "occupants")}` : `${e.name}: ${e.occupancyCount} ${this.localText("חיישני נוכחות פעילים", "active presence sensors")}`;
+    const t = e.occupancy === "occupied", i = e.occupancyCount === void 0 ? "?" : e.occupancyCount > 9 ? "9+" : String(e.occupancyCount), a = t ? "mdi:account-multiple" : e.occupancy === "vacant" ? "mdi:account-multiple-outline" : "mdi:account-question-outline", o = N(this.hass, this.config, e.occupancy === "occupied" ? "occupied" : e.occupancy === "vacant" ? "vacant" : "unknown"), r = e.occupancyCount === void 0 ? o : e.occupancyCountSource === "entity" ? `${e.name}: ${e.occupancyCount} ${this.localText("נוכחים", "occupants")}` : `${e.name}: ${e.occupancyCount} ${this.localText("חיישני נוכחות פעילים", "active presence sensors")}`;
     return d`
       <span class="summary-chip occupancy ${t ? "occupied" : e.occupancy === "unknown" ? "unknown" : "vacant"}" title=${r} aria-label=${r}>
         <ha-icon icon=${a}></ha-icon>
@@ -8527,7 +8636,7 @@ let I = class extends Z {
       <div class="quick-actions" role="group" aria-label=${`${this.localText("פעולות מהירות", "Quick actions")}: ${e.name}`}>
         ${t.map(({ action: i, entities: a }) => {
       var p;
-      const o = a.filter((b) => b.powered).length, r = this.quickActionPending(e.id, i) || a.some((b) => this.pendingEntities.has(b.entityId)), n = Ut(this.hass, this.config, i), s = `${this.localText("פתיחת", "Open")} ${n}: ${e.name} (${o}/${a.length})`, c = ((p = this.quickPopup) == null ? void 0 : p.areaId) === e.id && this.quickPopup.action === i;
+      const o = a.filter((b) => b.powered).length, r = this.quickActionPending(e.id, i) || a.some((b) => this.pendingEntities.has(b.entityId)), n = Kt(this.hass, this.config, i), s = `${this.localText("פתיחת", "Open")} ${n}: ${e.name} (${o}/${a.length})`, c = ((p = this.quickPopup) == null ? void 0 : p.areaId) === e.id && this.quickPopup.action === i;
       return d`
             <button
               class="quick-action ${o ? "active" : "inactive"}"
@@ -8550,11 +8659,11 @@ let I = class extends Z {
   }
   renderAreaContent(e) {
     if (!this.config) return h;
-    const t = this.config.area_overrides[e.id] ?? this.config.area_overrides[e.name], i = mo(e, t == null ? void 0 : t.subarea_order, this.config.show_empty_sections);
+    const t = this.config.area_overrides[e.id] ?? this.config.area_overrides[e.name], i = vo(e, t == null ? void 0 : t.subarea_order, this.config.show_empty_sections);
     return d`
       ${i.generalSections.map((a) => this.renderSection(a, e))}
       ${i.subareas.map((a, o) => {
-      const r = a.entities.filter(pe).length, n = `overview-room-subarea-${e.id}-${o}`.replace(/[^a-zA-Z0-9_-]/g, "-");
+      const r = a.entities.filter(ue).length, n = `overview-room-subarea-${e.id}-${o}`.replace(/[^a-zA-Z0-9_-]/g, "-");
       return d`
           <section class="room-subarea ${r ? "has-active" : "all-off"}" aria-labelledby=${n}>
             <header class="room-subarea-heading" id=${n}>
@@ -8571,81 +8680,89 @@ let I = class extends Z {
     `;
   }
   renderSection(e, t, i = "general") {
-    var de, qe, yt, xt, $t, wt, kt, St;
-    const a = t.id, o = i === "general" ? a : `${a}:${i}`, r = `overview-section-${e.id}-${a}-${i}`.replace(/[^a-zA-Z0-9_-]/g, "-"), n = ot(e, !0), s = ot(e, !1), c = this.pendingSections.has(`${o}:${e.id}:on`), p = this.pendingSections.has(`${o}:${e.id}:off`), b = c || p || e.entities.some((te) => this.pendingEntities.has(te.entityId)), m = e.id === "covers" ? this.localText("פתיחת כל התריסים", "Open all covers") : this.localText("הפעלת הכל", "Turn everything on"), l = e.id === "covers" ? this.localText("סגירת כל התריסים", "Close all covers") : this.localText("כיבוי הכל", "Turn everything off"), v = `${m}: ${e.title} (${n.length})`, y = `${l}: ${e.title} (${s.length})`, w = ((de = this.config) == null ? void 0 : de.area_overrides[t.id]) ?? ((qe = this.config) == null ? void 0 : qe.area_overrides[t.name]), f = { ...((yt = this.config) == null ? void 0 : yt.section_styles[e.id]) ?? {}, ...((xt = w == null ? void 0 : w.section_styles) == null ? void 0 : xt[e.id]) ?? {} }, _ = (($t = this.config) == null ? void 0 : $t.style.section_frame_brightness) ?? 12, g = `color-mix(in srgb, var(--aboc-area-frame-color) ${Math.max(0, 100 - Math.abs(_))}%, ${_ >= 0 ? "white" : "black"})`, $ = (wt = this.config) != null && wt.style.link_section_frame_color ? g : "color-mix(in srgb, var(--divider-color) 58%, transparent)", x = f.columns ?? (e.id === "lights_switches" || e.id === "floor_heating" ? 2 : 1), S = e.id === "covers" ? Math.min(2, x) : x, k = e.id === "climate" ? 108 : e.id === "floor_heating" ? 92 : 56, O = f.entity_height ?? k, A = f.action_presentation ?? ((kt = this.config) == null ? void 0 : kt.section_action_presentation) ?? "icon", E = [
+    var xt, $t, wt, kt, St, At, Et, Ct, Tt;
+    const a = t.id, o = i === "general" ? a : `${a}:${i}`, r = `overview-section-${e.id}-${a}-${i}`.replace(/[^a-zA-Z0-9_-]/g, "-"), n = ot(e, !0), s = ot(e, !1), c = this.pendingSections.has(`${o}:${e.id}:on`), p = this.pendingSections.has(`${o}:${e.id}:off`), b = c || p || e.entities.some((ie) => this.pendingEntities.has(ie.entityId)), m = e.id === "covers" ? this.localText("פתיחת כל התריסים", "Open all covers") : this.localText("הפעלת הכל", "Turn everything on"), l = e.id === "covers" ? this.localText("סגירת כל התריסים", "Close all covers") : this.localText("כיבוי הכל", "Turn everything off"), g = `${m}: ${e.title} (${n.length})`, y = `${l}: ${e.title} (${s.length})`, w = ((xt = this.config) == null ? void 0 : xt.area_overrides[t.id]) ?? (($t = this.config) == null ? void 0 : $t.area_overrides[t.name]), f = { ...((wt = this.config) == null ? void 0 : wt.section_styles[e.id]) ?? {}, ...((kt = w == null ? void 0 : w.section_styles) == null ? void 0 : kt[e.id]) ?? {} }, _ = ((St = this.config) == null ? void 0 : St.style.section_frame_brightness) ?? 12, x = `color-mix(in srgb, var(--aboc-area-frame-color) ${Math.max(0, 100 - Math.abs(_))}%, ${_ >= 0 ? "white" : "black"})`, u = (At = this.config) != null && At.style.link_section_frame_color ? x : "color-mix(in srgb, var(--divider-color) 58%, transparent)", v = f.columns ?? (e.id === "lights_switches" || e.id === "floor_heating" ? 2 : 1), k = e.id === "covers" ? Math.min(2, v) : v, A = (w == null ? void 0 : w.entity_card_size) ?? ((Et = this.config) == null ? void 0 : Et.entity_card_size) ?? "medium", S = {
+      compact: e.id === "climate" ? 96 : e.id === "floor_heating" ? 80 : 48,
+      medium: e.id === "climate" ? 108 : e.id === "floor_heating" ? 92 : 56,
+      wide: e.id === "climate" ? 120 : e.id === "floor_heating" ? 108 : 68
+    }[A], E = f.entity_height ?? S, F = f.action_presentation ?? ((Ct = this.config) == null ? void 0 : Ct.section_action_presentation) ?? "icon", de = [
       `--aboc-section-background:${f.background || "transparent"}`,
-      `--aboc-section-border-color:${f.border_color || $}`,
+      `--aboc-section-border-color:${f.border_color || u}`,
       `--aboc-section-border-width:${f.border_width ?? 1}px`,
       `--aboc-section-border-style:${f.border_style ?? "solid"}`,
-      `--aboc-section-columns:${S}`,
-      `--aboc-section-entity-height:${O}px`
-    ].join(";"), N = s.length === 0, le = N ? n : s, Xe = N ? c : p, Fe = N ? v : y;
+      `--aboc-section-columns:${k}`,
+      `--aboc-section-entity-height:${E}px`
+    ].join(";"), te = s.length === 0, Xe = te ? n : s, pe = te ? c : p, Me = te ? g : y;
     return d`
-      <section class="device-section section-${e.id} columns-${S} ${f.show_border ? "section-framed" : ""}" style=${E} aria-labelledby=${r}>
+      <section class="device-section section-${e.id} columns-${k} entity-size-${A} ${f.show_border ? "section-framed" : ""}" style=${de} aria-labelledby=${r}>
         <h3 class="section-heading" id=${r}>
           <span class="section-heading-main"><ha-icon icon=${e.icon}></ha-icon><span class="section-title" title=${e.title}>${e.title}</span><span class="section-count">${e.activeCount}/${e.entities.length}</span></span>
           <span class="section-actions" role="group" aria-label=${`${this.localText("שליטה כללית", "Group controls")}: ${e.title}`}>
-            ${((St = this.config) == null ? void 0 : St.section_action_mode) === "toggle" ? d`<button
-                  class="section-toggle-button presentation-${A} ${N ? "turn-on" : "turn-off"}"
+            ${((Tt = this.config) == null ? void 0 : Tt.section_action_mode) === "toggle" ? d`<button
+                  class="section-toggle-button presentation-${F} ${te ? "turn-on" : "turn-off"}"
                   type="button"
-                  title=${Fe}
-                  aria-label=${Fe}
-                  aria-busy=${Xe}
-                  ?disabled=${b || le.length === 0}
-                  @click=${(te) => this.handleSectionAction(te, e, o, N)}
-                >${this.renderSectionActionContent(e.id, N, Xe, A)}</button>` : d`
+                  title=${Me}
+                  aria-label=${Me}
+                  aria-busy=${pe}
+                  ?disabled=${b || Xe.length === 0}
+                  @click=${(ie) => this.handleSectionAction(ie, e, o, te)}
+                >${this.renderSectionActionContent(e.id, te, pe, F)}</button>` : d`
                   <button
-                    class="section-on-button presentation-${A}"
+                    class="section-on-button presentation-${F}"
                     type="button"
-                    title=${v}
-                    aria-label=${v}
+                    title=${g}
+                    aria-label=${g}
                     aria-busy=${c}
                     ?disabled=${b || n.length === 0}
-                    @click=${(te) => this.handleSectionAction(te, e, o, !0)}
-                  >${this.renderSectionActionContent(e.id, !0, c, A)}</button>
+                    @click=${(ie) => this.handleSectionAction(ie, e, o, !0)}
+                  >${this.renderSectionActionContent(e.id, !0, c, F)}</button>
                   <button
-                    class="section-off-button presentation-${A}"
+                    class="section-off-button presentation-${F}"
                     type="button"
                     title=${y}
                     aria-label=${y}
                     aria-busy=${p}
                     ?disabled=${b || s.length === 0}
-                    @click=${(te) => this.handleSectionAction(te, e, o, !1)}
-                  >${this.renderSectionActionContent(e.id, !1, p, A)}</button>
+                    @click=${(ie) => this.handleSectionAction(ie, e, o, !1)}
+                  >${this.renderSectionActionContent(e.id, !1, p, F)}</button>
                 `}
           </span>
         </h3>
-        ${this.renderSectionEntities(e)}
+        ${this.renderSectionEntities(e, t)}
       </section>
     `;
   }
-  renderSectionEntities(e) {
+  renderSectionEntities(e, t) {
     if (!e.entities.length)
       return d`<div class="section-entities"><div class="secondary section-empty">${this.config && W(this.hass, this.config) === "he" ? "אין רכיבים בסעיף" : "No devices in this section"}</div></div>`;
-    const t = e.entities.filter((a) => !a.group), i = /* @__PURE__ */ new Map();
-    for (const a of e.entities) {
-      if (!a.group) continue;
-      const o = i.get(a.group) ?? [];
-      o.push(a), i.set(a.group, o);
+    const i = e.entities.filter((o) => !o.group), a = /* @__PURE__ */ new Map();
+    for (const o of e.entities) {
+      if (!o.group) continue;
+      const r = a.get(o.group) ?? [];
+      r.push(o), a.set(o.group, r);
     }
     return d`
-      ${t.length ? d`<div class="section-entities">${t.map((a) => this.renderEntity(a, e.id))}</div>` : h}
-      ${[...i.entries()].map(([a, o]) => {
-      const r = this.subgroupTitle(a);
+      ${i.length ? d`<div class="section-entities">${i.map((o) => this.renderEntity(o, e.id))}</div>` : h}
+      ${[...a.entries()].map(([o, r]) => {
+      const n = this.subgroupTitle(o, t);
       return d`
-          <section class="entity-subgroup" aria-label=${r}>
-            <div class="entity-subgroup-heading"><ha-icon icon=${this.subgroupIcon(a)}></ha-icon><span>${r}</span><small>${o.filter((n) => n.powered).length}/${o.length}</small></div>
-            <div class="section-entities">${o.map((n) => this.renderEntity(n, e.id))}</div>
+          <section class="entity-subgroup" aria-label=${n}>
+            <div class="entity-subgroup-heading"><ha-icon icon=${this.subgroupIcon(o)}></ha-icon><span>${n}</span><small>${r.filter((s) => s.powered).length}/${r.length}</small></div>
+            <div class="section-entities">${r.map((s) => this.renderEntity(s, e.id))}</div>
           </section>
         `;
     })}
     `;
   }
-  subgroupTitle(e) {
-    return e === Te ? this.localText("מאווררים", "Fans") : e === Pe ? this.localText("בקרי חימום", "Heating controls") : e;
+  subgroupTitle(e, t) {
+    var r, n, s, c;
+    const i = e === Pe ? "fans" : e === Ie ? "heating_controls" : void 0;
+    if (!i) return e;
+    const a = ((r = this.config) == null ? void 0 : r.area_overrides[t.id]) ?? ((n = this.config) == null ? void 0 : n.area_overrides[t.name]), o = ((s = a == null ? void 0 : a.subgroup_titles) == null ? void 0 : s[i]) || ((c = this.config) == null ? void 0 : c.subgroup_titles[i]);
+    return o || (i === "fans" ? this.localText("מאווררים", "Fans") : i === "heating_controls" ? this.localText("בקרי חימום", "Heating controls") : e);
   }
   subgroupIcon(e) {
-    return e === Te ? "mdi:fan" : e === Pe ? "mdi:radiator" : "mdi:folder-home-outline";
+    return e === Pe ? "mdi:fan" : e === Ie ? "mdi:radiator" : "mdi:folder-home-outline";
   }
   sectionActionIcon(e, t) {
     return this.config ? e === "covers" ? t ? this.config.section_action_icons.open : this.config.section_action_icons.close : t ? this.config.section_action_icons.on : this.config.section_action_icons.off : t ? "mdi:play-circle-outline" : "mdi:stop-circle-outline";
@@ -8659,16 +8776,16 @@ let I = class extends Z {
   }
   renderQuickActionPopup(e) {
     if (!this.config || !this.quickPopup) return h;
-    const t = this.quickPopup.areaId === De && e.targetKind === "floor" ? this.floorQuickArea(e) : e.areas.find((_) => {
-      var u;
-      return _.id === ((u = this.quickPopup) == null ? void 0 : u.areaId);
+    const t = this.quickPopup.areaId === Le && e.targetKind === "floor" ? this.floorQuickArea(e) : e.areas.find((_) => {
+      var $;
+      return _.id === (($ = this.quickPopup) == null ? void 0 : $.areaId);
     });
     if (!t)
       return queueMicrotask(() => this.resetQuickPopup()), h;
-    const i = this.quickPopup.action, a = Se(t, i);
+    const i = this.quickPopup.action, a = Ae(t, i);
     if (!a.length)
       return queueMicrotask(() => this.resetQuickPopup()), h;
-    const o = Ut(this.hass, this.config, i), r = a.filter((_) => _.powered).length, n = at(t, i, !0), s = at(t, i, !1), c = this.pendingActions.has(`${t.id}:${i}:on`), p = this.pendingActions.has(`${t.id}:${i}:off`), b = c || p, m = a.some((_) => this.pendingEntities.has(_.entityId)), l = b || m, y = `overview-quick-popup-title-${`${t.id}-${i}`.replace(/[^a-zA-Z0-9_-]/g, "-")}`, w = i === "covers" ? this.localText("פתיחת הכל", "Open all") : this.localText("הפעלת הכל", "Turn all on"), f = i === "covers" ? this.localText("סגירת הכל", "Close all") : this.localText("כיבוי הכל", "Turn all off");
+    const o = Kt(this.hass, this.config, i), r = a.filter((_) => _.powered).length, n = at(t, i, !0), s = at(t, i, !1), c = this.pendingActions.has(`${t.id}:${i}:on`), p = this.pendingActions.has(`${t.id}:${i}:off`), b = c || p, m = a.some((_) => this.pendingEntities.has(_.entityId)), l = b || m, y = `overview-quick-popup-title-${`${t.id}-${i}`.replace(/[^a-zA-Z0-9_-]/g, "-")}`, w = i === "covers" ? this.localText("פתיחת הכל", "Open all") : this.localText("הפעלת הכל", "Turn all on"), f = i === "covers" ? this.localText("סגירת הכל", "Close all") : this.localText("כיבוי הכל", "Turn all off");
     return d`
       <dialog
         class="quick-action-dialog area-quick-action-dialog"
@@ -8717,10 +8834,10 @@ let I = class extends Z {
   }
   renderFloorPopup(e) {
     if (!this.config || !this.floorPopupOpen || e.targetKind !== "floor") return h;
-    const t = e.areas.filter((o) => o.allEntities.some(pe));
+    const t = e.areas.filter((o) => o.allEntities.some(ue));
     if (!t.length)
       return queueMicrotask(() => this.resetFloorPopup()), h;
-    const i = t.flatMap((o) => Le(o, !1)), a = "overview-floor-popup-title";
+    const i = t.flatMap((o) => De(o, !1)), a = "overview-floor-popup-title";
     return d`
       <dialog
         class="quick-action-dialog floor-action-dialog"
@@ -8753,11 +8870,11 @@ let I = class extends Z {
           ><ha-icon icon=${this.pendingFloor ? "mdi:loading" : this.config.section_action_icons.off}></ha-icon><span>${this.localText("כיבוי כל החדרים", "Turn off all rooms")}</span><small>${i.length}</small></button>
           <div class="floor-room-list" role="list">
             ${t.map((o) => {
-      const r = Le(o, !1), n = this.pendingFloor || this.pendingFloorRooms.has(o.id) || r.some((s) => this.pendingEntities.has(s.entityId));
+      const r = De(o, !1), n = this.pendingFloor || this.pendingFloorRooms.has(o.id) || r.some((s) => this.pendingEntities.has(s.entityId));
       return d`
                 <article class="floor-room-row" role="listitem">
                   <span class="icon-bubble small"><ha-icon icon=${o.icon}></ha-icon></span>
-                  <span class="floor-room-main"><strong>${o.name}</strong><small>${o.allEntities.filter(pe).length} ${this.localText("פעילים", "active")}</small></span>
+                  <span class="floor-room-main"><strong>${o.name}</strong><small>${o.allEntities.filter(ue).length} ${this.localText("פעילים", "active")}</small></span>
                   <button
                     class="floor-room-off"
                     type="button"
@@ -8779,7 +8896,7 @@ let I = class extends Z {
     const t = e.areas.find((n) => n.id === this.areaPopupId);
     if (!t || this.areaOpenMode(t) !== "popup")
       return queueMicrotask(() => this.resetAreaPopup()), h;
-    const i = t.allEntities.filter(pe).length, o = `overview-area-popup-${t.id.replace(/[^a-zA-Z0-9_-]/g, "-")}`, r = `${o}-title`;
+    const i = t.allEntities.filter(ue).length, o = `overview-area-popup-${t.id.replace(/[^a-zA-Z0-9_-]/g, "-")}`, r = `${o}-title`;
     return d`
       <dialog
         id=${o}
@@ -8813,7 +8930,7 @@ let I = class extends Z {
     for (const i of e.areas)
       for (const a of i.allEntities) t.set(a.entityId, a);
     return {
-      id: De,
+      id: Le,
       name: e.targetName,
       icon: e.targetIcon,
       showWhenParentCollapsed: !1,
@@ -8826,7 +8943,7 @@ let I = class extends Z {
     };
   }
   renderQuickPopupEntity(e, t, i) {
-    const a = this.entityBusy(e), o = !e.powered, r = pt(t, e, o), n = !e.available || a || i || !r, s = t === "covers" ? o ? this.localText("פתיחה", "Open") : this.localText("סגירה", "Close") : o ? this.localText("הפעלה", "Turn on") : this.localText("כיבוי", "Turn off"), c = e.available ? r ? "" : this.localText("אין פעולת שליטה נתמכת", "No supported control action") : F(this.hass, this.config, "unavailable");
+    const a = this.entityBusy(e), o = !e.powered, r = pt(t, e, o), n = !e.available || a || i || !r, s = t === "covers" ? o ? this.localText("פתיחה", "Open") : this.localText("סגירה", "Close") : o ? this.localText("הפעלה", "Turn on") : this.localText("כיבוי", "Turn off"), c = e.available ? r ? "" : this.localText("אין פעולת שליטה נתמכת", "No supported control action") : N(this.hass, this.config, "unavailable");
     return d`
       <article class="quick-popup-entity ${e.powered ? "active" : "inactive"} ${e.available ? "" : "unavailable"}" role="listitem">
         <button
@@ -8860,7 +8977,7 @@ let I = class extends Z {
     `;
   }
   renderEntity(e, t) {
-    return t === "floor_heating" ? this.renderFloorHeating(e) : e.domain === "climate" ? this.renderClimate(e) : e.domain === "cover" ? this.renderCover(e) : e.domain === "media_player" ? this.renderMedia(e) : Fa(e) ? this.renderLight(e) : this.renderToggle(e);
+    return t === "floor_heating" ? this.renderFloorHeating(e) : e.domain === "climate" ? this.renderClimate(e) : e.domain === "cover" ? this.renderCover(e) : e.domain === "media_player" ? this.renderMedia(e) : Da(e) ? this.renderLight(e) : this.renderToggle(e);
   }
   renderEntityLead(e) {
     const t = this.entityPresentation(e);
@@ -8894,7 +9011,7 @@ let I = class extends Z {
         aria-busy=${t}
         aria-disabled=${a}
         aria-label=${`${e.name}: ${this.entitySecondary(e)}. ${this.localText("לחיצה ארוכה לפרטים נוספים", "Hold for more information")}`}
-        title=${`${e.active ? F(this.hass, this.config, "turn_off") : F(this.hass, this.config, "on")} · ${this.localText("לחיצה ארוכה לפרטים", "hold for details")}`}
+        title=${`${e.active ? N(this.hass, this.config, "turn_off") : N(this.hass, this.config, "on")} · ${this.localText("לחיצה ארוכה לפרטים", "hold for details")}`}
         @pointerdown=${(n) => this.startHold(n, e)}
         @pointermove=${(n) => this.moveHold(n)}
         @pointerup=${(n) => this.finishHold(n)}
@@ -8911,8 +9028,8 @@ let I = class extends Z {
     `;
   }
   renderClimate(e) {
-    var v;
-    const t = P(e, "current_temperature"), i = P(e, "target_temp_step") ?? 0.5, a = H(e.entity, ae.TARGET_TEMPERATURE) ? P(e, "temperature") : void 0, o = H(e.entity, ae.TARGET_TEMPERATURE_RANGE) ? P(e, "target_temp_low") : void 0, r = H(e.entity, ae.TARGET_TEMPERATURE_RANGE) ? P(e, "target_temp_high") : void 0, n = o !== void 0 && r !== void 0, s = pi(e), c = H(e.entity, ae.FAN_MODE) && Array.isArray(e.entity.attributes.fan_modes) ? e.entity.attributes.fan_modes.map(String) : [], p = this.entityBusy(e), b = this.climateModeIcon(e.entity.state), m = ((v = this.config) == null ? void 0 : v.climate_mode_presentation) ?? "both", l = String(e.entity.attributes.fan_mode ?? "");
+    var g;
+    const t = I(e, "current_temperature"), i = I(e, "target_temp_step") ?? 0.5, a = U(e.entity, oe.TARGET_TEMPERATURE) ? I(e, "temperature") : void 0, o = U(e.entity, oe.TARGET_TEMPERATURE_RANGE) ? I(e, "target_temp_low") : void 0, r = U(e.entity, oe.TARGET_TEMPERATURE_RANGE) ? I(e, "target_temp_high") : void 0, n = o !== void 0 && r !== void 0, s = mi(e), c = U(e.entity, oe.FAN_MODE) && Array.isArray(e.entity.attributes.fan_modes) ? e.entity.attributes.fan_modes.map(String) : [], p = this.entityBusy(e), b = this.climateModeIcon(e.entity.state), m = ((g = this.config) == null ? void 0 : g.climate_mode_presentation) ?? "both", l = String(e.entity.attributes.fan_mode ?? "");
     return d`
       <article class="climate-card entity-card full-span mode-${e.entity.state} ${e.active ? "active" : ""} ${e.available ? "" : "unavailable"}" aria-busy=${p}>
         <div class="climate-primary">
@@ -8957,7 +9074,7 @@ let I = class extends Z {
   }
   renderLight(e) {
     var n;
-    const t = this.entityBusy(e), i = jt(e), a = Q(e, !e.powered), o = `${this.localText("בהירות", "Brightness")}: ${e.name}`, r = this.entityPresentation(e);
+    const t = this.entityBusy(e), i = Vt(e), a = Q(e, !e.powered), o = `${this.localText("בהירות", "Brightness")}: ${e.name}`, r = this.entityPresentation(e);
     return d`
       <article class="light-card entity-card tile-shape-${r.shape} tile-icon-${r.iconPosition} ${e.active ? "active" : ""} ${e.available ? "" : "unavailable"}" aria-busy=${t}>
         <div class="light-primary">
@@ -8966,7 +9083,7 @@ let I = class extends Z {
             class="light-power ${e.powered ? "active" : ""}"
             type="button"
             aria-pressed=${e.powered}
-            aria-label=${`${e.powered ? F(this.hass, this.config, "turn_off") : F(this.hass, this.config, "on")}: ${e.name}`}
+            aria-label=${`${e.powered ? N(this.hass, this.config, "turn_off") : N(this.hass, this.config, "on")}: ${e.name}`}
             ?disabled=${t || !e.available || !a}
             @click=${(s) => this.toggleEntity(s, e)}
           ><ha-icon icon=${t ? "mdi:loading" : "mdi:power"}></ha-icon></button>
@@ -9008,9 +9125,9 @@ let I = class extends Z {
     `;
   }
   renderFloorHeating(e) {
-    const t = e.domain === "water_heater" ? ci.TARGET_TEMPERATURE : ae.TARGET_TEMPERATURE, i = H(e.entity, t) ? P(e, "temperature") : void 0, a = P(e, "current_temperature");
+    const t = e.domain === "water_heater" ? ui.TARGET_TEMPERATURE : oe.TARGET_TEMPERATURE, i = U(e.entity, t) ? I(e, "temperature") : void 0, a = I(e, "current_temperature");
     if (i === void 0 && a === void 0) return this.renderToggle(e);
-    const o = P(e, "target_temp_step") ?? 0.5, r = this.entityBusy(e), n = Q(e, !e.powered);
+    const o = I(e, "target_temp_step") ?? 0.5, r = this.entityBusy(e), n = Q(e, !e.powered);
     return d`
       <article class="thermostat-card entity-card full-span ${e.active ? "active" : ""} ${e.available ? "" : "unavailable"}" aria-busy=${r}>
         <div class="thermostat-primary">
@@ -9025,7 +9142,7 @@ let I = class extends Z {
           class="thermostat-power ${e.powered ? "active" : ""}"
           type="button"
           aria-pressed=${e.powered}
-          aria-label=${`${e.powered ? F(this.hass, this.config, "turn_off") : F(this.hass, this.config, "on")}: ${e.name}`}
+          aria-label=${`${e.powered ? N(this.hass, this.config, "turn_off") : N(this.hass, this.config, "on")}: ${e.name}`}
           ?disabled=${r || !e.available || !n}
           @click=${(s) => this.toggleEntity(s, e)}
         ><ha-icon icon=${r ? "mdi:loading" : "mdi:power"}></ha-icon></button>
@@ -9033,7 +9150,7 @@ let I = class extends Z {
     `;
   }
   renderCover(e) {
-    const t = this.entityBusy(e), i = P(e, "supported_features"), a = P(e, "current_position"), o = e.entity.state, r = [
+    const t = this.entityBusy(e), i = I(e, "supported_features"), a = I(e, "current_position"), o = e.entity.state, r = [
       { service: "open_cover", icon: "mdi:arrow-up", feature: 1 },
       { service: "stop_cover", icon: "mdi:stop", feature: 8 },
       { service: "close_cover", icon: "mdi:arrow-down", feature: 2 }
@@ -9056,7 +9173,7 @@ let I = class extends Z {
     `;
   }
   renderMedia(e) {
-    const t = this.entityBusy(e), i = e.entity.state === "playing", a = P(e, "volume_level"), o = a !== void 0 && H(e.entity, ke.VOLUME_SET), r = H(e.entity, i ? ke.PAUSE : ke.PLAY), n = Q(e, !e.powered);
+    const t = this.entityBusy(e), i = e.entity.state === "playing", a = I(e, "volume_level"), o = a !== void 0 && U(e.entity, Se.VOLUME_SET), r = U(e.entity, i ? Se.PAUSE : Se.PLAY), n = Q(e, !e.powered);
     return d`
       <article class="media-card entity-card full-span ${e.active ? "active" : ""} ${e.available ? "" : "unavailable"}" aria-busy=${t}>
         ${this.renderEntityLead(e)}
@@ -9067,35 +9184,35 @@ let I = class extends Z {
                 <button class="control-button" type="button" ?disabled=${t || !e.available} @click=${(s) => this.setMediaVolume(s, e, a + 0.05)} aria-label=${`${this.localText("הגברת עוצמה", "Volume up")}: ${e.name}`}><ha-icon icon="mdi:volume-plus"></ha-icon></button>
               ` : h}
           ${r ? d`<button class="control-button ${i ? "active" : ""}" type="button" ?disabled=${t || !e.available} @click=${(s) => this.runEntityService(s, e, i ? "media_pause" : "media_play")} aria-label=${`${this.localText(i ? "השהיה" : "ניגון", i ? "Pause" : "Play")}: ${e.name}`}><ha-icon icon=${i ? "mdi:pause" : "mdi:play"}></ha-icon></button>` : h}
-          ${n ? d`<button class="control-button" type="button" ?disabled=${t || !e.available} @click=${(s) => this.toggleEntity(s, e)} aria-label=${`${e.powered ? F(this.hass, this.config, "turn_off") : F(this.hass, this.config, "on")}: ${e.name}`}><ha-icon icon="mdi:power"></ha-icon></button>` : h}
+          ${n ? d`<button class="control-button" type="button" ?disabled=${t || !e.available} @click=${(s) => this.toggleEntity(s, e)} aria-label=${`${e.powered ? N(this.hass, this.config, "turn_off") : N(this.hass, this.config, "on")}: ${e.name}`}><ha-icon icon="mdi:power"></ha-icon></button>` : h}
         </div>
       </article>
     `;
   }
   entitySecondary(e) {
     var a, o;
-    if (!e.available) return F(this.hass, this.config, "unavailable");
+    if (!e.available) return N(this.hass, this.config, "unavailable");
     const t = String(e.entity.state).toLowerCase(), i = t === "on" || t === "off" ? this.binaryStateLabel(t, e) : void 0;
     if (this.isCompactAuxiliary(e)) {
       const r = e.powered ? this.elapsedSince(e.entity.last_changed) : void 0;
       return [i ?? e.entity.state, r].filter(Boolean).join(" · ");
     }
     if (e.domain === "climate") {
-      const r = P(e, "current_temperature");
+      const r = I(e, "current_temperature");
       return [String(e.entity.attributes.hvac_action ?? e.entity.state).replace(/_/g, " "), r !== void 0 ? this.formatTemperature(r, this.areaTemperatureUnit(e)) : ""].filter(Boolean).join(" · ");
     }
     if (e.domain === "cover") {
-      const r = P(e, "current_position");
+      const r = I(e, "current_position");
       return r !== void 0 ? `${e.entity.state} · ${Math.round(r)}%` : e.entity.state;
     }
     if (e.domain === "light") {
-      const r = P(e, "brightness");
+      const r = I(e, "brightness");
       return r !== void 0 && e.active ? `${i ?? e.entity.state} · ${Math.round(r / 255 * 100)}%` : i ?? e.entity.state;
     }
     if (e.domain === "media_player")
       return String(e.entity.attributes.media_title ?? e.entity.attributes.source ?? e.entity.state);
     if (e.section === "floor_heating") {
-      const r = P(e, "current_temperature");
+      const r = I(e, "current_temperature");
       return [i ?? e.entity.state, r !== void 0 ? this.formatTemperature(r, this.areaTemperatureUnit(e)) : ""].filter(Boolean).join(" · ");
     }
     return i ?? ((o = (a = this.hass) == null ? void 0 : a.formatEntityState) == null ? void 0 : o.call(a, e.entity)) ?? e.entity.state;
@@ -9276,11 +9393,11 @@ let I = class extends Z {
   }
   async handleFloorRoomOff(e, t) {
     if (e.stopPropagation(), !this.hass || this.pendingFloor || this.pendingFloorRooms.has(t.id)) return;
-    const i = Le(t, !1);
+    const i = De(t, !1);
     if (!(!i.length || i.some((a) => this.pendingEntities.has(a.entityId)))) {
       this.pendingFloorRooms = /* @__PURE__ */ new Set([...this.pendingFloorRooms, t.id]), this.lockPendingEntities(i);
       try {
-        await Ht(this.hass, t, !1);
+        await Gt(this.hass, t, !1);
       } catch (a) {
         this.reportError(a);
       } finally {
@@ -9291,11 +9408,11 @@ let I = class extends Z {
   }
   async handleFloorAllOff(e, t) {
     if (e.stopPropagation(), !this.hass || this.pendingFloor || this.pendingFloorRooms.size) return;
-    const i = t.flatMap((a) => Le(a, !1));
+    const i = t.flatMap((a) => De(a, !1));
     if (!(!i.length || i.some((a) => this.pendingEntities.has(a.entityId)))) {
       this.pendingFloor = !0, this.lockPendingEntities(i);
       try {
-        const a = await Promise.allSettled(t.map((r) => Ht(this.hass, r, !1))), o = a.filter((r) => r.status === "rejected");
+        const a = await Promise.allSettled(t.map((r) => Gt(this.hass, r, !1))), o = a.filter((r) => r.status === "rejected");
         if (o.length) throw new Error(`${o.length} of ${a.length} room actions failed.`);
       } catch (a) {
         this.reportError(a);
@@ -9342,11 +9459,11 @@ let I = class extends Z {
   }
   async handleQuickPopupGroupAction(e, t, i, a) {
     if (e.stopPropagation(), !this.hass) return;
-    const o = `${t.id}:${i}:${a ? "on" : "off"}`, r = Se(t, i), n = at(t, i, a);
+    const o = `${t.id}:${i}:${a ? "on" : "off"}`, r = Ae(t, i), n = at(t, i, a);
     if (!(this.quickActionPending(t.id, i) || r.some((s) => this.pendingEntities.has(s.entityId)) || n.length === 0)) {
       this.pendingActions = /* @__PURE__ */ new Set([...this.pendingActions, o]), this.lockPendingEntities(n);
       try {
-        await Ma(this.hass, t, i, a);
+        await ja(this.hass, t, i, a);
       } catch (s) {
         this.reportError(s);
       } finally {
@@ -9366,7 +9483,7 @@ let I = class extends Z {
     if (!(this.pendingSections.has(o) || this.pendingSections.has(r) || t.entities.some((s) => this.pendingEntities.has(s.entityId)) || n.length === 0)) {
       this.pendingSections = /* @__PURE__ */ new Set([...this.pendingSections, o]), this.lockPendingEntities(n);
       try {
-        await La(this.hass, t, a);
+        await Ua(this.hass, t, a);
       } catch (s) {
         this.reportError(s);
       } finally {
@@ -9395,11 +9512,11 @@ let I = class extends Z {
     e.stopPropagation(), this.performEntityCall(t, () => G(this.hass, t.entityId, i));
   }
   setClimateTemperature(e, t) {
-    const i = P(e, "min_temp") ?? -100, a = P(e, "max_temp") ?? 100, o = Math.min(a, Math.max(i, t));
+    const i = I(e, "min_temp") ?? -100, a = I(e, "max_temp") ?? 100, o = Math.min(a, Math.max(i, t));
     this.performEntityCall(e, () => G(this.hass, e.entityId, "set_temperature", { temperature: o }));
   }
   setClimateRange(e, t, i, a) {
-    const o = P(e, "min_temp") ?? -100, r = P(e, "max_temp") ?? 100, n = a === "low" ? Math.min(i, Math.max(o, t)) : t, s = a === "high" ? Math.max(n, Math.min(r, i)) : i;
+    const o = I(e, "min_temp") ?? -100, r = I(e, "max_temp") ?? 100, n = a === "low" ? Math.min(i, Math.max(o, t)) : t, s = a === "high" ? Math.max(n, Math.min(r, i)) : i;
     this.performEntityCall(e, () => G(this.hass, e.entityId, "set_temperature", {
       target_temp_low: n,
       target_temp_high: s
@@ -9426,7 +9543,7 @@ let I = class extends Z {
     const i = (o = t.detail) == null ? void 0 : o.value;
     if (typeof i != "number" || !Number.isFinite(i)) return;
     const a = Math.min(100, Math.max(0, Math.round(i)));
-    a !== jt(e) && this.performEntityCall(e, () => a === 0 ? G(this.hass, e.entityId, "turn_off") : G(this.hass, e.entityId, "turn_on", { brightness_pct: a }));
+    a !== Vt(e) && this.performEntityCall(e, () => a === 0 ? G(this.hass, e.entityId, "turn_off") : G(this.hass, e.entityId, "turn_on", { brightness_pct: a }));
   }
   setMediaVolume(e, t, i) {
     e.stopPropagation(), this.performEntityCall(t, () => G(this.hass, t.entityId, "volume_set", { volume_level: Math.min(1, Math.max(0, i)) }));
@@ -9453,10 +9570,10 @@ let I = class extends Z {
     (i = this.config) != null && i.debug && console.warn("[area-bubble-overview-card]", e), this.dispatchEvent(new CustomEvent("hass-notification", { bubbles: !0, composed: !0, detail: { message: t } }));
   }
   storageKey() {
-    return `${Dt}:${this.storageId}:expanded`;
+    return `${Bt}:${this.storageId}:expanded`;
   }
   floorStorageKey() {
-    return `${Dt}:${this.storageId}:floor-expanded`;
+    return `${Bt}:${this.storageId}:floor-expanded`;
   }
   readExpanded() {
     try {
@@ -9501,49 +9618,49 @@ let I = class extends Z {
     );
   }
 };
-I.styles = _o;
-M([
-  ze({ attribute: !1 })
-], I.prototype, "hass", 2);
-M([
+O.styles = $o;
+q([
+  Fe({ attribute: !1 })
+], O.prototype, "hass", 2);
+q([
   C()
-], I.prototype, "config", 2);
-M([
+], O.prototype, "config", 2);
+q([
   C()
-], I.prototype, "expanded", 2);
-M([
+], O.prototype, "expanded", 2);
+q([
   C()
-], I.prototype, "floorExpanded", 2);
-M([
+], O.prototype, "floorExpanded", 2);
+q([
   C()
-], I.prototype, "pendingActions", 2);
-M([
+], O.prototype, "pendingActions", 2);
+q([
   C()
-], I.prototype, "pendingSections", 2);
-M([
+], O.prototype, "pendingSections", 2);
+q([
   C()
-], I.prototype, "pendingEntities", 2);
-M([
+], O.prototype, "pendingEntities", 2);
+q([
   C()
-], I.prototype, "quickPopup", 2);
-M([
+], O.prototype, "quickPopup", 2);
+q([
   C()
-], I.prototype, "areaPopupId", 2);
-M([
+], O.prototype, "areaPopupId", 2);
+q([
   C()
-], I.prototype, "floorPopupOpen", 2);
-M([
+], O.prototype, "floorPopupOpen", 2);
+q([
   C()
-], I.prototype, "pendingFloor", 2);
-M([
+], O.prototype, "pendingFloor", 2);
+q([
   C()
-], I.prototype, "pendingFloorRooms", 2);
-M([
+], O.prototype, "pendingFloorRooms", 2);
+q([
   C()
-], I.prototype, "error", 2);
-I = M([
+], O.prototype, "error", 2);
+O = q([
   Ye(lt)
-], I);
+], O);
 window.customCards = window.customCards ?? [];
 window.customCards.some((e) => e.type === lt) || window.customCards.push({
   type: lt,

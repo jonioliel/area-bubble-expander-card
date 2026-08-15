@@ -500,7 +500,13 @@ export class AreaBubbleOverviewCard extends LitElement {
       : "color-mix(in srgb, var(--divider-color) 58%, transparent)";
     const requestedSectionColumns = sectionStyle.columns ?? (section.id === "lights_switches" || section.id === "floor_heating" ? 2 : 1);
     const sectionColumns = section.id === "covers" ? Math.min(2, requestedSectionColumns) : requestedSectionColumns;
-    const defaultEntityHeight = section.id === "climate" ? 108 : section.id === "floor_heating" ? 92 : 56;
+    const entityCardSize = areaOverride?.entity_card_size ?? this.config?.entity_card_size ?? "medium";
+    const defaultHeights = {
+      compact: section.id === "climate" ? 96 : section.id === "floor_heating" ? 80 : 48,
+      medium: section.id === "climate" ? 108 : section.id === "floor_heating" ? 92 : 56,
+      wide: section.id === "climate" ? 120 : section.id === "floor_heating" ? 108 : 68,
+    } as const;
+    const defaultEntityHeight = defaultHeights[entityCardSize];
     const sectionEntityHeight = sectionStyle.entity_height ?? defaultEntityHeight;
     const actionPresentation = sectionStyle.action_presentation ?? this.config?.section_action_presentation ?? "icon";
     const sectionStyleText = [
@@ -516,7 +522,7 @@ export class AreaBubbleOverviewCard extends LitElement {
     const togglePending = toggleTurnOn ? pendingOn : pendingOff;
     const toggleLabel = toggleTurnOn ? onLabel : offLabel;
     return html`
-      <section class="device-section section-${section.id} columns-${sectionColumns} ${sectionStyle.show_border ? "section-framed" : ""}" style=${sectionStyleText} aria-labelledby=${headingId}>
+      <section class="device-section section-${section.id} columns-${sectionColumns} entity-size-${entityCardSize} ${sectionStyle.show_border ? "section-framed" : ""}" style=${sectionStyleText} aria-labelledby=${headingId}>
         <h3 class="section-heading" id=${headingId}>
           <span class="section-heading-main"><ha-icon icon=${section.icon}></ha-icon><span class="section-title" title=${section.title}>${section.title}</span><span class="section-count">${section.activeCount}/${section.entities.length}</span></span>
           <span class="section-actions" role="group" aria-label=${`${this.localText("שליטה כללית", "Group controls")}: ${section.title}`}>
@@ -552,12 +558,12 @@ export class AreaBubbleOverviewCard extends LitElement {
                 `}
           </span>
         </h3>
-        ${this.renderSectionEntities(section)}
+        ${this.renderSectionEntities(section, area)}
       </section>
     `;
   }
 
-  private renderSectionEntities(section: OverviewSection) {
+  private renderSectionEntities(section: OverviewSection, area: OverviewArea) {
     if (!section.entities.length) {
       return html`<div class="section-entities"><div class="secondary section-empty">${this.config && overviewLanguage(this.hass, this.config) === "he" ? "אין רכיבים בסעיף" : "No devices in this section"}</div></div>`;
     }
@@ -572,7 +578,7 @@ export class AreaBubbleOverviewCard extends LitElement {
     return html`
       ${ungrouped.length ? html`<div class="section-entities">${ungrouped.map((item) => this.renderEntity(item, section.id))}</div>` : nothing}
       ${[...groups.entries()].map(([group, entities]) => {
-        const title = this.subgroupTitle(group);
+        const title = this.subgroupTitle(group, area);
         return html`
           <section class="entity-subgroup" aria-label=${title}>
             <div class="entity-subgroup-heading"><ha-icon icon=${this.subgroupIcon(group)}></ha-icon><span>${title}</span><small>${entities.filter((item) => item.powered).length}/${entities.length}</small></div>
@@ -583,9 +589,14 @@ export class AreaBubbleOverviewCard extends LitElement {
     `;
   }
 
-  private subgroupTitle(group: string): string {
-    if (group === AUTO_FAN_GROUP) return this.localText("מאווררים", "Fans");
-    if (group === AUTO_FLOOR_HEATING_GROUP) return this.localText("בקרי חימום", "Heating controls");
+  private subgroupTitle(group: string, area: OverviewArea): string {
+    const key = group === AUTO_FAN_GROUP ? "fans" : group === AUTO_FLOOR_HEATING_GROUP ? "heating_controls" : undefined;
+    if (!key) return group;
+    const areaOverride = this.config?.area_overrides[area.id] ?? this.config?.area_overrides[area.name];
+    const configured = areaOverride?.subgroup_titles?.[key] || this.config?.subgroup_titles[key];
+    if (configured) return configured;
+    if (key === "fans") return this.localText("מאווררים", "Fans");
+    if (key === "heating_controls") return this.localText("בקרי חימום", "Heating controls");
     return group;
   }
 

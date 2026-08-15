@@ -253,6 +253,8 @@ export const OVERVIEW_DEFAULT_CONFIG: AreaBubbleOverviewCardConfig = {
   light_tile_shape: "rectangle",
   light_icon_position: "start",
   light_show_state: true,
+  entity_card_size: "medium",
+  subgroup_titles: {},
   show_empty_sections: false,
   default_expanded: false,
   floor_default_expanded: true,

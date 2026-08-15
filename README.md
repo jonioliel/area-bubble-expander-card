@@ -153,7 +153,7 @@ The Area arrows in the visual editor order roots relative to roots and children 
 
 Empty sections are hidden by default. Every discovered device remains visible inside an expanded Area even when it is off; activity is used for highlights and active-count badges. A collapsed-header quick-action category is shown only while at least one of its devices is powered.
 
-The expanded layout is intentionally compact: climate uses a dedicated two-row controller, covers and media keep full-width controls, and lights/switches use a two-column tile grid whenever the card is wide enough. Collapsed Area summaries always remain one physical row. Mobile quick actions, presence, and the climate tag shrink progressively before the action strip falls back to horizontal scrolling, so the controls do not cover the Area name or temperature. Responsiveness follows the card's own width, so the same layout also works inside narrow desktop dashboard columns.
+The expanded layout supports `compact`, `medium`, and `wide` device-card sizes. Climate uses a dedicated two-row controller, covers can use one or two columns, and lights/switches can use one to three columns. A lone cover always spans the complete category width; the two-column split begins only when a second cover exists. Collapsed Area summaries always remain one physical row. Mobile quick actions, presence, and the climate tag shrink progressively before the action strip falls back to horizontal scrolling, so the controls do not cover the Area name or temperature. Responsiveness follows the card's own width, so the same layout also works inside narrow desktop dashboard columns.
 
 Collapsed Areas use only their summary capsule. Opening an Area adds one surrounding frame that shares its exact color and top edge with the summary capsule, encloses the complete content, and fills the expanded Area with the same ON/OFF state surface. An open cover is counted on the cover quick action but does not make the Area itself active. Active climate devices are folded into a compact A/C icon attached to the climate-colored temperature chip instead of consuming a separate quick-action circle; pressing the icon still opens the climate popup. Climate mode and fan controls use Home Assistant's native anchored menus, and the mode menu is the single climate power control.
 
@@ -180,6 +180,10 @@ Collapsed Area summaries can keep active quick actions beside the Area name or m
 quick_actions_position: opposite # opposite | near_name
 climate_tag_position: left       # left | right | top | bottom
 show_fan_tag: true
+entity_card_size: medium        # compact | medium | wide
+subgroup_titles:
+  fans: Ventilation
+  heating_controls: Heating relays
 entity_state_language: auto      # auto | he | en
 light_tile_shape: rectangle      # rectangle | square
 light_icon_position: start       # start | left | right | center
@@ -193,7 +197,7 @@ style:
   section_frame_brightness: 12
 ```
 
-The lighting grid supports one to three ordinary light/switch tiles per row. Dimmable lights intentionally span the complete row so their brightness slider remains accurate and easy to touch. Any light/switch can override the global shape, icon position, state visibility, and state language through `entity_overrides`:
+The lighting grid supports one to three ordinary light/switch tiles per row. In a three-column grid the visual icons and spacing adapt automatically, labels can use three word-safe lines, and the complete tile remains the touch target. Dimmable lights intentionally span the complete row so their brightness slider remains accurate and easy to touch. Any light/switch can override the global shape, icon position, state visibility, and state language through `entity_overrides`:
 
 ```yaml
 entity_overrides:
@@ -364,6 +368,10 @@ section_styles:
 
 area_overrides:
   kids_room:
+    entity_card_size: compact
+    subgroup_titles:
+      fans: Room fans
+      heating_controls: Floor controls
     subarea_order:
       - Shower
       - Bathroom
@@ -380,7 +388,7 @@ entity_overrides:
     group: Shower
 ```
 
-`section_styles` supplies the global category appearance, including frame visibility, color, thickness (0–8 px), solid/dashed/dotted style, equipment height, column count, and an optional action-button presentation override. Covers accept one or two columns; lights/switches accept one, two, or three. A matching `area_overrides.<area>.section_styles` value overrides only that room.
+`section_styles` supplies the global category appearance, including frame visibility, color, thickness (0–8 px), solid/dashed/dotted style, equipment height, column count, and an optional action-button presentation override. Covers accept one or two columns; lights/switches accept one, two, or three. A matching `area_overrides.<area>.section_styles` value overrides only that room. `entity_card_size` provides a coordinated compact/medium/wide preset, while an explicit `entity_height` remains the final override.
 
 Entities with the same non-empty manual `group` value form one room sub-area. General room categories render first; each sub-area then renders once, with its own category sections underneath. `area_overrides.<area>.subarea_order` controls their order. The automatic **Fans** and **Heating controls** groups stay inside Climate and Floor heating instead of becoming room sub-areas. The visual editor exposes the same hierarchy and ordering without changing the entities' real Home Assistant Area, state, or safe controls.
 
@@ -598,6 +606,8 @@ style:
 | `entity_state_language` | `auto` | Global ON/OFF text language: `auto`, `he`, or `en`. |
 | `light_tile_shape` / `light_icon_position` | `rectangle` / `start` | Global light/switch tile shape and icon placement (`start` follows RTL/LTR; or physical `left`, `right`, `center`). |
 | `light_show_state` | `true` | Shows state/brightness text on light/switch tiles by default. |
+| `entity_card_size` | `medium` | Coordinated `compact`, `medium`, or `wide` device-card height, spacing, typography, and icon sizing. |
+| `subgroup_titles` | localized | Optional global names for automatic `fans` and `heating_controls` sub-categories. |
 | `show_empty_sections` | `false` | Keeps the layout compact when a category is absent. |
 | `default_expanded` | `false` | Initial Area expansion. |
 | `floor_default_expanded` | `true` | Initial visibility of all Areas under a Floor header. |
@@ -623,6 +633,8 @@ style:
 | `area_overrides.<area>.show_when_parent_collapsed` | `false` | Keeps this child visible inside its parent while the parent is collapsed. |
 | `area_overrides.<area>.open_mode` | inherit global | Overrides one room with `expander` or `popup`. |
 | `area_overrides.<area>.subarea_order` | discovery order | Orders named room sub-areas after the general room categories. |
+| `area_overrides.<area>.entity_card_size` | inherit global | Overrides compact/medium/wide device-card sizing for one room. |
+| `area_overrides.<area>.subgroup_titles` | inherit global | Overrides automatic Fans/Heating-controls titles for one room. |
 | `area_overrides.<area>.occupancy_count_entity` | none | Authoritative numeric people-count entity; zero is vacant. |
 | `area_overrides.<area>.occupancy_entities` | automatic | Presence sensors to count when no numeric count entity is selected. |
 | `area_overrides.<area>.exclude_entities` | `[]` | Removes entities from display and every Area state/summary calculation. |
@@ -724,7 +736,7 @@ The Overview editor provides:
 - Entity section/room-sub-area assignment, names, icons, group protection, activity exclusion, and priority order; manual section choices override automatic fan/floor-heating mapping
 - General-room-first hierarchy plus per-room ordering of named sub-areas and their nested category sections
 - Convenient on/off, occupancy, and HVAC temperature-state color pickers with CSS-value inputs, reset actions, and live previews
-- Adjustable Area-name size, one-to-three-column light grids, global/per-device tile presentation and state language, native Home Assistant HVAC/fan menus, and automatic full-row brightness sliders for dimmable lights
+- Adjustable Area-name size, adaptive one-to-three-column light grids, single-cover full-width behavior, compact/medium/wide device-card presets, editable automatic sub-category titles, global/per-device tile presentation and state language, native Home Assistant HVAC/fan menus, and automatic full-row brightness sliders for dimmable lights
 - Safe Area/category/Floor popups and on/off/open/close controls that honor exclusion, availability, capability, and protection rules
 - Hebrew/English, RTL, responsive appearance, long-press More Info, and advanced safety lists
 

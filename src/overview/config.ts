@@ -1,8 +1,10 @@
 import { OVERVIEW_CARD_TYPE, OVERVIEW_DEFAULT_CONFIG, OVERVIEW_DEFAULT_STYLE, OVERVIEW_SECTIONS, OVERVIEW_THEME_PRESETS, QUICK_ACTION_ICONS, SECTION_ACTION_ICONS } from "./constants";
 import type {
   AreaBubbleOverviewCardConfig,
+  OverviewAutomaticSubgroupId,
   OverviewAreaOverride,
   OverviewControlPresentation,
+  OverviewEntityCardSize,
   OverviewEntityOverride,
   OverviewSectionActionIcons,
   OverviewSectionBorderStyle,
@@ -41,6 +43,15 @@ const sectionTitles = (value: unknown): Partial<Record<OverviewSectionId, string
   const result: Partial<Record<OverviewSectionId, string>> = {};
   for (const section of OVERVIEW_SECTIONS) {
     if (typeof value[section] === "string") result[section] = value[section];
+  }
+  return result;
+};
+
+const subgroupTitles = (value: unknown): Partial<Record<OverviewAutomaticSubgroupId, string>> => {
+  if (!isRecord(value)) return {};
+  const result: Partial<Record<OverviewAutomaticSubgroupId, string>> = {};
+  for (const key of ["fans", "heating_controls"] as const) {
+    if (typeof value[key] === "string" && value[key].trim()) result[key] = value[key].trim();
   }
   return result;
 };
@@ -114,6 +125,7 @@ const areaOverrides = (value: unknown): Record<string, OverviewAreaOverride> => 
   const result: Record<string, OverviewAreaOverride> = {};
   for (const [areaId, raw] of Object.entries(value)) {
     if (!isRecord(raw)) continue;
+    const entityCardSizes = new Set<OverviewEntityCardSize>(["compact", "medium", "wide"]);
     result[areaId] = {
       ...(typeof raw.name === "string" && raw.name.trim() ? { name: raw.name.trim() } : {}),
       ...(typeof raw.icon === "string" && raw.icon.trim() ? { icon: raw.icon.trim() } : {}),
@@ -131,6 +143,10 @@ const areaOverrides = (value: unknown): Record<string, OverviewAreaOverride> => 
       occupancy_entities: stringArray(raw.occupancy_entities),
       ...(Array.isArray(raw.section_order) ? { section_order: sectionArray(raw.section_order) } : {}),
       ...(Array.isArray(raw.subarea_order) ? { subarea_order: stringArray(raw.subarea_order) } : {}),
+      subgroup_titles: subgroupTitles(raw.subgroup_titles),
+      ...(typeof raw.entity_card_size === "string" && entityCardSizes.has(raw.entity_card_size as OverviewEntityCardSize)
+        ? { entity_card_size: raw.entity_card_size as OverviewEntityCardSize }
+        : {}),
       section_titles: sectionTitles(raw.section_titles),
       section_styles: sectionStyles(raw.section_styles),
       entity_order: sectionLists(raw.entity_order),
@@ -199,6 +215,7 @@ export const resolveOverviewConfig = (config: AreaBubbleOverviewCardConfig): Res
   const tileShapes = new Set<OverviewTileShape>(["rectangle", "square"]);
   const iconPositions = new Set<OverviewTileIconPosition>(["start", "left", "right", "center"]);
   const controlPresentations = new Set<OverviewControlPresentation>(["icon", "text", "both"]);
+  const entityCardSizes = new Set<OverviewEntityCardSize>(["compact", "medium", "wide"]);
   return {
     ...merged,
     type: OVERVIEW_CARD_TYPE,
@@ -232,6 +249,7 @@ export const resolveOverviewConfig = (config: AreaBubbleOverviewCardConfig): Res
     light_tile_shape: tileShapes.has(config.light_tile_shape as OverviewTileShape) ? config.light_tile_shape! : "rectangle",
     light_icon_position: iconPositions.has(config.light_icon_position as OverviewTileIconPosition) ? config.light_icon_position! : "start",
     light_show_state: typeof config.light_show_state === "boolean" ? config.light_show_state : true,
+    entity_card_size: entityCardSizes.has(config.entity_card_size as OverviewEntityCardSize) ? config.entity_card_size! : "medium",
     section_order: sectionArray(config.section_order),
     section_titles: Object.fromEntries(
       OVERVIEW_SECTIONS.map((section) => [section, typeof customTitles[section] === "string" ? customTitles[section] : ""]),
@@ -247,6 +265,10 @@ export const resolveOverviewConfig = (config: AreaBubbleOverviewCardConfig): Res
       ? config.climate_mode_presentation!
       : "both",
     section_action_icons: sectionActionIcons(config.section_action_icons),
+    subgroup_titles: {
+      fans: subgroupTitles(config.subgroup_titles).fans ?? "",
+      heating_controls: subgroupTitles(config.subgroup_titles).heating_controls ?? "",
+    },
     quick_actions: quickActionArray(config.quick_actions ?? merged.quick_actions),
     quick_action_icons: quickActionIcons(config.quick_action_icons),
     area_order: stringArray(config.area_order),

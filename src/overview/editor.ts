@@ -7,8 +7,10 @@ import { discoverOverview, isOverviewEntityPowered, overviewEntityAreaId } from 
 import { overviewLanguage } from "./translations";
 import type {
   AreaBubbleOverviewCardConfig,
+  OverviewAutomaticSubgroupId,
   OverviewAreaOverride,
   OverviewControlPresentation,
+  OverviewEntityCardSize,
   OverviewEntityOverride,
   OverviewQuickActionId,
   OverviewSectionId,
@@ -311,6 +313,15 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
           </div>
           <div class="inline-fields">
             <div class="field">
+              <label>${this.l("גודל כרטיסי הציוד", "Device card size", language)}</label>
+              <select .value=${resolved.entity_card_size} @change=${(event: Event) => this.commitKey("entity_card_size", (event.target as HTMLSelectElement).value as OverviewEntityCardSize)}>
+                <option value="compact">${this.l("מצומצם", "Compact", language)}</option>
+                <option value="medium">${this.l("בינוני", "Medium", language)}</option>
+                <option value="wide">${this.l("רחב", "Wide", language)}</option>
+              </select>
+              <div class="hint">${this.l("משנה יחד את הגובה, הרווחים, הטקסט והאייקונים. גובה ידני בקטגוריה ממשיך לגבור.", "Adjusts height, spacing, text, and icons together. A manual category height still takes priority.", language)}</div>
+            </div>
+            <div class="field">
               <label>${this.l("תצוגת כפתורי הקטגוריה", "Category button appearance", language)}</label>
               <select .value=${resolved.section_action_presentation} @change=${(event: Event) => this.commitKey("section_action_presentation", (event.target as HTMLSelectElement).value as OverviewControlPresentation)}>
                 <option value="icon">${this.l("אייקון בלבד", "Icon only", language)}</option>
@@ -326,6 +337,10 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
                 <option value="both">${this.l("אייקון וטקסט", "Icon and text", language)}</option>
               </select>
             </div>
+          </div>
+          <div class="inline-fields">
+            <div class="field"><label>${this.l("שם תת־קטגוריית מאווררים", "Fans sub-category name", language)}</label><input type="text" .value=${resolved.subgroup_titles.fans} placeholder=${this.l("מאווררים", "Fans", language)} @change=${(event: Event) => this.setGlobalSubgroupTitle("fans", (event.target as HTMLInputElement).value)} /></div>
+            <div class="field"><label>${this.l("שם תת־קטגוריית בקרי חימום", "Heating-controls sub-category name", language)}</label><input type="text" .value=${resolved.subgroup_titles.heating_controls} placeholder=${this.l("בקרי חימום", "Heating controls", language)} @change=${(event: Event) => this.setGlobalSubgroupTitle("heating_controls", (event.target as HTMLInputElement).value)} /></div>
           </div>
           <div class="inline-fields">
             ${(["on", "off", "open", "close"] as const).map((key) => this.iconField(
@@ -604,6 +619,19 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
                   `
                 : nothing}
               <div class="setting-title">${this.l("מראה קטגוריות בחדר", "Room category appearance", language)}</div>
+              <div class="inline-fields">
+                <div class="field">
+                  <label>${this.l("גודל כרטיסי ציוד בחדר", "Device card size in this room", language)}</label>
+                  <select .value=${override.entity_card_size ?? ""} @change=${(event: Event) => this.updateAreaOverride(area.id, { entity_card_size: ((event.target as HTMLSelectElement).value || undefined) as OverviewEntityCardSize | undefined })}>
+                    <option value="">${this.l("לפי ההגדרה הכללית", "Use global setting", language)}</option>
+                    <option value="compact">${this.l("מצומצם", "Compact", language)}</option>
+                    <option value="medium">${this.l("בינוני", "Medium", language)}</option>
+                    <option value="wide">${this.l("רחב", "Wide", language)}</option>
+                  </select>
+                </div>
+                <div class="field"><label>${this.l("שם מאווררים בחדר", "Fans name in this room", language)}</label><input type="text" .value=${override.subgroup_titles?.fans ?? ""} placeholder=${resolved.subgroup_titles.fans || this.l("מאווררים", "Fans", language)} @change=${(event: Event) => this.setAreaSubgroupTitle(area.id, "fans", (event.target as HTMLInputElement).value)} /></div>
+                <div class="field"><label>${this.l("שם בקרי חימום בחדר", "Heating-controls name in this room", language)}</label><input type="text" .value=${override.subgroup_titles?.heating_controls ?? ""} placeholder=${resolved.subgroup_titles.heating_controls || this.l("בקרי חימום", "Heating controls", language)} @change=${(event: Event) => this.setAreaSubgroupTitle(area.id, "heating_controls", (event.target as HTMLInputElement).value)} /></div>
+              </div>
               <div class="order-list">
                 ${resolved.section_order.map((section) => {
                   const globalStyle = resolved.section_styles[section];
@@ -1135,6 +1163,14 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
     this.commit({ ...this.config, section_titles: { ...(this.config.section_titles ?? {}), [section]: value || undefined } });
   }
 
+  private setGlobalSubgroupTitle(group: OverviewAutomaticSubgroupId, value: string): void {
+    const titles = { ...(this.config.subgroup_titles ?? {}) };
+    const normalized = value.trim();
+    if (normalized) titles[group] = normalized;
+    else delete titles[group];
+    this.commit({ ...this.config, subgroup_titles: titles });
+  }
+
   private moveSection(section: OverviewSectionId, direction: -1 | 1): void {
     const order = [...resolveOverviewConfig(this.config).section_order];
     this.moveValue(order, section, direction);
@@ -1245,6 +1281,15 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
   private setAreaSectionTitle(areaId: string, section: OverviewSectionId, value: string): void {
     const current = this.currentAreaOverride(areaId);
     this.updateAreaOverride(areaId, { section_titles: { ...(current.section_titles ?? {}), [section]: value || undefined } });
+  }
+
+  private setAreaSubgroupTitle(areaId: string, group: OverviewAutomaticSubgroupId, value: string): void {
+    const current = this.currentAreaOverride(areaId);
+    const titles = { ...(current.subgroup_titles ?? {}) };
+    const normalized = value.trim();
+    if (normalized) titles[group] = normalized;
+    else delete titles[group];
+    this.updateAreaOverride(areaId, { subgroup_titles: titles });
   }
 
   private setAreaSectionStyle(areaId: string, section: OverviewSectionId, patch: Partial<OverviewSectionStyle>): void {

@@ -1119,6 +1119,36 @@ export const overviewCardStyles = css`
     border-color: var(--aboc-section-border-color);
   }
 
+  .device-section.entity-size-compact {
+    --aboc-entity-icon-size: 34px;
+    --aboc-entity-icon-glyph-size: 20px;
+    --aboc-entity-font-size: 13px;
+    --aboc-entity-gap: 5px;
+    --aboc-entity-padding-inline: 6px;
+    --aboc-cover-grid-min-height: 76px;
+    --aboc-light-card-min-height: 82px;
+  }
+
+  .device-section.entity-size-medium {
+    --aboc-entity-icon-size: 44px;
+    --aboc-entity-icon-glyph-size: 25px;
+    --aboc-entity-font-size: 15px;
+    --aboc-entity-gap: 9px;
+    --aboc-entity-padding-inline: 9px;
+    --aboc-cover-grid-min-height: 92px;
+    --aboc-light-card-min-height: 92px;
+  }
+
+  .device-section.entity-size-wide {
+    --aboc-entity-icon-size: 50px;
+    --aboc-entity-icon-glyph-size: 28px;
+    --aboc-entity-font-size: 16px;
+    --aboc-entity-gap: 11px;
+    --aboc-entity-padding-inline: 13px;
+    --aboc-cover-grid-min-height: 108px;
+    --aboc-light-card-min-height: 108px;
+  }
+
   .section-heading {
     direction: var(--aboc-direction, ltr);
     display: grid;
@@ -1281,12 +1311,21 @@ export const overviewCardStyles = css`
     background: var(--aboc-row-bg);
   }
 
+  .device-section .icon-bubble.small {
+    width: var(--aboc-entity-icon-size, 44px);
+    height: var(--aboc-entity-icon-size, 44px);
+  }
+
+  .device-section .icon-bubble.small ha-icon {
+    --mdc-icon-size: var(--aboc-entity-icon-glyph-size, 25px);
+  }
+
   .entity-lead {
     direction: var(--aboc-direction, ltr);
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
     align-items: center;
-    gap: 9px;
+    gap: var(--aboc-entity-gap, 9px);
     min-width: 0;
     min-height: 44px;
     padding: 0;
@@ -1301,10 +1340,11 @@ export const overviewCardStyles = css`
   .entity-name {
     display: -webkit-box;
     overflow: hidden;
-    font-size: 15px;
+    font-size: var(--aboc-entity-font-size, 15px);
     font-weight: 720;
     line-height: 1.22;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
+    word-break: normal;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
   }
@@ -1322,10 +1362,10 @@ export const overviewCardStyles = css`
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
     align-items: center;
-    gap: 9px;
+    gap: var(--aboc-entity-gap, 9px);
     width: 100%;
     min-height: var(--aboc-section-entity-height, max(56px, var(--aboc-row-height)));
-    padding: 4px 9px;
+    padding: 4px var(--aboc-entity-padding-inline, 9px);
     text-align: start;
     cursor: pointer;
     transition: transform 120ms ease, background-color 140ms ease, color 140ms ease;
@@ -1513,8 +1553,8 @@ export const overviewCardStyles = css`
   .light-card {
     display: grid;
     gap: 7px;
-    min-height: max(92px, var(--aboc-section-entity-height, var(--aboc-row-height)));
-    padding: 8px 10px;
+    min-height: max(var(--aboc-light-card-min-height, 92px), var(--aboc-section-entity-height, var(--aboc-row-height)));
+    padding: 8px var(--aboc-entity-padding-inline, 10px);
   }
 
   .section-lights_switches .light-card {
@@ -1692,9 +1732,9 @@ export const overviewCardStyles = css`
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
-    gap: 8px;
+    gap: var(--aboc-entity-gap, 8px);
     min-height: var(--aboc-section-entity-height, max(56px, var(--aboc-row-height)));
-    padding: 4px 8px;
+    padding: 4px var(--aboc-entity-padding-inline, 8px);
   }
 
   .cover-card.active {
@@ -1705,20 +1745,37 @@ export const overviewCardStyles = css`
     grid-template-columns: minmax(0, 1fr);
     align-content: center;
     gap: 2px;
-    min-height: max(92px, var(--aboc-section-entity-height, 92px));
+    min-height: max(var(--aboc-cover-grid-min-height, 92px), var(--aboc-section-entity-height, 92px));
   }
 
   .section-covers.columns-2 .cover-controls {
     justify-content: center;
   }
 
+  .section-covers.columns-2 .section-entities > .cover-card:only-child {
+    grid-column: 1 / -1;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-content: initial;
+    gap: var(--aboc-entity-gap, 8px);
+    min-height: var(--aboc-section-entity-height, max(56px, var(--aboc-row-height)));
+  }
+
+  .section-covers.columns-2 .section-entities > .cover-card:only-child .cover-controls {
+    justify-content: flex-end;
+  }
+
   .section-lights_switches.columns-3 .toggle-tile {
-    gap: 5px;
-    padding-inline: 6px;
+    --aboc-entity-icon-size: 32px;
+    --aboc-entity-icon-glyph-size: 18px;
+    --aboc-entity-font-size: 12.5px;
+    gap: 4px;
+    padding-inline: 5px;
   }
 
   .section-lights_switches.columns-3 .entity-name {
-    font-size: 13px;
+    overflow-wrap: break-word;
+    word-break: normal;
+    -webkit-line-clamp: 3;
   }
 
   .media-card.active {

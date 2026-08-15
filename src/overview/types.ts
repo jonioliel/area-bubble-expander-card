@@ -12,6 +12,8 @@ export type OverviewThemePreset = "classic" | "elegant" | "light" | "dark" | "mo
 export type OverviewStateLanguage = "auto" | "he" | "en";
 export type OverviewTileShape = "rectangle" | "square";
 export type OverviewTileIconPosition = "start" | "left" | "right" | "center";
+export type OverviewEntityCardSize = "compact" | "medium" | "wide";
+export type OverviewAutomaticSubgroupId = "fans" | "heating_controls";
 
 export type OverviewSectionStyle = {
   background?: string;
@@ -59,6 +61,8 @@ export type OverviewAreaOverride = {
   occupancy_entities?: string[];
   section_order?: OverviewSectionId[];
   subarea_order?: string[];
+  subgroup_titles?: Partial<Record<OverviewAutomaticSubgroupId, string>>;
+  entity_card_size?: OverviewEntityCardSize;
   section_titles?: Partial<Record<OverviewSectionId, string>>;
   section_styles?: Partial<Record<OverviewSectionId, OverviewSectionStyle>>;
   entity_order?: Partial<Record<OverviewSectionId, string[]>>;
@@ -132,6 +136,8 @@ export type AreaBubbleOverviewCardConfig = {
   light_tile_shape?: OverviewTileShape;
   light_icon_position?: OverviewTileIconPosition;
   light_show_state?: boolean;
+  entity_card_size?: OverviewEntityCardSize;
+  subgroup_titles?: Partial<Record<OverviewAutomaticSubgroupId, string>>;
   show_empty_sections?: boolean;
   default_expanded?: boolean;
   floor_default_expanded?: boolean;
@@ -167,6 +173,7 @@ export type ResolvedOverviewConfig = Required<
     | "section_titles"
     | "section_styles"
     | "section_action_icons"
+    | "subgroup_titles"
     | "quick_action_icons"
     | "include_entities"
     | "area_overrides"
@@ -179,6 +186,7 @@ export type ResolvedOverviewConfig = Required<
   section_titles: Record<OverviewSectionId, string>;
   section_styles: Record<OverviewSectionId, OverviewSectionStyle>;
   section_action_icons: Required<OverviewSectionActionIcons>;
+  subgroup_titles: Record<OverviewAutomaticSubgroupId, string>;
   quick_action_icons: Record<OverviewQuickActionId, string>;
   include_entities: Partial<Record<OverviewSectionId, string[]>>;
   area_overrides: Record<string, OverviewAreaOverride>;

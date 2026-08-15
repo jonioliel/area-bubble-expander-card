@@ -2,6 +2,14 @@
 
 All notable changes to Area Bubble Expander Card will be documented in this file.
 
+## 0.17.0 - 2026-08-15
+
+- Made a lone cover span the complete category width even when the Cover grid is configured for two columns; two or more covers still use the selected grid.
+- Improved three-column Light/switch layouts with adaptive 32 px visual icons, three readable text lines, and word-safe wrapping that no longer splits Hebrew labels character by character.
+- Added `compact`, `medium`, and `wide` device-card size presets globally and per room, while keeping explicit category height overrides authoritative.
+- Added editable automatic Fans and Heating-controls sub-category titles globally and per room.
+- Added configuration, editor, responsive CSS, and single-item grid regression coverage; the full suite now contains 208 tests.
+
 ## 0.16.0 - 2026-08-15
 
 - Added smart Area-name removal for device labels (for example, `אורי ספוטים` → `ספוטים`), enabled globally by default with an explicit inherit/remove/keep choice per entity.
