@@ -2,6 +2,8 @@ import type { CardStyleConfig, HassEntity, LanguageMode, RtlMode } from "../type
 
 export type OverviewSectionId = "climate" | "floor_heating" | "covers" | "lights_switches" | "media";
 export type OverviewQuickActionId = "lights" | "climate" | "floor_heating" | "switches" | "covers" | "media";
+/** Runtime-only popup kinds may extend the user-configurable quick actions. */
+export type OverviewQuickActionKind = OverviewQuickActionId | "fans";
 export type OverviewSectionActionMode = "toggle" | "dual";
 export type OverviewControlPresentation = "icon" | "text" | "both";
 export type OverviewSectionBorderStyle = "solid" | "dashed" | "dotted";

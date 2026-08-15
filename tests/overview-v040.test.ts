@@ -151,6 +151,36 @@ describe("Overview v0.4 area hierarchy configuration", () => {
     expect(areas.find((area) => area.id === "shower")?.parentAreaId).toBe("parents_room");
   });
 
+  it("includes configured descendants when the card targets one parent Area", () => {
+    const instance = hass({
+      areas: {
+        parents_room: { area_id: "parents_room", name: "Parents room", floor_id: "upstairs" },
+        parents_shower: { area_id: "parents_shower", name: "Parents shower", floor_id: "upstairs" },
+        shower_niche: { area_id: "shower_niche", name: "Shower niche", floor_id: "downstairs" },
+        unrelated: { area_id: "unrelated", name: "Unrelated", floor_id: "upstairs" },
+      },
+    });
+    const discovery = discoverOverview(
+      instance,
+      resolveV040({
+        area: "parents_room",
+        area_overrides: {
+          parents_room: { name: "Master bedroom" },
+          parents_shower: { parent_area: "Master bedroom" },
+          shower_niche: { parent_area: "Parents shower" },
+        },
+      }),
+    );
+
+    expect(discovery.areas.map((area) => area.id).sort()).toEqual([
+      "parents_room",
+      "parents_shower",
+      "shower_niche",
+    ]);
+    expect(discovery.areas.find((area) => area.id === "parents_shower")?.parentAreaId).toBe("parents_room");
+    expect(discovery.areas.find((area) => area.id === "shower_niche")?.parentAreaId).toBe("parents_shower");
+  });
+
   it("detaches every member of a two-area parent cycle and emits one safe warning", () => {
     const discovery = discoverFloor(floorInstance([
       { id: "parents_room", name: "Parents room" },

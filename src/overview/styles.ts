@@ -681,6 +681,69 @@ export const overviewCardStyles = css`
     overscroll-behavior: contain;
   }
 
+  .area-popup-subareas {
+    display: grid;
+    gap: var(--aboc-section-gap);
+    min-width: 0;
+    margin-block-start: 4px;
+  }
+
+  .area-popup-subarea {
+    display: grid;
+    gap: var(--aboc-section-gap);
+    min-width: 0;
+    padding: 9px;
+    border: var(--aboc-area-frame-width) solid var(
+      --aboc-area-frame-color,
+      var(--area-bubble-overview-area-frame-color, color-mix(in srgb, var(--divider-color) 72%, transparent))
+    );
+    border-radius: calc(var(--aboc-radius) - 4px);
+    background: color-mix(in srgb, var(--aboc-row-bg) 72%, transparent);
+  }
+
+  .area-popup-subarea.has-active {
+    --aboc-area-frame-color: var(--area-bubble-overview-area-frame-active-color, var(--aboc-accent));
+    background: color-mix(in srgb, var(--aboc-active-surface) 82%, transparent);
+  }
+
+  .area-popup-subarea-header {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-width: 0;
+    padding-inline: 2px;
+  }
+
+  .area-popup-subarea-heading {
+    display: grid;
+    min-width: 0;
+  }
+
+  .area-popup-subarea-heading strong {
+    overflow: hidden;
+    font-size: 16px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .area-popup-subarea-heading small {
+    color: var(--aboc-secondary-text);
+    font-size: 12px;
+  }
+
+  .area-popup-subarea-content {
+    display: grid;
+    gap: var(--aboc-section-gap);
+    min-width: 0;
+  }
+
+  .area-popup-subareas .area-popup-subareas {
+    margin-block-start: 0;
+    margin-inline-start: 12px;
+    padding-inline-start: 7px;
+    border-inline-start: 1px solid color-mix(in srgb, var(--aboc-accent) 40%, transparent);
+  }
+
   .area-detail-header {
     background: color-mix(in srgb, currentColor 4%, transparent);
   }

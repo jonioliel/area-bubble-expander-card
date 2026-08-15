@@ -1,5 +1,5 @@
 import type { HomeAssistant } from "../types";
-import type { OverviewQuickActionId, OverviewSectionId, ResolvedOverviewConfig } from "./types";
+import type { OverviewQuickActionKind, OverviewSectionId, ResolvedOverviewConfig } from "./types";
 
 type OverviewLanguage = "he" | "en";
 type OverviewTextKey =
@@ -79,7 +79,7 @@ const SECTIONS: Record<OverviewLanguage, Record<OverviewSectionId, string>> = {
   },
 };
 
-const QUICK_ACTIONS: Record<OverviewLanguage, Record<OverviewQuickActionId, string>> = {
+const QUICK_ACTIONS: Record<OverviewLanguage, Record<OverviewQuickActionKind, string>> = {
   he: {
     lights: "תאורה",
     climate: "מיזוג אוויר",
@@ -87,6 +87,7 @@ const QUICK_ACTIONS: Record<OverviewLanguage, Record<OverviewQuickActionId, stri
     switches: "מפסקים",
     covers: "תריסים",
     media: "מוזיקה",
+    fans: "מאווררים",
   },
   en: {
     lights: "Lights",
@@ -95,6 +96,7 @@ const QUICK_ACTIONS: Record<OverviewLanguage, Record<OverviewQuickActionId, stri
     switches: "Switches",
     covers: "Covers",
     media: "Music",
+    fans: "Fans",
   },
 };
 
@@ -125,5 +127,5 @@ export const overviewSectionTitle = (
 export const quickActionLabel = (
   hass: HomeAssistant | undefined,
   config: Pick<ResolvedOverviewConfig, "language">,
-  action: OverviewQuickActionId,
+  action: OverviewQuickActionKind,
 ): string => QUICK_ACTIONS[overviewLanguage(hass, config)][action];

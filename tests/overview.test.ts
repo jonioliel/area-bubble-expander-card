@@ -935,7 +935,8 @@ describe("quick area actions", () => {
   it.each([
     ["lights", ["light.on"]],
     ["switches", ["switch.on"]],
-    ["climate", ["climate.ac", "fan.ac"]],
+    ["climate", ["climate.ac"]],
+    ["fans", ["fan.ac"]],
     ["floor_heating", ["switch.floor"]],
     ["covers", ["cover.shade"]],
     ["media", ["media_player.speaker"]],
@@ -1033,7 +1034,7 @@ describe("quick area actions", () => {
     });
   });
 
-  it("waits for every service group and reports partial failures", async () => {
+  it("reports climate failures without pulling fan entities into the climate action", async () => {
     const callService = vi.fn((domain: string) =>
       domain === "climate" ? Promise.reject(new Error("offline")) : Promise.resolve(undefined),
     );
@@ -1044,8 +1045,11 @@ describe("quick area actions", () => {
     ]);
 
     await expect(runQuickAction(instance, climateArea, "climate")).rejects.toThrow(
-      "1 of 2 area actions failed.",
+      "1 of 1 area actions failed.",
     );
-    expect(callService).toHaveBeenCalledTimes(2);
+    expect(callService).toHaveBeenCalledTimes(1);
+    expect(callService).toHaveBeenCalledWith("climate", "turn_off", undefined, {
+      entity_id: ["climate.ac"],
+    });
   });
 });

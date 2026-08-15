@@ -2,6 +2,13 @@
 
 All notable changes to Area Bubble Expander Card will be documented in this file.
 
+## 0.18.1 - 2026-08-15
+
+- Kept native and automatically grouped fans out of Climate quick-action and Floor climate popups; the active fan tag now opens its own fan-only popup with individual and grouped controls.
+- Made single-Area cards discover all configured child Areas recursively, including descendants assigned to another Home Assistant Floor.
+- Rendered the complete child-Area tree inside its parent room Popup while preserving the configured hierarchy, ordering, RTL layout, independent state, and controls.
+- Added focused fan-membership, single-Area descendant, Popup hierarchy, and service-action regression coverage; the full suite now contains 248 tests.
+
 ## 0.18.0 - 2026-08-15
 
 - Added six vivid but restrained professional Overview themes: Ocean Azure, Botanical Emerald, Atelier Amethyst, Terracotta Coral, Golden Amber, and Rose Berry.

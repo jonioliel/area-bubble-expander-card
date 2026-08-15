@@ -45,6 +45,7 @@ import type {
   OverviewDiscovery,
   OverviewEntity,
   OverviewQuickActionId,
+  OverviewQuickActionKind,
   OverviewSection,
   ResolvedOverviewConfig,
 } from "./types";
@@ -56,7 +57,7 @@ const numberAttribute = (item: OverviewEntity, key: string): number | undefined 
 
 type QuickPopupState = {
   areaId: string;
-  action: OverviewQuickActionId;
+  action: OverviewQuickActionKind;
 };
 
 const FLOOR_QUICK_AREA_ID = "__overview_floor__";
@@ -255,7 +256,8 @@ export class AreaBubbleOverviewCard extends LitElement {
       visited.add(area.id);
       const nested = children.get(area.id) ?? [];
       const expanded = this.isExpanded(area);
-      const visibleNested = expanded ? nested : nested.filter((child) => child.showWhenParentCollapsed);
+      const popupOpen = this.areaOpenMode(area) === "popup" && this.areaPopupId === area.id;
+      const visibleNested = popupOpen ? [] : expanded ? nested : nested.filter((child) => child.showWhenParentCollapsed);
       const nestedContent = visibleNested.length
         ? html`<div class="subareas" role="group" aria-label=${`${this.localText("תתי אזורים של", "Sub-areas of")} ${area.name}`}>${visibleNested.map(renderNode)}</div>`
         : nothing;
@@ -286,11 +288,12 @@ export class AreaBubbleOverviewCard extends LitElement {
     const quickActions = climateTemperatureAction
       ? activeQuickActions.filter(({ action }) => action !== "climate")
       : activeQuickActions;
-    const activeClimateCount = climateTemperatureAction?.entities.filter((item) => item.domain === "climate" && item.powered && item.ignoreActivity !== true).length ?? 0;
-    const activeFanCount = climateTemperatureAction?.entities.filter((item) => item.domain === "fan" && item.powered && item.ignoreActivity !== true).length ?? 0;
-    const totalClimateCount = climateTemperatureAction?.entities.filter((item) => item.domain === "climate").length ?? 0;
-    const totalFanCount = climateTemperatureAction?.entities.filter((item) => item.domain === "fan").length ?? 0;
-    const hasStatuses = hasOccupancy || quickActions.length > 0 || hasTemperature;
+    const fanEntities = quickActionMembers(area, "fans");
+    const activeClimateCount = climateTemperatureAction?.entities.filter((item) => item.powered && item.ignoreActivity !== true).length ?? 0;
+    const activeFanCount = fanEntities.filter((item) => item.powered && item.ignoreActivity !== true).length;
+    const totalClimateCount = climateTemperatureAction?.entities.length ?? 0;
+    const totalFanCount = fanEntities.length;
+    const hasStatuses = hasOccupancy || quickActions.length > 0 || hasTemperature || activeFanCount > 0;
     const formattedTemperature = hasTemperature ? this.formatTemperature(area.temperature!, area.temperatureUnit) : "";
     const temperatureModeLabel = {
       none: this.localText("ללא מצב מיזוג", "No climate mode"),
@@ -299,7 +302,7 @@ export class AreaBubbleOverviewCard extends LitElement {
       heat: this.localText("חימום", "Heating"),
       active: this.localText("מצב מיזוג פעיל", "Climate active"),
     }[area.temperatureMode];
-    const summaryLoad = Math.min(8, quickActions.length + Number(hasOccupancy) + Number(hasTemperature) * 2);
+    const summaryLoad = Math.min(8, quickActions.length + Number(hasOccupancy) + Number(hasTemperature) * 2 + Number(!hasTemperature && activeFanCount > 0));
     const compactStatuses = summaryLoad >= 5;
     const safeAreaId = area.id.replace(/[^a-zA-Z0-9_-]/g, "-");
     const contentId = `overview-area-${safeAreaId}`;
@@ -338,7 +341,7 @@ export class AreaBubbleOverviewCard extends LitElement {
             <div class="area-statuses">
               ${this.renderOccupancy(area)}
               ${quickActions.length ? this.renderQuickActions(area, quickActions) : nothing}
-              ${hasTemperature || climateTemperatureAction
+              ${hasTemperature || climateTemperatureAction || activeFanCount > 0
                 ? html`<span
                     class="temperature-summary tag-position-${this.config.climate_tag_position}"
                     style=${`--aboc-temperature-tag-gap:${this.config.style.climate_tag_gap}px`}
@@ -350,7 +353,7 @@ export class AreaBubbleOverviewCard extends LitElement {
                       ${climateTemperatureAction && activeClimateCount > 0
                         ? this.renderTemperatureStatusTag(area, this.config.quick_action_icons.climate, activeClimateCount, totalClimateCount, "climate")
                         : nothing}
-                      ${climateTemperatureAction && this.config.show_fan_tag && activeFanCount > 0
+                      ${this.config.show_fan_tag && activeFanCount > 0
                         ? this.renderTemperatureStatusTag(area, "mdi:fan", activeFanCount, totalFanCount, "fan")
                         : nothing}
                     </span>
@@ -381,20 +384,24 @@ export class AreaBubbleOverviewCard extends LitElement {
 
   private renderTemperatureStatusTag(area: OverviewArea, icon: string, active: number, total: number, kind: "climate" | "fan") {
     if (!this.config) return nothing;
-    const pending = this.quickActionPending(area.id, "climate");
+    const action: OverviewQuickActionKind = kind === "fan" ? "fans" : "climate";
+    const pending = this.quickActionPending(area.id, action);
     const label = kind === "fan"
       ? this.localText("מאוורר פעיל", "Active fan")
       : this.localText("מיזוג אוויר פעיל", "Active climate");
+    const openLabel = kind === "fan"
+      ? this.localText("פתיחת בקרת מאווררים", "Open fan controls")
+      : this.localText("פתיחת מיזוג אוויר", "Open climate controls");
     return html`<button
       class="temperature-status-tag temperature-${kind}-tag temperature-${area.temperatureMode}"
       type="button"
       title=${`${label}: ${active}/${total}`}
-      aria-label=${`${this.localText("פתיחת מיזוג אוויר", "Open climate controls")}: ${area.name} · ${label} (${active}/${total})`}
+      aria-label=${`${openLabel}: ${area.name} · ${label} (${active}/${total})`}
       aria-haspopup="dialog"
-      aria-expanded=${this.quickPopup?.areaId === area.id && this.quickPopup.action === "climate"}
+      aria-expanded=${this.quickPopup?.areaId === area.id && this.quickPopup.action === action}
       aria-busy=${pending}
       ?disabled=${pending}
-      @click=${(event: Event) => this.openQuickActionPopup(event, area, "climate")}
+      @click=${(event: Event) => this.openQuickActionPopup(event, area, action)}
     ><ha-icon icon=${icon}></ha-icon></button>`;
   }
 
@@ -656,6 +663,7 @@ export class AreaBubbleOverviewCard extends LitElement {
     const titleId = `overview-quick-popup-title-${safeId}`;
     const onVerb = action === "covers" ? this.localText("פתיחת הכל", "Open all") : this.localText("הפעלת הכל", "Turn all on");
     const offVerb = action === "covers" ? this.localText("סגירת הכל", "Close all") : this.localText("כיבוי הכל", "Turn all off");
+    const popupIcon = action === "fans" ? "mdi:fan" : this.config.quick_action_icons[action];
     return html`
       <dialog
         class="quick-action-dialog area-quick-action-dialog"
@@ -668,7 +676,7 @@ export class AreaBubbleOverviewCard extends LitElement {
       >
         <section class="quick-popup" aria-busy=${categoryBusy}>
           <header class="quick-popup-header">
-            <span class="icon-bubble popup-icon"><ha-icon icon=${this.config.quick_action_icons[action]}></ha-icon></span>
+            <span class="icon-bubble popup-icon"><ha-icon icon=${popupIcon}></ha-icon></span>
             <span class="quick-popup-heading">
               <span class="quick-popup-title" id=${titleId}>${label} · ${area.name}</span>
               <span class="quick-popup-summary">${activeCount} ${this.localText("דלוקים מתוך", "on of")} ${entities.length}</span>
@@ -795,10 +803,47 @@ export class AreaBubbleOverviewCard extends LitElement {
             </span>
             <button class="quick-popup-close" type="button" aria-label=${`${this.localText("סגירת חדר", "Close room")}: ${area.name}`} @click=${() => this.closeAreaPopup()}><ha-icon icon="mdi:close"></ha-icon></button>
           </header>
-          <div class="area-detail-content">${this.renderAreaContent(area)}</div>
+          <div class="area-detail-content">
+            ${this.renderAreaContent(area)}
+            ${this.renderAreaPopupSubareas(area, discovery.areas)}
+          </div>
         </section>
       </dialog>
     `;
+  }
+
+  /** Renders the full configured Area subtree inside a parent Area dialog. */
+  private renderAreaPopupSubareas(parent: OverviewArea, areas: OverviewArea[]) {
+    const { children } = buildOverviewAreaHierarchy(areas);
+    const visited = new Set<string>([parent.id]);
+    const renderChildren = (area: OverviewArea): unknown => {
+      const nested = (children.get(area.id) ?? []).filter((child) => !visited.has(child.id));
+      if (!nested.length) return nothing;
+      for (const child of nested) visited.add(child.id);
+      return html`
+        <div class="area-popup-subareas" role="group" aria-label=${`${this.localText("תתי אזורים של", "Sub-areas of")} ${area.name}`}>
+          ${nested.map((child) => {
+            const activeCount = child.allEntities.filter(countsTowardAreaActivity).length;
+            return html`
+              <section class="area-popup-subarea ${activeCount ? "has-active" : "all-off"}" aria-labelledby=${`area-popup-subarea-${child.id.replace(/[^a-zA-Z0-9_-]/g, "-")}`}>
+                <header class="area-popup-subarea-header">
+                  <span class="icon-bubble small"><ha-icon icon=${child.icon}></ha-icon></span>
+                  <span class="area-popup-subarea-heading">
+                    <strong id=${`area-popup-subarea-${child.id.replace(/[^a-zA-Z0-9_-]/g, "-")}`}>${child.name}</strong>
+                    <small>${activeCount
+                      ? `${activeCount} ${this.localText("פעילים", "active")}`
+                      : this.localText("הכול כבוי", "All off")}</small>
+                  </span>
+                </header>
+                <div class="area-popup-subarea-content">${this.renderAreaContent(child)}</div>
+                ${renderChildren(child)}
+              </section>
+            `;
+          })}
+        </div>
+      `;
+    };
+    return renderChildren(parent);
   }
 
   private floorQuickArea(discovery: OverviewDiscovery): OverviewArea {
@@ -820,7 +865,7 @@ export class AreaBubbleOverviewCard extends LitElement {
     };
   }
 
-  private renderQuickPopupEntity(item: OverviewEntity, action: OverviewQuickActionId, groupPending: boolean) {
+  private renderQuickPopupEntity(item: OverviewEntity, action: OverviewQuickActionKind, groupPending: boolean) {
     const busy = this.entityBusy(item);
     const turnOn = !item.powered;
     const plan = quickActionEntityService(action, item, turnOn);
@@ -1381,7 +1426,7 @@ export class AreaBubbleOverviewCard extends LitElement {
     this.toggleEntity(event, item);
   }
 
-  private quickActionPending(areaId: string, action: OverviewQuickActionId): boolean {
+  private quickActionPending(areaId: string, action: OverviewQuickActionKind): boolean {
     return this.pendingActions.has(`${areaId}:${action}:on`) || this.pendingActions.has(`${areaId}:${action}:off`);
   }
 
@@ -1506,7 +1551,7 @@ export class AreaBubbleOverviewCard extends LitElement {
     }
   }
 
-  private openQuickActionPopup(event: Event, area: OverviewArea, action: OverviewQuickActionId): void {
+  private openQuickActionPopup(event: Event, area: OverviewArea, action: OverviewQuickActionKind): void {
     event.stopPropagation();
     this.resetFloorPopup();
     this.resetAreaPopup();
@@ -1578,7 +1623,7 @@ export class AreaBubbleOverviewCard extends LitElement {
   private async handleQuickPopupGroupAction(
     event: Event,
     area: OverviewArea,
-    action: OverviewQuickActionId,
+    action: OverviewQuickActionKind,
     turnOn: boolean,
   ): Promise<void> {
     event.stopPropagation();
@@ -1601,7 +1646,7 @@ export class AreaBubbleOverviewCard extends LitElement {
     }
   }
 
-  private handleQuickPopupEntityAction(event: Event, item: OverviewEntity, action: OverviewQuickActionId): void {
+  private handleQuickPopupEntityAction(event: Event, item: OverviewEntity, action: OverviewQuickActionKind): void {
     event.stopPropagation();
     const plan = quickActionEntityService(action, item, !item.powered);
     if (!this.hass || !item.available || this.entityBusy(item) || (this.quickPopup && this.quickActionPending(this.quickPopup.areaId, action)) || !plan) return;

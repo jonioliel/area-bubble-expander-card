@@ -11,6 +11,7 @@ import {
   runSectionOffAction,
   sectionActionEntities,
 } from "../src/overview/actions";
+import { AUTO_FAN_GROUP } from "../src/overview/constants";
 import type { HassEntity, HomeAssistant } from "../src/types";
 import type {
   OverviewArea,
@@ -19,7 +20,7 @@ import type {
   OverviewSectionId,
 } from "../src/overview/types";
 
-type EntityOptions = Partial<Pick<OverviewEntity, "available" | "active" | "powered" | "protected">> & {
+type EntityOptions = Partial<Pick<OverviewEntity, "available" | "active" | "powered" | "protected" | "group">> & {
   attributes?: Record<string, unknown>;
   state?: string;
 };
@@ -51,6 +52,7 @@ const overviewEntity = (
     active: options.active ?? powered,
     powered,
     protected: options.protected ?? false,
+    group: options.group,
   };
 };
 
@@ -211,6 +213,26 @@ describe("Overview section-wide directional actions", () => {
 });
 
 describe("Overview quick-action directional actions", () => {
+  it("keeps fans out of climate actions and exposes them through a separate runtime popup", async () => {
+    const callService = vi.fn(async () => undefined);
+    const area = overviewArea([
+      overviewEntity("climate.parents", "climate", { powered: true }),
+      overviewEntity("fan.ceiling", "climate", { powered: true }),
+      overviewEntity("switch.parents_fan", "climate", { powered: true, group: AUTO_FAN_GROUP }),
+      overviewEntity("switch.unrelated", "climate", { powered: true }),
+    ]);
+
+    expect(quickActionMembers(area, "climate").map((item) => item.entityId)).toEqual(["climate.parents"]);
+    expect(quickActionMembers(area, "fans").map((item) => item.entityId)).toEqual([
+      "fan.ceiling",
+      "switch.parents_fan",
+    ]);
+
+    await runQuickActionAction(homeAssistant(callService), area, "fans", false);
+    expect(callService).toHaveBeenCalledWith("fan", "turn_off", undefined, { entity_id: ["fan.ceiling"] });
+    expect(callService).toHaveBeenCalledWith("switch", "turn_off", undefined, { entity_id: ["switch.parents_fan"] });
+  });
+
   it("exposes safe directional services for individual popup rows", () => {
     const cover = overviewEntity("cover.shade", "covers", { attributes: { supported_features: 3 } });
     const closeOnly = overviewEntity("cover.close_only", "covers", { attributes: { supported_features: 2 } });

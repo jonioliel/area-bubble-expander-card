@@ -89,7 +89,8 @@ describe("Overview climate menus and typography", () => {
     expect(source).toContain('activeQuickActions.filter(({ action }) => action !== "climate")');
     expect(source).toContain('class="temperature-status-tag temperature-${kind}-tag temperature-${area.temperatureMode}"');
     expect(source).not.toContain('<span>${activeClimateCount}</span>');
-    expect(source).toContain('this.openQuickActionPopup(event, area, "climate")');
+    expect(source).toContain('const action: OverviewQuickActionKind = kind === "fan" ? "fans" : "climate"');
+    expect(source).toContain('this.openQuickActionPopup(event, area, action)');
   });
 
   it("defaults, clamps, and preserves the room-name font size", () => {

@@ -1,6 +1,7 @@
 import type { HomeAssistant } from "../types";
 import { entityPowerService, supportsEntityFeature, type EntityServicePlan } from "./features";
-import type { OverviewArea, OverviewEntity, OverviewQuickActionId, OverviewSection } from "./types";
+import { AUTO_FAN_GROUP } from "./constants";
+import type { OverviewArea, OverviewEntity, OverviewQuickActionId, OverviewQuickActionKind, OverviewSection } from "./types";
 
 type GroupedService = {
   domain: string;
@@ -19,17 +20,22 @@ type PlannedEntityService = {
 const COVER_CLOSE_FEATURE = 2;
 const COVER_OPEN_FEATURE = 1;
 
-const isQuickActionMember = (item: OverviewEntity, action: OverviewQuickActionId): boolean => {
+const isQuickActionMember = (item: OverviewEntity, action: OverviewQuickActionKind): boolean => {
   if (action === "lights") return item.domain === "light";
   if (action === "switches") return item.domain === "switch" && item.section === "lights_switches";
-  if (action === "climate") return item.section === "climate";
+  // The climate popup is deliberately limited to real thermostats. Fans are
+  // rendered as an automatic subgroup and have their own runtime-only popup.
+  if (action === "climate") return item.domain === "climate";
+  if (action === "fans") {
+    return item.section === "climate" && (item.domain === "fan" || item.group === AUTO_FAN_GROUP);
+  }
   if (action === "floor_heating") return item.section === "floor_heating";
   if (action === "covers") return item.domain === "cover";
   return item.domain === "media_player";
 };
 
 /** Every member displayed by a quick-action category, regardless of its state or safety flags. */
-export const quickActionMembers = (area: OverviewArea, action: OverviewQuickActionId): OverviewEntity[] =>
+export const quickActionMembers = (area: OverviewArea, action: OverviewQuickActionKind): OverviewEntity[] =>
   area.allEntities.filter((item) => isQuickActionMember(item, action));
 
 export type ActiveQuickActionSummary = {
@@ -52,7 +58,7 @@ export const activeQuickActionSummaries = (
 
 /** Directional service for an individual quick-action member. */
 export const quickActionEntityService = (
-  action: OverviewQuickActionId,
+  action: OverviewQuickActionKind,
   item: OverviewEntity,
   turnOn: boolean,
 ): EntityServicePlan | undefined => {
@@ -90,7 +96,7 @@ const runGroupedServices = async (
 
 const planQuickAction = (
   area: OverviewArea,
-  action: OverviewQuickActionId,
+  action: OverviewQuickActionKind,
   turnOn: boolean,
 ): PlannedEntityService[] => {
   const planned: PlannedEntityService[] = [];
@@ -105,18 +111,18 @@ const planQuickAction = (
 /** Safe, controllable quick-action members that still need the requested state. */
 export const quickActionActionEntities = (
   area: OverviewArea,
-  action: OverviewQuickActionId,
+  action: OverviewQuickActionKind,
   turnOn: boolean,
 ): OverviewEntity[] => planQuickAction(area, action, turnOn).map(({ entity }) => entity);
 
 /** Backward-compatible selection for a quick-action OFF operation. */
-export const quickActionEntities = (area: OverviewArea, action: OverviewQuickActionId): OverviewEntity[] =>
+export const quickActionEntities = (area: OverviewArea, action: OverviewQuickActionKind): OverviewEntity[] =>
   quickActionActionEntities(area, action, false);
 
 export const runQuickActionAction = async (
   hass: HomeAssistant,
   area: OverviewArea,
-  action: OverviewQuickActionId,
+  action: OverviewQuickActionKind,
   turnOn: boolean,
 ): Promise<void> => {
   const planned = planQuickAction(area, action, turnOn);
@@ -127,7 +133,7 @@ export const runQuickActionAction = async (
 export const runQuickAction = (
   hass: HomeAssistant,
   area: OverviewArea,
-  action: OverviewQuickActionId,
+  action: OverviewQuickActionKind,
 ): Promise<void> => runQuickActionAction(hass, area, action, false);
 
 const planAreaAction = (area: OverviewArea, turnOn: boolean): PlannedEntityService[] => {

@@ -369,7 +369,32 @@ const targetAreaIds = (
     const match = [...registry.entries()].find(([id, area]) => id === config.area || area.name === config.area);
     if (!match) return { ids: [], targetName: config.area, targetIcon: "mdi:map-marker-alert", kind: "area", warnings: [`Area not found: ${config.area}`] };
     const override = config.area_overrides[match[0]] ?? config.area_overrides[match[1].name];
-    return { ids: [match[0]], targetName: match[1].name, targetIcon: config.target_icon || override?.icon || match[1].icon || "mdi:floor-plan", kind: "area", warnings: [] };
+    // A card targeted at one Area also owns every configured descendant. This
+    // keeps a child Area available beneath its parent in both Expander and
+    // Popup modes, even when Home Assistant assigned it to another floor.
+    const ids = [match[0]];
+    const included = new Set(ids);
+    let added = true;
+    while (added) {
+      added = false;
+      for (const [candidateId, candidate] of registry) {
+        if (included.has(candidateId)) continue;
+        const candidateOverride = config.area_overrides[candidateId] ?? config.area_overrides[candidate.name];
+        const parentReference = candidateOverride?.parent_area;
+        if (!parentReference) continue;
+        const belongsToIncludedParent = ids.some((parentId) => {
+          const parent = registry.get(parentId);
+          if (!parent) return false;
+          const parentOverride = config.area_overrides[parentId] ?? config.area_overrides[parent.name];
+          return parentReference === parentId || parentReference === parent.name || parentReference === parentOverride?.name;
+        });
+        if (!belongsToIncludedParent) continue;
+        included.add(candidateId);
+        ids.push(candidateId);
+        added = true;
+      }
+    }
+    return { ids, targetName: match[1].name, targetIcon: config.target_icon || override?.icon || match[1].icon || "mdi:floor-plan", kind: "area", warnings: [] };
   }
   if (config.floor) {
     const floor = floorEntries(hass).find((item) => item.id === config.floor || item.name === config.floor);

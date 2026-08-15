@@ -88,8 +88,9 @@ describe("Overview 0.11 summary and tile customization", () => {
     }
     expect(source).toContain('style=${`--aboc-temperature-tag-gap:${this.config.style.climate_tag_gap}px`}');
     expect(source).toContain('this.renderTemperatureStatusTag(area, "mdi:fan", activeFanCount, totalFanCount, "fan")');
-    expect(source).toContain('this.openQuickActionPopup(event, area, "climate")');
-    expect(source).toContain('item.domain === "fan" && item.powered');
+    expect(source).toContain('const action: OverviewQuickActionKind = kind === "fan" ? "fans" : "climate"');
+    expect(source).toContain('this.openQuickActionPopup(event, area, action)');
+    expect(source).toContain('quickActionMembers(area, "fans")');
     expect(css).toMatch(/\.temperature-status-tag\.temperature-fan-tag\s*\{[^}]*background:\s*var\(--aboc-entity-active-surface\)/s);
   });
 

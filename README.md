@@ -142,7 +142,7 @@ area_overrides:
     show_when_parent_collapsed: false
 ```
 
-`parent_area` is a visual relationship only. The child Area keeps its own entity discovery, active color, summaries, expansion state, and actions, and it does not make the parent Area active. Sub-Areas are rendered inside the parent and are hidden with it by default. Set `show_when_parent_collapsed: true` on an individual child if it should remain visible inside a collapsed parent.
+`parent_area` is a visual relationship only. The child Area keeps its own entity discovery, active color, summaries, expansion state, and actions, and it does not make the parent Area active. Sub-Areas are rendered inside the parent and are hidden with it by default. A card targeted at one parent Area automatically discovers its configured descendants, and Popup mode renders the complete descendant tree inside the parent's dialog. Set `show_when_parent_collapsed: true` on an individual child if it should remain visible inside a collapsed parent.
 
 The Area arrows in the visual editor order roots relative to roots and children relative to siblings that share the same parent. That order is stored in `area_order`; newly discovered Areas still append automatically. The editor stores stable Area IDs and prevents self-parenting and cycles. A missing, hidden, out-of-target, or cycle-detached parent safely leaves the Area at the Floor root, where `show_when_parent_collapsed` has no effect.
 
@@ -177,7 +177,7 @@ Dimmable lights are detected automatically from Home Assistant's light capabilit
 
 ### Summary tags and lighting tiles
 
-Collapsed Area summaries can keep active quick actions beside the Area name or move them to the opposite logical edge. Every free part of the summary capsule opens the Area's configured Expander or Popup; category buttons keep their own actions. Climate and active-fan tags stay attached to the temperature cluster and may be placed on its left, right, top, or bottom with a configurable gap. Native fans and switches/input booleans whose names clearly contain `fan` or `מאוורר` are mapped into a compact **Fans** sub-group inside Climate. Shower/bathroom vents named `וונטה` or `ventilator` remain in **Lights and switches**. Fan tiles stay at cover-row height and, while powered, show the elapsed ON duration from Home Assistant's `last_changed` value. A manual section or sub-group selection in the editor always takes precedence.
+Collapsed Area summaries can keep active quick actions beside the Area name or move them to the opposite logical edge. Every free part of the summary capsule opens the Area's configured Expander or Popup; category buttons keep their own actions. Climate and active-fan tags stay attached to the temperature cluster and may be placed on its left, right, top, or bottom with a configurable gap. Native fans and switches/input booleans whose names clearly contain `fan` or `מאוורר` are mapped into a compact **Fans** sub-group inside the expanded Climate section. The Climate quick-action popup contains only real `climate.*` thermostats; the active fan tag opens a separate fan-only popup. Shower/bathroom vents named `וונטה` or `ventilator` remain in **Lights and switches**. Fan tiles stay at cover-row height and, while powered, show the elapsed ON duration from Home Assistant's `last_changed` value. A manual section or sub-group selection in the editor always takes precedence.
 
 ```yaml
 quick_actions_position: opposite # opposite | near_name
@@ -605,7 +605,7 @@ style:
 | `area_open_mode` | `expander` | `expander` opens rooms inline; `popup` opens a modal with a top close button and scrollable live controls. |
 | `quick_actions_position` | `opposite` | `opposite` places active quick actions at the other logical edge; `near_name` keeps them beside the Area name. |
 | `climate_tag_position` | `left` | Places attached climate/fan tags on the `left`, `right`, `top`, or `bottom` of the temperature. |
-| `show_fan_tag` | `true` | Shows an icon-only tag while an Area fan is on; the fan remains in the Climate popup/category. |
+| `show_fan_tag` | `true` | Shows an icon-only tag while an Area fan is on; it opens a separate fan popup while the tile remains in the expanded Climate category. |
 | `strip_area_name_from_entity_names` | `true` | Removes the complete containing Area name from device labels; safe word boundaries prevent partial-name damage. |
 | `entity_state_language` | `auto` | Global ON/OFF text language: `auto`, `he`, or `en`. |
 | `light_tile_shape` / `light_icon_position` | `rectangle` / `start` | Global light/switch tile shape and icon placement (`start` follows RTL/LTR; or physical `left`, `right`, `center`). |

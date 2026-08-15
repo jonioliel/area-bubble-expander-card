@@ -65,7 +65,8 @@ describe("Overview 0.12 floor disclosure and room popup", () => {
     expect(source).toContain('@cancel=${(event: Event) => { event.preventDefault(); this.closeAreaPopup(); }}');
     expect(source).toContain('if (event.target === event.currentTarget) this.closeAreaPopup()');
     expect(source).toContain('class="quick-popup-close"');
-    expect(source).toContain('class="area-detail-content">${this.renderAreaContent(area)}');
+    expect(source).toContain('${this.renderAreaContent(area)}');
+    expect(source).toContain('${this.renderAreaPopupSubareas(area, discovery.areas)}');
     expect(source).toContain('if (typeof dialog.showModal === "function") dialog.showModal()');
   });
 
@@ -81,6 +82,8 @@ describe("Overview 0.12 floor disclosure and room popup", () => {
     expect(css).toMatch(/\.area-detail-content\s*\{[^}]*min-height:\s*0;[^}]*overflow:\s*auto/s);
     expect(css).toContain(".area-detail-dialog.has-active .area-detail-popup");
     expect(css).toContain(".area-detail-dialog.all-off .area-detail-popup");
+    expect(css).toContain(".area-popup-subarea-content");
+    expect(css).toContain(".area-popup-subareas .area-popup-subareas");
   });
 
   it("exposes global and per-room choices in the HA-style editor", () => {
