@@ -706,12 +706,21 @@ export const overviewCardStyles = css`
     background: color-mix(in srgb, var(--aboc-active-surface) 82%, transparent);
   }
 
-  .area-popup-subarea-header {
-    display: flex;
+  .area-popup-subarea-toggle {
+    direction: var(--aboc-direction, ltr);
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) 40px;
     align-items: center;
     gap: 9px;
+    width: 100%;
     min-width: 0;
-    padding-inline: 2px;
+    min-height: 48px;
+    padding: 2px;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    text-align: start;
+    cursor: pointer;
   }
 
   .area-popup-subarea-heading {
@@ -729,6 +738,35 @@ export const overviewCardStyles = css`
   .area-popup-subarea-heading small {
     color: var(--aboc-secondary-text);
     font-size: 12px;
+  }
+
+  .area-popup-subarea-chevron {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--aboc-control-surface) 10%, transparent);
+    transition: transform 180ms ease;
+  }
+
+  .area-popup-subarea.expanded > .area-popup-subarea-toggle .area-popup-subarea-chevron {
+    transform: rotate(180deg);
+  }
+
+  .area-popup-subarea-toggle:focus-visible {
+    outline: 2px solid var(--aboc-accent);
+    outline-offset: 2px;
+  }
+
+  .area-popup-subarea-disclosure {
+    display: grid;
+    gap: var(--aboc-section-gap);
+    min-width: 0;
+  }
+
+  .area-popup-subarea-disclosure[hidden] {
+    display: none;
   }
 
   .area-popup-subarea-content {
@@ -1223,6 +1261,62 @@ export const overviewCardStyles = css`
     font-weight: 680;
     letter-spacing: 0.01em;
     min-width: 0;
+  }
+
+  .section-heading.has-fan-button {
+    grid-template-columns: minmax(0, 1fr) minmax(0, auto) auto;
+  }
+
+  .section-fan-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    width: auto;
+    max-width: min(126px, 34cqi);
+    min-width: 0;
+    min-height: 44px;
+    padding: 0 10px;
+    border: 1px solid color-mix(in srgb, var(--aboc-accent) 34%, transparent);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--aboc-control-surface) 88%, transparent);
+    color: var(--aboc-light-text);
+    cursor: pointer;
+  }
+
+  .section-fan-button.active {
+    background: color-mix(in srgb, var(--success-color, #4caf50) 30%, var(--aboc-control-surface));
+  }
+
+  .section-fan-button span {
+    min-width: 0;
+    overflow: hidden;
+    font-size: 12px;
+    font-weight: 760;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .section-fan-button small {
+    flex: 0 0 auto;
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .section-fan-button ha-icon {
+    flex: 0 0 auto;
+    color: currentColor;
+    --mdc-icon-size: 18px;
+  }
+
+  .section-fan-button:focus-visible {
+    outline: 2px solid var(--aboc-accent);
+    outline-offset: 2px;
+  }
+
+  .section-fan-button:disabled {
+    cursor: wait;
+    opacity: 0.58;
   }
 
   .section-heading-main {

@@ -2,6 +2,13 @@
 
 All notable changes to Area Bubble Expander Card will be documented in this file.
 
+## 0.18.2 - 2026-08-15
+
+- Made every real child Area inside a room Popup an independent accessible disclosure, with its own expand/collapse state, nested-descendant gating, and optional persistence through `remember_expanded_state`.
+- Added global and per-room `fan_display_mode` choices: keep the existing full Fans sub-category or replace it with a compact oval Fan button between the Climate title and category controls.
+- Kept automatic fan membership and safety behavior unchanged; the compact button opens the existing fan-only Popup with individual and group controls.
+- Added configuration, editor, Popup hierarchy, compact-control, RTL, narrow-layout, and regression coverage; the full suite now contains 252 tests.
+
 ## 0.18.1 - 2026-08-15
 
 - Kept native and automatically grouped fans out of Climate quick-action and Floor climate popups; the active fan tag now opens its own fan-only popup with individual and grouped controls.

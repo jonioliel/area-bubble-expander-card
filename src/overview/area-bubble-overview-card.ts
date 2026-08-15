@@ -528,10 +528,14 @@ export class AreaBubbleOverviewCard extends LitElement {
     const toggleTargets = toggleTurnOn ? onTargets : offTargets;
     const togglePending = toggleTurnOn ? pendingOn : pendingOff;
     const toggleLabel = toggleTurnOn ? onLabel : offLabel;
+    const compactFans = section.id === "climate" && this.fanDisplayMode(area) === "button"
+      ? section.entities.filter((item) => item.group === AUTO_FAN_GROUP)
+      : [];
     return html`
       <section class="device-section section-${section.id} columns-${sectionColumns} entity-size-${entityCardSize} ${sectionStyle.show_border ? "section-framed" : ""}" style=${sectionStyleText} aria-labelledby=${headingId}>
-        <h3 class="section-heading" id=${headingId}>
+        <h3 class="section-heading ${compactFans.length ? "has-fan-button" : ""}" id=${headingId}>
           <span class="section-heading-main"><ha-icon icon=${section.icon}></ha-icon><span class="section-title" title=${section.title}>${section.title}</span><span class="section-count">${section.activeCount}/${section.entities.length}</span></span>
+          ${compactFans.length ? this.renderFanSectionButton(area, compactFans) : nothing}
           <span class="section-actions" role="group" aria-label=${`${this.localText("שליטה כללית", "Group controls")}: ${section.title}`}>
             ${this.config?.section_action_mode === "toggle"
               ? html`<button
@@ -574,10 +578,12 @@ export class AreaBubbleOverviewCard extends LitElement {
     if (!section.entities.length) {
       return html`<div class="section-entities"><div class="secondary section-empty">${this.config && overviewLanguage(this.hass, this.config) === "he" ? "אין רכיבים בסעיף" : "No devices in this section"}</div></div>`;
     }
+    const compactFanButton = section.id === "climate" && this.fanDisplayMode(area) === "button";
     const ungrouped = section.entities.filter((item) => !item.group);
     const groups = new Map<string, OverviewEntity[]>();
     for (const item of section.entities) {
       if (!item.group) continue;
+      if (compactFanButton && item.group === AUTO_FAN_GROUP) continue;
       const entries = groups.get(item.group) ?? [];
       entries.push(item);
       groups.set(item.group, entries);
@@ -596,13 +602,40 @@ export class AreaBubbleOverviewCard extends LitElement {
     `;
   }
 
-  private subgroupTitle(group: string, area: OverviewArea): string {
+  private renderFanSectionButton(area: OverviewArea, entities: OverviewEntity[]) {
+    // `ignore_activity` only removes the device from room/Floor summaries. The
+    // expanded control must still reflect the fan's real powered state.
+    const activeCount = entities.filter((item) => item.powered).length;
+    const pending = this.quickActionPending(area.id, "fans") || entities.some((item) => this.pendingEntities.has(item.entityId));
+    const title = this.subgroupTitle(AUTO_FAN_GROUP, area, true);
+    const accessibleLabel = `${this.localText("פתיחת בקרת מאווררים", "Open fan controls")}: ${area.name} · ${activeCount}/${entities.length}`;
+    return html`
+      <button
+        class="section-fan-button ${activeCount ? "active" : "inactive"}"
+        type="button"
+        title=${accessibleLabel}
+        aria-label=${accessibleLabel}
+        aria-haspopup="dialog"
+        aria-expanded=${this.quickPopup?.areaId === area.id && this.quickPopup.action === "fans"}
+        aria-busy=${pending}
+        ?disabled=${pending}
+        @click=${(event: Event) => this.openQuickActionPopup(event, area, "fans")}
+      ><ha-icon icon=${pending ? "mdi:loading" : "mdi:fan"}></ha-icon><span>${title}</span><small>${activeCount}/${entities.length}</small></button>
+    `;
+  }
+
+  private fanDisplayMode(area: OverviewArea): "subgroup" | "button" {
+    const override = this.config?.area_overrides[area.id] ?? this.config?.area_overrides[area.name];
+    return override?.fan_display_mode ?? this.config?.fan_display_mode ?? "subgroup";
+  }
+
+  private subgroupTitle(group: string, area: OverviewArea, compact = false): string {
     const key = group === AUTO_FAN_GROUP ? "fans" : group === AUTO_FLOOR_HEATING_GROUP ? "heating_controls" : undefined;
     if (!key) return group;
     const areaOverride = this.config?.area_overrides[area.id] ?? this.config?.area_overrides[area.name];
     const configured = areaOverride?.subgroup_titles?.[key] || this.config?.subgroup_titles[key];
     if (configured) return configured;
-    if (key === "fans") return this.localText("מאווררים", "Fans");
+    if (key === "fans") return compact ? this.localText("מאוורר", "Fan") : this.localText("מאווררים", "Fans");
     if (key === "heating_controls") return this.localText("בקרי חימום", "Heating controls");
     return group;
   }
@@ -824,19 +857,33 @@ export class AreaBubbleOverviewCard extends LitElement {
         <div class="area-popup-subareas" role="group" aria-label=${`${this.localText("תתי אזורים של", "Sub-areas of")} ${area.name}`}>
           ${nested.map((child) => {
             const activeCount = child.allEntities.filter(countsTowardAreaActivity).length;
+            const safeChildId = child.id.replace(/[^a-zA-Z0-9_-]/g, "-");
+            const headingId = `area-popup-subarea-${safeChildId}`;
+            const contentId = `${headingId}-content`;
+            const expanded = this.isPopupSubareaExpanded(child);
             return html`
-              <section class="area-popup-subarea ${activeCount ? "has-active" : "all-off"}" aria-labelledby=${`area-popup-subarea-${child.id.replace(/[^a-zA-Z0-9_-]/g, "-")}`}>
-                <header class="area-popup-subarea-header">
+              <section class="area-popup-subarea ${activeCount ? "has-active" : "all-off"} ${expanded ? "expanded" : "collapsed"}" aria-labelledby=${headingId}>
+                <button
+                  class="area-popup-subarea-toggle"
+                  type="button"
+                  aria-expanded=${expanded}
+                  aria-controls=${contentId}
+                  aria-label=${`${expanded ? this.localText("כיווץ תת־אזור", "Collapse sub-area") : this.localText("פתיחת תת־אזור", "Expand sub-area")}: ${child.name}`}
+                  @click=${(event: Event) => this.togglePopupSubarea(event, child)}
+                >
                   <span class="icon-bubble small"><ha-icon icon=${child.icon}></ha-icon></span>
                   <span class="area-popup-subarea-heading">
-                    <strong id=${`area-popup-subarea-${child.id.replace(/[^a-zA-Z0-9_-]/g, "-")}`}>${child.name}</strong>
+                    <strong id=${headingId}>${child.name}</strong>
                     <small>${activeCount
                       ? `${activeCount} ${this.localText("פעילים", "active")}`
                       : this.localText("הכול כבוי", "All off")}</small>
                   </span>
-                </header>
-                <div class="area-popup-subarea-content">${this.renderAreaContent(child)}</div>
-                ${renderChildren(child)}
+                  <ha-icon class="area-popup-subarea-chevron" icon="mdi:chevron-down" aria-hidden="true"></ha-icon>
+                </button>
+                <div class="area-popup-subarea-disclosure" id=${contentId} ?hidden=${!expanded}>
+                  <div class="area-popup-subarea-content">${this.renderAreaContent(child)}</div>
+                  ${renderChildren(child)}
+                </div>
               </section>
             `;
           })}
@@ -1324,6 +1371,19 @@ export class AreaBubbleOverviewCard extends LitElement {
     if (this.areaOpenMode(area) === "popup") return false;
     const override = this.config?.area_overrides[area.id] ?? this.config?.area_overrides[area.name];
     return this.expanded[area.id] ?? override?.default_expanded ?? this.config?.default_expanded ?? false;
+  }
+
+  private isPopupSubareaExpanded(area: OverviewArea): boolean {
+    const key = `popup-subarea:${area.id}`;
+    const override = this.config?.area_overrides[area.id] ?? this.config?.area_overrides[area.name];
+    return this.expanded[key] ?? override?.default_expanded ?? true;
+  }
+
+  private togglePopupSubarea(event: Event, area: OverviewArea): void {
+    event.stopPropagation();
+    const key = `popup-subarea:${area.id}`;
+    this.expanded = { ...this.expanded, [key]: !this.isPopupSubareaExpanded(area) };
+    if (this.config?.remember_expanded_state) this.writeExpanded();
   }
 
   private areaOpenMode(area: OverviewArea): "expander" | "popup" {

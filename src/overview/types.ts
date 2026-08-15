@@ -28,6 +28,7 @@ export type OverviewTileShape = "rectangle" | "square";
 export type OverviewTileIconPosition = "start" | "left" | "right" | "center";
 export type OverviewEntityCardSize = "compact" | "medium" | "wide";
 export type OverviewAutomaticSubgroupId = "fans" | "heating_controls";
+export type OverviewFanDisplayMode = "subgroup" | "button";
 
 export type OverviewSectionStyle = {
   background?: string;
@@ -76,6 +77,7 @@ export type OverviewAreaOverride = {
   section_order?: OverviewSectionId[];
   subarea_order?: string[];
   subgroup_titles?: Partial<Record<OverviewAutomaticSubgroupId, string>>;
+  fan_display_mode?: OverviewFanDisplayMode;
   entity_card_size?: OverviewEntityCardSize;
   section_titles?: Partial<Record<OverviewSectionId, string>>;
   section_styles?: Partial<Record<OverviewSectionId, OverviewSectionStyle>>;
@@ -153,6 +155,7 @@ export type AreaBubbleOverviewCardConfig = {
   light_show_state?: boolean;
   entity_card_size?: OverviewEntityCardSize;
   subgroup_titles?: Partial<Record<OverviewAutomaticSubgroupId, string>>;
+  fan_display_mode?: OverviewFanDisplayMode;
   show_empty_sections?: boolean;
   default_expanded?: boolean;
   floor_default_expanded?: boolean;

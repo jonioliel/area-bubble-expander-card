@@ -12,6 +12,7 @@ import type {
   OverviewControlPresentation,
   OverviewEntityCardSize,
   OverviewEntityOverride,
+  OverviewFanDisplayMode,
   OverviewQuickActionId,
   OverviewSectionId,
   OverviewSectionStyle,
@@ -179,6 +180,7 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
     if (typeof config.show_area_expand_button !== "boolean") delete sanitized.show_area_expand_button;
     if (typeof config.show_floor_expand_button !== "boolean") delete sanitized.show_floor_expand_button;
     if (config.area_open_mode !== "expander" && config.area_open_mode !== "popup") delete sanitized.area_open_mode;
+    if (config.fan_display_mode !== "subgroup" && config.fan_display_mode !== "button") delete sanitized.fan_display_mode;
     if (!OVERVIEW_THEME_NAMES.includes(config.theme_preset as OverviewThemePreset)) delete sanitized.theme_preset;
     if (!["recommended", "light", "dark"].includes(String(config.theme_mode))) delete sanitized.theme_mode;
     this.config = sanitized;
@@ -344,6 +346,14 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
             </div>
           </div>
           <div class="inline-fields">
+            <div class="field">
+              <label>${this.l("תצוגת מאווררים בתוך אקלים", "Fans inside Climate", language)}</label>
+              <select .value=${resolved.fan_display_mode} @change=${(event: Event) => this.commitKey("fan_display_mode", (event.target as HTMLSelectElement).value as OverviewFanDisplayMode)}>
+                <option value="subgroup">${this.l("תת־קטגוריה מלאה", "Full sub-category", language)}</option>
+                <option value="button">${this.l("כפתור אובלי קומפקטי", "Compact oval button", language)}</option>
+              </select>
+              <div class="hint">${this.l("הכפתור הקומפקטי מופיע בין כותרת אקלים לבין פעולות ההדלקה והכיבוי ופותח חלון שליטה מלא.", "The compact button sits between the Climate title and its group controls, and opens the full fan popup.", language)}</div>
+            </div>
             <div class="field"><label>${this.l("שם תת־קטגוריית מאווררים", "Fans sub-category name", language)}</label><input type="text" .value=${resolved.subgroup_titles.fans} placeholder=${this.l("מאווררים", "Fans", language)} @change=${(event: Event) => this.setGlobalSubgroupTitle("fans", (event.target as HTMLInputElement).value)} /></div>
             <div class="field"><label>${this.l("שם תת־קטגוריית בקרי חימום", "Heating-controls sub-category name", language)}</label><input type="text" .value=${resolved.subgroup_titles.heating_controls} placeholder=${this.l("בקרי חימום", "Heating controls", language)} @change=${(event: Event) => this.setGlobalSubgroupTitle("heating_controls", (event.target as HTMLInputElement).value)} /></div>
           </div>
@@ -632,6 +642,14 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
                     <option value="compact">${this.l("מצומצם", "Compact", language)}</option>
                     <option value="medium">${this.l("בינוני", "Medium", language)}</option>
                     <option value="wide">${this.l("רחב", "Wide", language)}</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label>${this.l("תצוגת מאווררים בחדר", "Fan display in this room", language)}</label>
+                  <select .value=${override.fan_display_mode ?? ""} @change=${(event: Event) => this.updateAreaOverride(area.id, { fan_display_mode: ((event.target as HTMLSelectElement).value || undefined) as OverviewFanDisplayMode | undefined })}>
+                    <option value="">${this.l("לפי ההגדרה הכללית", "Use global setting", language)}</option>
+                    <option value="subgroup">${this.l("תת־קטגוריה מלאה", "Full sub-category", language)}</option>
+                    <option value="button">${this.l("כפתור אובלי קומפקטי", "Compact oval button", language)}</option>
                   </select>
                 </div>
                 <div class="field"><label>${this.l("שם מאווררים בחדר", "Fans name in this room", language)}</label><input type="text" .value=${override.subgroup_titles?.fans ?? ""} placeholder=${resolved.subgroup_titles.fans || this.l("מאווררים", "Fans", language)} @change=${(event: Event) => this.setAreaSubgroupTitle(area.id, "fans", (event.target as HTMLInputElement).value)} /></div>
