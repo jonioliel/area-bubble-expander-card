@@ -2,6 +2,14 @@
 
 All notable changes to Area Bubble Expander Card will be documented in this file.
 
+## 0.16.0 - 2026-08-15
+
+- Added smart Area-name removal for device labels (for example, `אורי ספוטים` → `ספוטים`), enabled globally by default with an explicit inherit/remove/keep choice per entity.
+- Promoted manually named device groups into true room sub-areas: general room categories render first, followed by each sub-area once with its own Climate, Floor heating, Cover, Light/switch, and Media sections.
+- Added per-room sub-area ordering in the visual editor while preserving automatic Fans and Heating controls as implementation sub-groups inside their original category.
+- Reused the same category hierarchy in inline Expanders and room Popups, with unique accessible headings and independently scoped category actions.
+- Added configuration, sanitization, discovery, ordering, hierarchy, and editor regression coverage; the full suite now contains 203 tests.
+
 ## 0.15.1 - 2026-08-15
 
 - Kept shower/bathroom vents (`וונטה` / `ventilator`) in Lights and switches instead of automatically classifying them as Climate fans; native `fan` entities and clearly named fans remain in Climate.

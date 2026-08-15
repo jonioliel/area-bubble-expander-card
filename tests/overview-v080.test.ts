@@ -159,11 +159,12 @@ describe("Overview 0.8 rendering contracts", () => {
     expect(editor).toContain('"Subtle category frame"');
   });
 
-  it("renders stable device sub-groups inside a room category", () => {
+  it("keeps automatic implementation sub-groups while promoting manual room sub-areas", () => {
     expect(source).toContain("const groups = new Map<string, OverviewEntity[]>()");
     expect(source).toContain('class="entity-subgroup"');
     expect(source).toContain('class="entity-subgroup-heading"');
-    expect(editor).toContain('"Sub-group inside room"');
+    expect(source).toContain('class="room-subarea');
+    expect(editor).toContain('"Sub-area inside room"');
   });
 
   it("makes the floor header active and opens room-level bulk controls", () => {

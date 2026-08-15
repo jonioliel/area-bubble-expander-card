@@ -130,6 +130,7 @@ const areaOverrides = (value: unknown): Record<string, OverviewAreaOverride> => 
         : {}),
       occupancy_entities: stringArray(raw.occupancy_entities),
       ...(Array.isArray(raw.section_order) ? { section_order: sectionArray(raw.section_order) } : {}),
+      ...(Array.isArray(raw.subarea_order) ? { subarea_order: stringArray(raw.subarea_order) } : {}),
       section_titles: sectionTitles(raw.section_titles),
       section_styles: sectionStyles(raw.section_styles),
       entity_order: sectionLists(raw.entity_order),
@@ -151,6 +152,7 @@ const entityOverrides = (value: unknown): Record<string, OverviewEntityOverride>
     if (!isRecord(raw)) continue;
     result[entityId] = {
       ...(typeof raw.name === "string" && raw.name.trim() ? { name: raw.name.trim() } : {}),
+      ...(typeof raw.strip_area_name === "boolean" ? { strip_area_name: raw.strip_area_name } : {}),
       ...(typeof raw.icon === "string" && raw.icon.trim() ? { icon: raw.icon.trim() } : {}),
       ...(typeof raw.section === "string" && allowed.has(raw.section) ? { section: raw.section as OverviewSectionId } : {}),
       ...(typeof raw.group === "string" && raw.group.trim() ? { group: raw.group.trim() } : {}),
@@ -220,6 +222,10 @@ export const resolveOverviewConfig = (config: AreaBubbleOverviewCardConfig): Res
       ? config.climate_tag_position!
       : "left",
     show_fan_tag: typeof config.show_fan_tag === "boolean" ? config.show_fan_tag : true,
+    strip_area_name_from_entity_names:
+      typeof config.strip_area_name_from_entity_names === "boolean"
+        ? config.strip_area_name_from_entity_names
+        : (OVERVIEW_DEFAULT_CONFIG.strip_area_name_from_entity_names ?? true),
     entity_state_language: stateLanguages.has(config.entity_state_language as OverviewStateLanguage)
       ? config.entity_state_language!
       : "auto",

@@ -1044,6 +1044,61 @@ export const overviewCardStyles = css`
     animation: overview-expand 170ms ease both;
   }
 
+  .room-subarea {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+    padding: 8px;
+    border: 1px solid color-mix(in srgb, var(--aboc-area-frame-color) 56%, transparent);
+    border-radius: calc(var(--aboc-radius) - 4px);
+    background: color-mix(in srgb, var(--aboc-row-bg) 66%, transparent);
+  }
+
+  .room-subarea.has-active {
+    border-color: color-mix(in srgb, var(--aboc-accent) 52%, var(--aboc-area-frame-color));
+    background: color-mix(in srgb, var(--aboc-active-surface) 38%, transparent);
+  }
+
+  .room-subarea-heading {
+    direction: var(--aboc-direction, ltr);
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 9px;
+    min-height: 44px;
+    padding-inline: 3px 6px;
+    color: var(--aboc-primary-text);
+  }
+
+  .room-subarea-icon {
+    width: 36px;
+    height: 36px;
+    color: var(--aboc-accent);
+    background: color-mix(in srgb, var(--aboc-accent) 13%, var(--aboc-row-bg));
+  }
+
+  .room-subarea-title {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 15px;
+    font-weight: 780;
+    text-align: start;
+  }
+
+  .room-subarea-count {
+    color: var(--aboc-secondary-text);
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .room-subarea-sections {
+    display: grid;
+    gap: var(--aboc-section-gap);
+    min-width: 0;
+  }
+
   .area-disclosure[hidden] {
     display: none;
   }

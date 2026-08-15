@@ -139,6 +139,21 @@ export const overviewTemperatureMode = (entities: OverviewEntity[]): OverviewTem
 const entityName = (hass: HomeAssistant | undefined, entity: HassEntity, override?: string): string =>
   override || hass?.formatEntityName?.(entity) || String(entity.attributes.friendly_name ?? entity.entity_id);
 
+const regexEscape = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+export const stripAreaNameFromEntityName = (name: string, areaNames: Array<string | undefined>): string => {
+  let stripped = name.trim();
+  const candidates = [...new Set(areaNames.map((item) => item?.trim()).filter((item): item is string => Boolean(item)))]
+    .sort((a, b) => b.length - a.length);
+  for (const areaName of candidates) {
+    const escaped = regexEscape(areaName).replace(/\s+/g, "\\s+");
+    const boundary = "[\\s._\\-–—·|/\\\\]";
+    stripped = stripped.replace(new RegExp(`(?:^|${boundary})${escaped}(?=$|${boundary})`, "giu"), " ");
+  }
+  stripped = stripped.replace(/^[\s._\-–—·|/\\]+|[\s._\-–—·|/\\]+$/gu, "").replace(/\s{2,}/g, " ");
+  return stripped || name.trim();
+};
+
 const entityIcon = (entity: HassEntity, domain: string, override?: string): string => {
   if (override) return override;
   if (typeof entity.attributes.icon === "string") return entity.attributes.icon;
@@ -276,8 +291,12 @@ const createArea = (
     if (registryEntity?.entity_category === "config" || registryEntity?.entity_category === "diagnostic") continue;
     const domain = domainOf(entityId);
     const labels = labelsForEntity(hass, entityId);
-    const resolvedName = entityName(hass, entity, entityOverride?.name);
-    const section = classify(config, areaId, registryArea?.name, entityId, domain, resolvedName, labels);
+    const baseName = entityName(hass, entity, entityOverride?.name);
+    const shouldStripAreaName = entityOverride?.strip_area_name ?? config.strip_area_name_from_entity_names;
+    const resolvedName = shouldStripAreaName
+      ? stripAreaNameFromEntityName(baseName, [override?.name, registryArea?.name])
+      : baseName;
+    const section = classify(config, areaId, registryArea?.name, entityId, domain, baseName, labels);
     if (!section) continue;
     entities.push({
       entity,
@@ -296,7 +315,7 @@ const createArea = (
         config.protected_entities.includes(entityId) ||
         labels.some((label) => config.protected_labels.includes(label)),
       ignoreActivity: entityOverride?.ignore_activity === true,
-      group: entityOverride?.group ?? automaticGroup(section, domain, entityId, resolvedName, labels),
+      group: entityOverride?.group ?? automaticGroup(section, domain, entityId, baseName, labels),
     });
   }
 

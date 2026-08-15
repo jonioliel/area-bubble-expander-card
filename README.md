@@ -18,7 +18,7 @@ Both cards are delivered by the same JavaScript resource. Install it once, then 
 - Active-only quick-action popups on collapsed Areas with live status, individual controls, and safe all-on/all-off actions
 - Configurable one-button or paired controls on every expanded section heading; cover sections use open/close
 - Per-category spacing, backgrounds, subtle frames, action icons, and responsive control sizing
-- Named device sub-groups inside a room category without changing Home Assistant Area assignments
+- Named room sub-areas that contain their own category sections without changing Home Assistant Area assignments
 - Active Floor summaries with a room-control popup for one-room or whole-Floor shutdown
 - Active Floor climate badges with a popup for individual or grouped A/C control
 - Tap controls directly and long-press an entity for Home Assistant More Info
@@ -332,7 +332,7 @@ Safety behavior:
 - Buttons are disabled while an action is in flight, and partial failures produce a Home Assistant notification.
 - Group and individual operations share pending locks, preventing conflicting service calls to the same category.
 
-### Section-wide actions, appearance, and sub-groups
+### Section-wide actions, appearance, and room sub-areas
 
 Every expanded section heading can use either two directional controls or one smart state button, so a complete category can be started or stopped without operating each tile. The controls can show an icon, a short localized label, or both. Climate, floor heating, lights/switches, and media use their safe on/off services; covers use open/close. Each direction is disabled when no device needs that state and controls are locked while a request is running.
 
@@ -364,6 +364,9 @@ section_styles:
 
 area_overrides:
   kids_room:
+    subarea_order:
+      - Shower
+      - Bathroom
     section_styles:
       lights_switches:
         show_border: true
@@ -372,11 +375,16 @@ area_overrides:
 entity_overrides:
   light.kids_shower:
     group: Shower
+    strip_area_name: true
   switch.kids_shower_fan:
     group: Shower
 ```
 
-`section_styles` supplies the global category appearance, including frame visibility, color, thickness (0–8 px), solid/dashed/dotted style, equipment height, column count, and an optional action-button presentation override. Covers accept one or two columns; lights/switches accept one, two, or three. A matching `area_overrides.<area>.section_styles` value overrides only that room. Entities with the same non-empty `group` value are rendered together under a compact sub-heading while retaining their real Home Assistant Area, state, and safe controls.
+`section_styles` supplies the global category appearance, including frame visibility, color, thickness (0–8 px), solid/dashed/dotted style, equipment height, column count, and an optional action-button presentation override. Covers accept one or two columns; lights/switches accept one, two, or three. A matching `area_overrides.<area>.section_styles` value overrides only that room.
+
+Entities with the same non-empty manual `group` value form one room sub-area. General room categories render first; each sub-area then renders once, with its own category sections underneath. `area_overrides.<area>.subarea_order` controls their order. The automatic **Fans** and **Heating controls** groups stay inside Climate and Floor heating instead of becoming room sub-areas. The visual editor exposes the same hierarchy and ordering without changing the entities' real Home Assistant Area, state, or safe controls.
+
+Device names remove the containing Area name by default, so `אורי ספוטים` is displayed as `ספוטים`. Set `strip_area_name_from_entity_names: false` globally to keep full names, or use `entity_overrides.<entity>.strip_area_name: true|false` for one device. An explicit custom `name` remains editable and follows the same per-device remove/keep choice.
 
 Section actions follow the same safety boundary as header quick actions: hidden or Area-excluded entities never participate, and unavailable, protected, or unsupported entities are skipped. Service calls are grouped by Domain and target only the remaining discovered Entity IDs; one unsupported device does not prevent other valid devices in the section from being controlled.
 
@@ -586,6 +594,7 @@ style:
 | `quick_actions_position` | `opposite` | `opposite` places active quick actions at the other logical edge; `near_name` keeps them beside the Area name. |
 | `climate_tag_position` | `left` | Places attached climate/fan tags on the `left`, `right`, `top`, or `bottom` of the temperature. |
 | `show_fan_tag` | `true` | Shows an icon-only tag while an Area fan is on; the fan remains in the Climate popup/category. |
+| `strip_area_name_from_entity_names` | `true` | Removes the complete containing Area name from device labels; safe word boundaries prevent partial-name damage. |
 | `entity_state_language` | `auto` | Global ON/OFF text language: `auto`, `he`, or `en`. |
 | `light_tile_shape` / `light_icon_position` | `rectangle` / `start` | Global light/switch tile shape and icon placement (`start` follows RTL/LTR; or physical `left`, `right`, `center`). |
 | `light_show_state` | `true` | Shows state/brightness text on light/switch tiles by default. |
@@ -613,13 +622,15 @@ style:
 | `area_overrides.<area>.parent_area` | none | Visually nests one Floor Area under another without combining state, summaries, or actions. |
 | `area_overrides.<area>.show_when_parent_collapsed` | `false` | Keeps this child visible inside its parent while the parent is collapsed. |
 | `area_overrides.<area>.open_mode` | inherit global | Overrides one room with `expander` or `popup`. |
+| `area_overrides.<area>.subarea_order` | discovery order | Orders named room sub-areas after the general room categories. |
 | `area_overrides.<area>.occupancy_count_entity` | none | Authoritative numeric people-count entity; zero is vacant. |
 | `area_overrides.<area>.occupancy_entities` | automatic | Presence sensors to count when no numeric count entity is selected. |
 | `area_overrides.<area>.exclude_entities` | `[]` | Removes entities from display and every Area state/summary calculation. |
 | `area_overrides.<area>.section_styles` | inherit global | Per-room category background, frame, height, columns, and action-presentation overrides. |
 | `entity_overrides` | `{}` | Entity name, icon, section, visibility, activity influence, group protection, and per-device tile/state presentation. |
 | `entity_overrides.<entity>.icon` | registry/fallback icon | Overrides one device icon. |
-| `entity_overrides.<entity>.group` | none | Places devices with the same group name under a sub-heading inside their category. |
+| `entity_overrides.<entity>.group` | none | Places matching devices in one room sub-area, with categories nested underneath it. |
+| `entity_overrides.<entity>.strip_area_name` | inherit global | `true` removes or `false` preserves the Area name for one device. |
 | `entity_overrides.<entity>.ignore_activity` | `false` | Keeps the device visible but removes its influence from room/Floor active state and quick summaries. |
 | `entity_overrides.<entity>.tile_shape` | inherit | `rectangle` or `square` for one light/switch tile. |
 | `entity_overrides.<entity>.icon_position` | inherit | `start`, physical `left`/`right`, or `center` for one light/switch tile. |
@@ -709,7 +720,9 @@ The Overview editor provides:
 - Quick-action icon pickers with built-in fallbacks and one-click reset
 - Preferred temperature, occupancy-count, and occupancy sensor selection
 - Complete per-Area entity hiding/restoration that also excludes hidden devices from state, color, summaries, and group actions
-- Entity section/sub-group assignment, names, icons, group protection, activity exclusion, and priority order; manual section choices override automatic fan/floor-heating mapping
+- Smart Area-name removal with a global setting and per-device inherit/remove/keep override
+- Entity section/room-sub-area assignment, names, icons, group protection, activity exclusion, and priority order; manual section choices override automatic fan/floor-heating mapping
+- General-room-first hierarchy plus per-room ordering of named sub-areas and their nested category sections
 - Convenient on/off, occupancy, and HVAC temperature-state color pickers with CSS-value inputs, reset actions, and live previews
 - Adjustable Area-name size, one-to-three-column light grids, global/per-device tile presentation and state language, native Home Assistant HVAC/fan menus, and automatic full-row brightness sliders for dimmable lights
 - Safe Area/category/Floor popups and on/off/open/close controls that honor exclusion, availability, capability, and protection rules

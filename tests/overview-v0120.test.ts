@@ -65,7 +65,7 @@ describe("Overview 0.12 floor disclosure and room popup", () => {
     expect(source).toContain('@cancel=${(event: Event) => { event.preventDefault(); this.closeAreaPopup(); }}');
     expect(source).toContain('if (event.target === event.currentTarget) this.closeAreaPopup()');
     expect(source).toContain('class="quick-popup-close"');
-    expect(source).toContain('area.sections.map((section) => this.renderSection(section, area))');
+    expect(source).toContain('class="area-detail-content">${this.renderAreaContent(area)}');
     expect(source).toContain('if (typeof dialog.showModal === "function") dialog.showModal()');
   });
 

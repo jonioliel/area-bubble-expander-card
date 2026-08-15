@@ -248,6 +248,7 @@ export const OVERVIEW_DEFAULT_CONFIG: AreaBubbleOverviewCardConfig = {
   quick_actions_position: "opposite",
   climate_tag_position: "left",
   show_fan_tag: true,
+  strip_area_name_from_entity_names: true,
   entity_state_language: "auto",
   light_tile_shape: "rectangle",
   light_icon_position: "start",

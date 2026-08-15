@@ -33,6 +33,7 @@ export type OverviewSectionActionIcons = {
 
 export type OverviewEntityOverride = {
   name?: string;
+  strip_area_name?: boolean;
   icon?: string;
   section?: OverviewSectionId;
   group?: string;
@@ -57,6 +58,7 @@ export type OverviewAreaOverride = {
   occupancy_count_entity?: string;
   occupancy_entities?: string[];
   section_order?: OverviewSectionId[];
+  subarea_order?: string[];
   section_titles?: Partial<Record<OverviewSectionId, string>>;
   section_styles?: Partial<Record<OverviewSectionId, OverviewSectionStyle>>;
   entity_order?: Partial<Record<OverviewSectionId, string[]>>;
@@ -125,6 +127,7 @@ export type AreaBubbleOverviewCardConfig = {
   quick_actions_position?: OverviewQuickActionsPosition;
   climate_tag_position?: OverviewClimateTagPosition;
   show_fan_tag?: boolean;
+  strip_area_name_from_entity_names?: boolean;
   entity_state_language?: OverviewStateLanguage;
   light_tile_shape?: OverviewTileShape;
   light_icon_position?: OverviewTileIconPosition;

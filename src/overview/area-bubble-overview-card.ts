@@ -27,6 +27,7 @@ import {
 } from "./constants";
 import { discoverOverview } from "./discovery";
 import { buildOverviewAreaHierarchy, visibleOverviewAreas } from "./hierarchy";
+import { buildOverviewAreaContentLayout } from "./presentation";
 import "./editor";
 import {
   climateModes,
@@ -370,7 +371,7 @@ export class AreaBubbleOverviewCard extends LitElement {
             : nothing}
         </header>
         <div class="area-disclosure" id=${contentId} ?hidden=${!expanded}>
-          <div class="expanded-content">${area.sections.map((section) => this.renderSection(section, area))}</div>
+          <div class="expanded-content">${this.renderAreaContent(area)}</div>
           ${expanded ? nestedContent : nothing}
         </div>
         ${expanded ? nothing : nestedContent}
@@ -451,13 +452,39 @@ export class AreaBubbleOverviewCard extends LitElement {
     `;
   }
 
-  private renderSection(section: OverviewSection, area: OverviewArea) {
+  private renderAreaContent(area: OverviewArea) {
+    if (!this.config) return nothing;
+    const areaOverride = this.config.area_overrides[area.id] ?? this.config.area_overrides[area.name];
+    const layout = buildOverviewAreaContentLayout(area, areaOverride?.subarea_order, this.config.show_empty_sections);
+    return html`
+      ${layout.generalSections.map((section) => this.renderSection(section, area))}
+      ${layout.subareas.map((subarea, index) => {
+        const activeCount = subarea.entities.filter(countsTowardAreaActivity).length;
+        const headingId = `overview-room-subarea-${area.id}-${index}`.replace(/[^a-zA-Z0-9_-]/g, "-");
+        return html`
+          <section class="room-subarea ${activeCount ? "has-active" : "all-off"}" aria-labelledby=${headingId}>
+            <header class="room-subarea-heading" id=${headingId}>
+              <span class="icon-bubble room-subarea-icon"><ha-icon icon="mdi:home-floor-1"></ha-icon></span>
+              <span class="room-subarea-title">${subarea.name}</span>
+              <span class="room-subarea-count">${activeCount}/${subarea.entities.length}</span>
+            </header>
+            <div class="room-subarea-sections">
+              ${subarea.sections.map((section) => this.renderSection(section, area, `subarea-${index}`))}
+            </div>
+          </section>
+        `;
+      })}
+    `;
+  }
+
+  private renderSection(section: OverviewSection, area: OverviewArea, scope = "general") {
     const areaId = area.id;
-    const headingId = `overview-section-${section.id}-${areaId.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
+    const actionAreaId = scope === "general" ? areaId : `${areaId}:${scope}`;
+    const headingId = `overview-section-${section.id}-${areaId}-${scope}`.replace(/[^a-zA-Z0-9_-]/g, "-");
     const onTargets = sectionActionEntities(section, true);
     const offTargets = sectionActionEntities(section, false);
-    const pendingOn = this.pendingSections.has(`${areaId}:${section.id}:on`);
-    const pendingOff = this.pendingSections.has(`${areaId}:${section.id}:off`);
+    const pendingOn = this.pendingSections.has(`${actionAreaId}:${section.id}:on`);
+    const pendingOff = this.pendingSections.has(`${actionAreaId}:${section.id}:off`);
     const pending = pendingOn || pendingOff || section.entities.some((item) => this.pendingEntities.has(item.entityId));
     const onVerb = section.id === "covers" ? this.localText("פתיחת כל התריסים", "Open all covers") : this.localText("הפעלת הכל", "Turn everything on");
     const offVerb = section.id === "covers" ? this.localText("סגירת כל התריסים", "Close all covers") : this.localText("כיבוי הכל", "Turn everything off");
@@ -501,7 +528,7 @@ export class AreaBubbleOverviewCard extends LitElement {
                   aria-label=${toggleLabel}
                   aria-busy=${togglePending}
                   ?disabled=${pending || toggleTargets.length === 0}
-                  @click=${(event: Event) => this.handleSectionAction(event, section, areaId, toggleTurnOn)}
+                  @click=${(event: Event) => this.handleSectionAction(event, section, actionAreaId, toggleTurnOn)}
                 >${this.renderSectionActionContent(section.id, toggleTurnOn, togglePending, actionPresentation)}</button>`
               : html`
                   <button
@@ -511,7 +538,7 @@ export class AreaBubbleOverviewCard extends LitElement {
                     aria-label=${onLabel}
                     aria-busy=${pendingOn}
                     ?disabled=${pending || onTargets.length === 0}
-                    @click=${(event: Event) => this.handleSectionAction(event, section, areaId, true)}
+                    @click=${(event: Event) => this.handleSectionAction(event, section, actionAreaId, true)}
                   >${this.renderSectionActionContent(section.id, true, pendingOn, actionPresentation)}</button>
                   <button
                     class="section-off-button presentation-${actionPresentation}"
@@ -520,7 +547,7 @@ export class AreaBubbleOverviewCard extends LitElement {
                     aria-label=${offLabel}
                     aria-busy=${pendingOff}
                     ?disabled=${pending || offTargets.length === 0}
-                    @click=${(event: Event) => this.handleSectionAction(event, section, areaId, false)}
+                    @click=${(event: Event) => this.handleSectionAction(event, section, actionAreaId, false)}
                   >${this.renderSectionActionContent(section.id, false, pendingOff, actionPresentation)}</button>
                 `}
           </span>
@@ -757,7 +784,7 @@ export class AreaBubbleOverviewCard extends LitElement {
             </span>
             <button class="quick-popup-close" type="button" aria-label=${`${this.localText("סגירת חדר", "Close room")}: ${area.name}`} @click=${() => this.closeAreaPopup()}><ha-icon icon="mdi:close"></ha-icon></button>
           </header>
-          <div class="area-detail-content">${area.sections.map((section) => this.renderSection(section, area))}</div>
+          <div class="area-detail-content">${this.renderAreaContent(area)}</div>
         </section>
       </dialog>
     `;
