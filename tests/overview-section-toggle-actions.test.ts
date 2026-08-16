@@ -2,16 +2,18 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   quickActionActionEntities,
+  quickActionDirectEntities,
   quickActionEntityService,
   quickActionEntities,
   quickActionMembers,
   runQuickAction,
   runQuickActionAction,
+  runQuickActionDirectAction,
   runSectionAction,
   runSectionOffAction,
   sectionActionEntities,
 } from "../src/overview/actions";
-import { AUTO_FAN_GROUP } from "../src/overview/constants";
+import { AUTO_FAN_GROUP, AUTO_FLOOR_HEATING_GROUP } from "../src/overview/constants";
 import type { HassEntity, HomeAssistant } from "../src/types";
 import type {
   OverviewArea,
@@ -255,6 +257,38 @@ describe("Overview quick-action directional actions", () => {
     expect(quickActionEntityService("covers", closeOnly, true)).toBeUndefined();
     expect(quickActionEntityService("lights", light, true)).toEqual({ service: "turn_on" });
     expect(quickActionEntityService("media", light, true)).toBeUndefined();
+  });
+
+  it("keeps protected members out of bulk actions but allows an explicit compact subgroup toggle", async () => {
+    const callService = vi.fn(async () => undefined);
+    const members = [
+      overviewEntity("fan.protected", "climate", { group: AUTO_FAN_GROUP, protected: true }),
+      overviewEntity("switch.unavailable", "climate", { group: AUTO_FAN_GROUP, available: false }),
+    ];
+    const area = overviewArea(members);
+
+    expect(quickActionActionEntities(area, "fans", true)).toEqual([]);
+    expect(quickActionDirectEntities(members, "fans", true).map((item) => item.entityId)).toEqual(["fan.protected"]);
+
+    await runQuickActionDirectAction(homeAssistant(callService), members, "fans", true);
+    expect(callService).toHaveBeenCalledOnce();
+    expect(callService).toHaveBeenCalledWith("fan", "turn_on", undefined, { entity_id: ["fan.protected"] });
+
+    callService.mockClear();
+    const heatingMembers = [
+      overviewEntity("switch.protected_heating", "floor_heating", {
+        group: AUTO_FLOOR_HEATING_GROUP,
+        protected: true,
+      }),
+    ];
+    expect(quickActionDirectEntities(heatingMembers, "heating_controls", true).map((item) => item.entityId)).toEqual([
+      "switch.protected_heating",
+    ]);
+    await runQuickActionDirectAction(homeAssistant(callService), heatingMembers, "heating_controls", true);
+    expect(callService).toHaveBeenCalledOnce();
+    expect(callService).toHaveBeenCalledWith("switch", "turn_on", undefined, {
+      entity_id: ["switch.protected_heating"],
+    });
   });
 
   it("returns all category members for display but only safe opposite-state entities for an action", () => {

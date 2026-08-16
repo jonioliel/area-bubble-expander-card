@@ -84,8 +84,8 @@ describe("Overview 0.19 adaptive grids and heating-control button", () => {
     expect(off.hass.callService).toHaveBeenCalledTimes(2);
     expect(off.hass.callService).toHaveBeenCalledWith("switch", "turn_on", undefined, { entity_id: ["switch.floor_relay"] });
     expect(off.hass.callService).toHaveBeenCalledWith("input_boolean", "turn_on", undefined, { entity_id: ["input_boolean.floor_enable"] });
-    expect(cardSource).toContain('this.handleCompactSubgroupToggle(event, area, action)');
-    expect(cardSource).toContain('quickActionMembers(area, action).some((item) => item.powered)');
+    expect(cardSource).toContain('this.handleCompactSubgroupToggle(event, area, action, entities)');
+    expect(cardSource).toContain('runQuickActionDirectAction(this.hass, members, action, turnOn)');
   });
 
   it("offers the heating-control choice globally and per room in the editor", () => {

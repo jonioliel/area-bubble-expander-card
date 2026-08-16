@@ -94,14 +94,15 @@ const runGroupedServices = async (
   if (failed.length) throw new Error(`${failed.length} of ${results.length} ${failureLabel} failed.`);
 };
 
-const planQuickAction = (
-  area: OverviewArea,
+const planQuickActionMembers = (
+  members: OverviewEntity[],
   action: OverviewQuickActionKind,
   turnOn: boolean,
+  allowProtected: boolean,
 ): PlannedEntityService[] => {
   const planned: PlannedEntityService[] = [];
-  for (const entity of quickActionMembers(area, action)) {
-    if (!entity.available || entity.protected) continue;
+  for (const entity of members) {
+    if (!entity.available || (!allowProtected && entity.protected)) continue;
     const needsAction = action === "covers" ? coverNeedsAction(entity, turnOn) : entity.powered !== turnOn;
     if (!needsAction) continue;
     const service = quickActionEntityService(action, entity, turnOn);
@@ -109,6 +110,12 @@ const planQuickAction = (
   }
   return planned;
 };
+
+const planQuickAction = (
+  area: OverviewArea,
+  action: OverviewQuickActionKind,
+  turnOn: boolean,
+): PlannedEntityService[] => planQuickActionMembers(quickActionMembers(area, action), action, turnOn, false);
 
 /** Safe, controllable quick-action members that still need the requested state. */
 export const quickActionActionEntities = (
@@ -129,6 +136,27 @@ export const runQuickActionAction = async (
 ): Promise<void> => {
   const planned = planQuickAction(area, action, turnOn);
   await runGroupedServices(hass, groupServices(planned), "area actions");
+};
+
+/**
+ * Direct controls rendered inside an expanded room. Unlike room/category bulk
+ * actions, an explicit press may operate a protected entity; unavailable and
+ * unsupported members remain excluded.
+ */
+export const quickActionDirectEntities = (
+  members: OverviewEntity[],
+  action: OverviewQuickActionKind,
+  turnOn: boolean,
+): OverviewEntity[] => planQuickActionMembers(members, action, turnOn, true).map(({ entity }) => entity);
+
+export const runQuickActionDirectAction = async (
+  hass: HomeAssistant,
+  members: OverviewEntity[],
+  action: OverviewQuickActionKind,
+  turnOn: boolean,
+): Promise<void> => {
+  const planned = planQuickActionMembers(members, action, turnOn, true);
+  await runGroupedServices(hass, groupServices(planned), "direct subgroup actions");
 };
 
 /** Backward-compatible wrapper for the original quick-action OFF operation. */

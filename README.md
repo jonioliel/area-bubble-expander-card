@@ -340,7 +340,7 @@ Safety behavior:
 - Cover controls follow Home Assistant's `current_position` (0 closed, 100 fully open), movement state, feature bits, and `assumed_state`. A partially open cover can still be opened fully or closed, the current movement direction is not resent, and the opposite direction remains available for reversal.
 - Calls are grouped by Domain and target only discovered Entity IDs.
 - Hidden and excluded entities are absent. Unavailable or unsupported members remain visible but disabled.
-- Protected entities are omitted from group actions but retain deliberate individual control in the popup and expanded Area.
+- Protected entities are omitted from room/category bulk actions but retain deliberate individual control in the Popup and expanded Area, including the explicit compact Fan and Heating-switch toggles.
 - Buttons are disabled while an action is in flight, and partial failures produce a Home Assistant notification.
 - Group and individual operations share pending locks, preventing conflicting service calls to the same category.
 

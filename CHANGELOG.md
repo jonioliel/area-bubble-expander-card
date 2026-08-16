@@ -2,6 +2,13 @@
 
 All notable changes to Area Bubble Expander Card will be documented in this file.
 
+## 0.20.6 - 2026-08-16
+
+- Fixed compact Fan and Floor-heating toggles becoming disabled when their member was protected from bulk shutdown. These expanded-room controls are now treated as deliberate direct actions, matching individual entity controls.
+- Kept protection intact for room-wide, Floor-wide, category-wide, and Popup group actions; unavailable or unsupported subgroup members remain safely disabled.
+- Scoped compact actions to the exact rendered subgroup instead of rediscovering members from the Area, eliminating configuration-dependent membership mismatches.
+- Verified real rendered-button ON/OFF interaction in a browser for protected Fan and Heating-switch entities, then ran the complete TypeScript, service-control, cover, climate, dimmer, media, hierarchy, RTL, styling, and theme regression suite.
+
 ## 0.20.5 - 2026-08-16
 
 - Changed the compact oval Floor-heating switch control into the same direct group toggle used by compact Fans: OFF turns every safe relay on, while an active group turns its powered relays off without opening a Popup.

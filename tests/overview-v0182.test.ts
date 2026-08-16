@@ -43,8 +43,9 @@ describe("Overview 0.18.2 popup sub-areas and compact fan control", () => {
     expect(cardSource).toContain('"section-fan-button"');
     expect(cardSource).toContain("entities.filter((item) => item.powered).length");
     expect(cardSource).toContain('const action: OverviewQuickActionKind = heatingControls ? "heating_controls" : "fans"');
-    expect(cardSource).toContain("this.handleCompactSubgroupToggle(event, area, action)");
-    expect(cardSource).toContain("quickActionMembers(area, action).some((item) => item.powered)");
+    expect(cardSource).toContain("this.handleCompactSubgroupToggle(event, area, action, entities)");
+    expect(cardSource).toContain("quickActionDirectEntities(entities, action, turnOn)");
+    expect(cardSource).toContain("runQuickActionDirectAction(this.hass, members, action, turnOn)");
     expect(cardSource).toContain("aria-pressed=${activeCount > 0}");
     expect(css).toMatch(/\.section-heading\.has-compact-subgroup-button\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\) minmax\(0,\s*auto\) auto/s);
     expect(css).toMatch(/\.section-compact-subgroup-button\s*\{[^}]*min-height:\s*44px;[^}]*border-radius:\s*999px/s);

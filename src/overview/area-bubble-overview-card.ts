@@ -6,9 +6,11 @@ import {
   areaActionEntities,
   callEntityService,
   quickActionActionEntities,
+  quickActionDirectEntities,
   quickActionEntityService,
   quickActionMembers,
   runQuickActionAction,
+  runQuickActionDirectAction,
   runAreaAction,
   runSectionAction,
   sectionActionEntities,
@@ -641,7 +643,7 @@ export class AreaBubbleOverviewCard extends LitElement {
     const title = this.subgroupTitle(group, area, true);
     const pending = this.quickActionPending(area.id, action) || entities.some((item) => this.pendingEntities.has(item.entityId));
     const turnOn = activeCount === 0;
-    const targets = quickActionActionEntities(area, action, turnOn);
+    const targets = quickActionDirectEntities(entities, action, turnOn);
     const accessibleLabel = `${heatingControls
       ? this.localText(turnOn ? "הדלקת מפסק חימום" : "כיבוי מפסק חימום", turnOn ? "Turn heating switch on" : "Turn heating switch off")
       : this.localText(turnOn ? "הדלקת מאוורר" : "כיבוי מאוורר", turnOn ? "Turn fan on" : "Turn fan off")}: ${area.name} · ${activeCount}/${entities.length}`;
@@ -654,7 +656,7 @@ export class AreaBubbleOverviewCard extends LitElement {
         aria-pressed=${activeCount > 0}
         aria-busy=${pending}
         ?disabled=${pending || targets.length === 0}
-        @click=${(event: Event) => this.handleCompactSubgroupToggle(event, area, action)}
+        @click=${(event: Event) => this.handleCompactSubgroupToggle(event, area, action, entities)}
       ><ha-icon icon=${pending ? "mdi:loading" : icon}></ha-icon><span>${title}</span><small>${activeCount}/${entities.length}</small></button>
     `;
   }
@@ -1776,9 +1778,30 @@ export class AreaBubbleOverviewCard extends LitElement {
     this.closeQuickActionPopup();
   }
 
-  private handleCompactSubgroupToggle(event: Event, area: OverviewArea, action: OverviewQuickActionKind): void {
-    const turnOn = !quickActionMembers(area, action).some((item) => item.powered);
-    void this.handleQuickActionGroupAction(event, area, action, turnOn);
+  private async handleCompactSubgroupToggle(
+    event: Event,
+    area: OverviewArea,
+    action: OverviewQuickActionKind,
+    members: OverviewEntity[],
+  ): Promise<void> {
+    event.stopPropagation();
+    if (!this.hass) return;
+    const turnOn = !members.some((item) => item.powered);
+    const key = `${area.id}:${action}:${turnOn ? "on" : "off"}`;
+    const targets = quickActionDirectEntities(members, action, turnOn);
+    if (this.quickActionPending(area.id, action) || members.some((item) => this.pendingEntities.has(item.entityId)) || targets.length === 0) return;
+    this.pendingActions = new Set([...this.pendingActions, key]);
+    this.lockPendingEntities(targets);
+    try {
+      await runQuickActionDirectAction(this.hass, members, action, turnOn);
+    } catch (error) {
+      this.reportError(error);
+    } finally {
+      const next = new Set(this.pendingActions);
+      next.delete(key);
+      this.pendingActions = next;
+      this.unlockPendingEntities(targets);
+    }
   }
 
   private async handleQuickActionGroupAction(
