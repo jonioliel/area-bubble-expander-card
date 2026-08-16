@@ -35,6 +35,8 @@ import {
   climateTemperatureTargets,
   climateModes,
   coverControlDisabled,
+  coverPosition,
+  coverSupportsService,
   countsTowardAreaActivity,
   entityPowerService,
   lightBrightnessPercentage,
@@ -954,13 +956,12 @@ export class AreaBubbleOverviewCard extends LitElement {
   }
 
   private renderQuickPopupEntity(item: OverviewEntity, action: OverviewQuickActionKind, groupPending: boolean) {
+    if (action === "covers") return this.renderQuickPopupCoverEntity(item, groupPending);
     const busy = this.entityBusy(item);
     const turnOn = !item.powered;
     const plan = quickActionEntityService(action, item, turnOn);
     const disabled = !item.available || busy || groupPending || !plan;
-    const actionLabel = action === "covers"
-      ? turnOn ? this.localText("פתיחה", "Open") : this.localText("סגירה", "Close")
-      : turnOn ? this.localText("הפעלה", "Turn on") : this.localText("כיבוי", "Turn off");
+    const actionLabel = turnOn ? this.localText("הפעלה", "Turn on") : this.localText("כיבוי", "Turn off");
     const disabledReason = !item.available
         ? overviewText(this.hass, this.config!, "unavailable")
         : !plan
@@ -994,7 +995,59 @@ export class AreaBubbleOverviewCard extends LitElement {
           title=${disabledReason || `${actionLabel}: ${item.name}`}
           ?disabled=${disabled}
           @click=${(event: Event) => this.handleQuickPopupEntityAction(event, item, action)}
-        ><ha-icon icon=${busy ? "mdi:loading" : action === "covers" ? turnOn ? "mdi:arrow-up" : "mdi:arrow-down" : "mdi:power"}></ha-icon></button>
+        ><ha-icon icon=${busy ? "mdi:loading" : "mdi:power"}></ha-icon></button>
+      </article>
+    `;
+  }
+
+  private renderQuickPopupCoverEntity(item: OverviewEntity, groupPending: boolean) {
+    const busy = this.entityBusy(item);
+    const position = coverPosition(item.entity);
+    const assumedState = item.entity.attributes.assumed_state === true;
+    const services = [
+      { service: "open_cover", icon: "mdi:arrow-up" },
+      { service: "stop_cover", icon: "mdi:stop" },
+      { service: "close_cover", icon: "mdi:arrow-down" },
+    ] as const;
+    const supportedServices = services.filter(({ service }) => coverSupportsService(item.entity, service));
+    return html`
+      <article class="quick-popup-entity quick-popup-cover-entity ${item.powered ? "active" : "inactive"} ${item.available ? "" : "unavailable"}" role="listitem">
+        <button
+          class="quick-popup-entity-main hold-target"
+          type="button"
+          title=${this.localText("לחיצה או לחיצה ארוכה לפרטים נוספים", "Tap or hold for more information")}
+          @pointerdown=${(event: PointerEvent) => this.startHold(event, item)}
+          @pointermove=${(event: PointerEvent) => this.moveHold(event)}
+          @pointerup=${(event: PointerEvent) => this.finishHold(event)}
+          @pointercancel=${() => this.cancelHold()}
+          @pointerleave=${() => this.cancelHold()}
+          @click=${(event: Event) => this.handleMoreInfoClick(event, item)}
+        >
+          <span class="icon-bubble small"><ha-icon icon=${item.icon}></ha-icon></span>
+          <span class="entity-main">
+            <span class="entity-name">${item.name}</span>
+            <span class="state-text">${this.entitySecondary(item)}${item.protected ? ` · ${this.localText("מוגן מקבוצה", "group protected")}` : ""}</span>
+          </span>
+        </button>
+        <span class="quick-popup-cover-controls" role="group" aria-label=${`${this.localText("שליטה בתריס", "Cover controls")}: ${item.name}`}>
+          ${supportedServices.map(({ service, icon }) => {
+            const disabled = !item.available || busy || groupPending || coverControlDisabled(
+              service,
+              item.entity.state,
+              position,
+              assumedState,
+            );
+            return html`<button
+              class="quick-popup-cover-control"
+              type="button"
+              aria-busy=${busy}
+              aria-label=${`${this.coverServiceLabel(service)}: ${item.name}`}
+              title=${`${this.coverServiceLabel(service)}: ${item.name}`}
+              ?disabled=${disabled}
+              @click=${(event: Event) => this.runEntityService(event, item, service)}
+            ><ha-icon icon=${busy ? "mdi:loading" : icon}></ha-icon></button>`;
+          })}
+        </span>
       </article>
     `;
   }
@@ -1235,14 +1288,14 @@ export class AreaBubbleOverviewCard extends LitElement {
 
   private renderCover(item: OverviewEntity) {
     const busy = this.entityBusy(item);
-    const supportedFeatures = numberAttribute(item, "supported_features");
-    const position = numberAttribute(item, "current_position");
+    const position = coverPosition(item.entity);
     const state = item.entity.state;
+    const assumedState = item.entity.attributes.assumed_state === true;
     const services = [
-      { service: "open_cover", icon: "mdi:arrow-up", feature: 1 },
-      { service: "stop_cover", icon: "mdi:stop", feature: 8 },
-      { service: "close_cover", icon: "mdi:arrow-down", feature: 2 },
-    ].filter(({ feature }) => supportedFeatures === undefined || (supportedFeatures & feature) !== 0);
+      { service: "open_cover", icon: "mdi:arrow-up" },
+      { service: "stop_cover", icon: "mdi:stop" },
+      { service: "close_cover", icon: "mdi:arrow-down" },
+    ].filter(({ service }) => coverSupportsService(item.entity, service as "open_cover" | "stop_cover" | "close_cover"));
     return html`
       <article class="cover-card entity-card ${item.active ? "active" : ""} ${item.available ? "" : "unavailable"}" aria-busy=${busy}>
         ${this.renderEntityLead(item)}
@@ -1251,7 +1304,7 @@ export class AreaBubbleOverviewCard extends LitElement {
             <button
               class="cover-control"
               type="button"
-              ?disabled=${!item.available || busy || coverControlDisabled(service as "open_cover" | "stop_cover" | "close_cover", state, position)}
+              ?disabled=${!item.available || busy || coverControlDisabled(service as "open_cover" | "stop_cover" | "close_cover", state, position, assumedState)}
               @click=${(event: Event) => this.runEntityService(event, item, service)}
               aria-label=${`${this.coverServiceLabel(service)}: ${item.name}`}
             ><ha-icon icon=${icon}></ha-icon></button>
@@ -1304,7 +1357,7 @@ export class AreaBubbleOverviewCard extends LitElement {
       return [action, current !== undefined ? this.formatTemperature(current, this.areaTemperatureUnit(item)) : ""].filter(Boolean).join(" · ");
     }
     if (item.domain === "cover") {
-      const position = numberAttribute(item, "current_position");
+      const position = coverPosition(item.entity);
       return position !== undefined ? `${item.entity.state} · ${Math.round(position)}%` : item.entity.state;
     }
     if (item.domain === "light") {

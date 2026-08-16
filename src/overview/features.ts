@@ -1,5 +1,5 @@
 import type { HassEntity } from "../types";
-import { CLIMATE_FEATURES, MEDIA_FEATURES, WATER_HEATER_FEATURES } from "./constants";
+import { CLIMATE_FEATURES, COVER_FEATURES, MEDIA_FEATURES, WATER_HEATER_FEATURES } from "./constants";
 import type { OverviewEntity } from "./types";
 
 export type EntityServicePlan = {
@@ -95,6 +95,28 @@ export const lightBrightnessPercentage = (item: OverviewEntity): number => {
 
 export type CoverControlService = "open_cover" | "stop_cover" | "close_cover";
 
+/** Normalized HA cover position: 0 is closed and 100 is fully open. */
+export const coverPosition = (entity: HassEntity): number | undefined => {
+  const value = entity.attributes.current_position;
+  if (typeof value === "number" && Number.isFinite(value)) return Math.min(100, Math.max(0, value));
+  if (typeof value === "string" && value.trim() && Number.isFinite(Number(value))) {
+    return Math.min(100, Math.max(0, Number(value)));
+  }
+  return undefined;
+};
+
+/**
+ * Cover state used by badges and counts. Position wins over an idle state,
+ * while a moving cover remains open until Home Assistant reports completion.
+ */
+export const isCoverOpen = (entity: HassEntity): boolean => {
+  const state = String(entity.state ?? "").toLowerCase();
+  if (["", "unknown", "unavailable"].includes(state)) return false;
+  if (["opening", "closing"].includes(state)) return true;
+  const position = coverPosition(entity);
+  return position !== undefined ? position > 0 : state === "open";
+};
+
 /**
  * A cover can report `open` while it is only partially open. Prefer its
  * numeric position when available so both directional controls remain usable;
@@ -104,10 +126,37 @@ export const coverControlDisabled = (
   service: CoverControlService,
   state: string,
   position?: number,
+  assumedState = false,
 ): boolean => {
-  if (service === "open_cover") return position !== undefined ? position >= 100 : state === "open";
-  if (service === "close_cover") return position !== undefined ? position <= 0 : state === "closed";
-  return !["opening", "closing"].includes(state);
+  const normalizedState = state.toLowerCase();
+  if (service === "stop_cover") return !["opening", "closing"].includes(normalizedState);
+  // Do not repeat a command in the direction that is already in progress,
+  // but keep the opposite direction available so the user can reverse it.
+  if (normalizedState === "opening") return service === "open_cover";
+  if (normalizedState === "closing") return service === "close_cover";
+  // An assumed state is not a reliable endpoint. Home Assistant exposes that
+  // uncertainty explicitly, so both directional actions must stay available.
+  if (assumedState) return false;
+  if (service === "open_cover") return position !== undefined ? position >= 100 : normalizedState === "open";
+  return position !== undefined ? position <= 0 : normalizedState === "closed";
+};
+
+/** Whether a cover still needs a requested fully-open or fully-closed action. */
+export const coverNeedsAction = (item: OverviewEntity, turnOn: boolean): boolean =>
+  item.domain === "cover" && !coverControlDisabled(
+    turnOn ? "open_cover" : "close_cover",
+    item.entity.state,
+    coverPosition(item.entity),
+    item.entity.attributes.assumed_state === true,
+  );
+
+export const coverSupportsService = (entity: HassEntity, service: CoverControlService): boolean => {
+  const feature = service === "open_cover"
+    ? COVER_FEATURES.OPEN
+    : service === "close_cover"
+      ? COVER_FEATURES.CLOSE
+      : COVER_FEATURES.STOP;
+  return supportsEntityFeature(entity, feature);
 };
 
 /** Covers report their open state in the cover quick action, not as room activity. */

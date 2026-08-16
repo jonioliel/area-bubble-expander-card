@@ -1,4 +1,5 @@
 import { AUTO_FAN_GROUP, AUTO_FLOOR_HEATING_GROUP, SECTION_ICONS } from "./constants";
+import { isCoverOpen } from "./features";
 import { overviewSectionTitle } from "./translations";
 import type { HassAreaRegistryEntry, HassEntity, HomeAssistant } from "../types";
 import type {
@@ -94,20 +95,20 @@ const automaticGroup = (
 
 export const isOverviewEntityActive = (entity: HassEntity, domain = domainOf(entity.entity_id)): boolean => {
   const state = String(entity.state ?? "").toLowerCase();
+  if (domain === "cover") return isCoverOpen(entity);
   if (["", "unknown", "unavailable", "off", "closed", "idle", "standby"].includes(state)) return false;
   if (domain === "climate") return state !== "off";
   if (domain === "water_heater") return state !== "off";
-  if (domain === "cover") return ["open", "opening", "closing"].includes(state);
   if (domain === "media_player") return ["on", "playing", "paused", "buffering"].includes(state);
   return state === "on";
 };
 
 export const isOverviewEntityPowered = (entity: HassEntity, domain = domainOf(entity.entity_id)): boolean => {
   const state = String(entity.state ?? "").toLowerCase();
+  if (domain === "cover") return isCoverOpen(entity);
   if (["", "unknown", "unavailable"].includes(state)) return false;
   if (domain === "media_player") return !["off", "standby"].includes(state);
   if (domain === "climate" || domain === "water_heater") return state !== "off";
-  if (domain === "cover") return ["open", "opening", "closing"].includes(state);
   return state === "on";
 };
 

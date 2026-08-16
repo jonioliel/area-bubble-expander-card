@@ -1037,6 +1037,31 @@ export const overviewCardStyles = css`
     color: var(--aboc-active);
   }
 
+  .quick-popup-cover-entity {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .quick-popup-cover-controls {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 44px;
+    gap: 4px;
+    direction: ltr;
+  }
+
+  .quick-popup-cover-control {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: var(--aboc-control-surface);
+    color: var(--aboc-light-text);
+    cursor: pointer;
+  }
+
   .temperature {
     direction: ltr;
     min-width: max-content;
@@ -2018,6 +2043,7 @@ export const overviewCardStyles = css`
   .quick-popup-group-button:hover:not([disabled]),
   .quick-popup-entity-main:hover,
   .quick-popup-entity-toggle:hover:not([disabled]),
+  .quick-popup-cover-control:hover:not([disabled]),
   .section-on-button:hover:not([disabled]),
   .section-off-button:hover:not([disabled]),
   .section-toggle-button:hover:not([disabled]),
@@ -2040,6 +2066,7 @@ export const overviewCardStyles = css`
   .quick-popup-close:active:not([disabled]),
   .quick-popup-group-button:active:not([disabled]),
   .quick-popup-entity-toggle:active:not([disabled]),
+  .quick-popup-cover-control:active:not([disabled]),
   .section-on-button:active:not([disabled]),
   .section-off-button:active:not([disabled]),
   .section-toggle-button:active:not([disabled]),
@@ -2556,6 +2583,7 @@ export const overviewCardStyles = css`
     .quick-popup-close,
     .quick-popup-group-button,
     .quick-popup-entity-toggle,
+    .quick-popup-cover-control,
     .control-button,
     .toggle-tile,
     .hold-target {

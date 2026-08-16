@@ -73,6 +73,8 @@ describe("Overview dimmer controls", () => {
     expect(coverControlDisabled("close_cover", "open", 17)).toBe(false);
     expect(coverControlDisabled("stop_cover", "open", 17)).toBe(true);
     expect(coverControlDisabled("stop_cover", "opening", 17)).toBe(false);
+    expect(coverControlDisabled("open_cover", "opening", 17)).toBe(true);
+    expect(coverControlDisabled("close_cover", "opening", 17)).toBe(false);
     expect(coverControlDisabled("open_cover", "open", 100)).toBe(true);
     expect(coverControlDisabled("close_cover", "closed", 0)).toBe(true);
   });

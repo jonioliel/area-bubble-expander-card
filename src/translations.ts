@@ -111,14 +111,14 @@ export const DOMAIN_LABELS: Record<"he" | "en", Record<string, string>> = {
 
 export const resolveLanguage = (hass: HomeAssistant | undefined, language: LanguageMode): "he" | "en" => {
   if (language === "he" || language === "en") return language;
-  const detected = hass?.locale?.language ?? hass?.language ?? document.documentElement.lang;
+  const detected = hass?.locale?.language ?? hass?.language ?? (typeof document !== "undefined" ? document.documentElement.lang : "en");
   return detected?.toLowerCase().startsWith("he") ? "he" : "en";
 };
 
 export const resolveRtl = (hass: HomeAssistant | undefined, config: ResolvedConfig): boolean => {
   if (typeof config.rtl === "boolean") return config.rtl;
   const language = resolveLanguage(hass, config.language);
-  const documentDir = document.documentElement.dir;
+  const documentDir = typeof document !== "undefined" ? document.documentElement.dir : "";
   return language === "he" || documentDir === "rtl";
 };
 

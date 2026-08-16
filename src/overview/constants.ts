@@ -36,6 +36,13 @@ export const WATER_HEATER_FEATURES = {
   ON_OFF: 8,
 } as const;
 
+export const COVER_FEATURES = {
+  OPEN: 1,
+  CLOSE: 2,
+  SET_POSITION: 4,
+  STOP: 8,
+} as const;
+
 export const OVERVIEW_SECTIONS: OverviewSectionId[] = ["climate", "floor_heating", "covers", "lights_switches", "media"];
 export const OVERVIEW_QUICK_ACTIONS: OverviewQuickActionId[] = ["lights", "climate", "floor_heating", "switches", "covers", "media"];
 

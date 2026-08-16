@@ -2,7 +2,11 @@ import type { DiscoveredEntity, HomeAssistant, ResolvedConfig } from "../types";
 import { safeTurnOffCandidates } from "./safety";
 
 const splitService = (service: string): { domain: string; service: string } => {
-  const [domain, name] = service.split(".");
+  const parts = service.split(".");
+  const [domain, name] = parts;
+  if (parts.length !== 2 || !domain?.trim() || !name?.trim()) {
+    throw new Error(`Invalid service mapping: ${service}`);
+  }
   return { domain, service: name };
 };
 
@@ -31,12 +35,14 @@ export const turnOffEntitiesByDomain = async (
     grouped.set(mapping, list);
   }
 
-  await Promise.all(
-    [...grouped.entries()].map(([mapping, entityIds]) => {
-      const service = splitService(mapping);
-      return hass.callService(service.domain, service.service, undefined, { entity_id: entityIds });
-    }),
-  );
+  // Validate the complete plan before the first service call. A malformed
+  // custom mapping must never leave a room only partially switched off.
+  const planned = [...grouped.entries()].map(([mapping, entityIds]) => ({
+    service: splitService(mapping),
+    entityIds,
+  }));
+  await Promise.all(planned.map(({ service, entityIds }) =>
+    hass.callService(service.domain, service.service, undefined, { entity_id: entityIds })));
 };
 
 export const turnOffAreaViaHomeAssistant = async (hass: HomeAssistant, areaId: string): Promise<void> => {

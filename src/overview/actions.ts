@@ -1,5 +1,5 @@
 import type { HomeAssistant } from "../types";
-import { entityPowerService, supportsEntityFeature, type EntityServicePlan } from "./features";
+import { coverNeedsAction, coverSupportsService, entityPowerService, type EntityServicePlan } from "./features";
 import { AUTO_FAN_GROUP, AUTO_FLOOR_HEATING_GROUP } from "./constants";
 import type { OverviewArea, OverviewEntity, OverviewQuickActionId, OverviewQuickActionKind, OverviewSection } from "./types";
 
@@ -16,9 +16,6 @@ type PlannedEntityService = {
   entity: OverviewEntity;
   service: ServicePlan;
 };
-
-const COVER_CLOSE_FEATURE = 2;
-const COVER_OPEN_FEATURE = 1;
 
 const isQuickActionMember = (item: OverviewEntity, action: OverviewQuickActionKind): boolean => {
   if (action === "lights") return item.domain === "light";
@@ -67,9 +64,9 @@ export const quickActionEntityService = (
 ): EntityServicePlan | undefined => {
   if (!isQuickActionMember(item, action)) return undefined;
   if (action === "covers") {
-    const feature = turnOn ? COVER_OPEN_FEATURE : COVER_CLOSE_FEATURE;
-    if (item.domain !== "cover" || !supportsEntityFeature(item.entity, feature)) return undefined;
-    return { service: turnOn ? "open_cover" : "close_cover" };
+    const service = turnOn ? "open_cover" : "close_cover";
+    if (item.domain !== "cover" || !coverSupportsService(item.entity, service)) return undefined;
+    return { service };
   }
   return entityPowerService(item, turnOn);
 };
@@ -104,7 +101,9 @@ const planQuickAction = (
 ): PlannedEntityService[] => {
   const planned: PlannedEntityService[] = [];
   for (const entity of quickActionMembers(area, action)) {
-    if (!entity.available || entity.protected || entity.powered === turnOn) continue;
+    if (!entity.available || entity.protected) continue;
+    const needsAction = action === "covers" ? coverNeedsAction(entity, turnOn) : entity.powered !== turnOn;
+    if (!needsAction) continue;
     const service = quickActionEntityService(action, entity, turnOn);
     if (service) planned.push({ entity, service: { domain: entity.domain, ...service } });
   }
@@ -170,9 +169,9 @@ const sectionService = (
   turnOn: boolean,
 ): ServicePlan | undefined => {
   if (section.id === "covers") {
-    const feature = turnOn ? COVER_OPEN_FEATURE : COVER_CLOSE_FEATURE;
-    if (item.domain !== "cover" || !supportsEntityFeature(item.entity, feature)) return undefined;
-    return { domain: "cover", service: turnOn ? "open_cover" : "close_cover" };
+    const service = turnOn ? "open_cover" : "close_cover";
+    if (item.domain !== "cover" || !coverSupportsService(item.entity, service)) return undefined;
+    return { domain: "cover", service };
   }
   const plan = entityPowerService(item, turnOn);
   return plan ? { domain: item.domain, ...plan } : undefined;
@@ -181,7 +180,9 @@ const sectionService = (
 const planSectionAction = (section: OverviewSection, turnOn: boolean): PlannedEntityService[] => {
   const planned: PlannedEntityService[] = [];
   for (const entity of section.entities) {
-    if (!entity.available || entity.protected || entity.powered === turnOn) continue;
+    if (!entity.available || entity.protected) continue;
+    const needsAction = section.id === "covers" ? coverNeedsAction(entity, turnOn) : entity.powered !== turnOn;
+    if (!needsAction) continue;
     const service = sectionService(section, entity, turnOn);
     if (service) planned.push({ entity, service });
   }

@@ -323,7 +323,8 @@ export class AreaBubbleExpanderCard extends LitElement {
       return;
     }
     if (action.action === "toggle") {
-      void this.hass.callService("homeassistant", "toggle", undefined, { entity_id: item.entityId });
+      void this.hass.callService("homeassistant", "toggle", undefined, { entity_id: item.entityId })
+        .catch((error) => this.reportError(error));
       return;
     }
     if (action.action === "turn-off") {
@@ -333,8 +334,14 @@ export class AreaBubbleExpanderCard extends LitElement {
     if (action.action === "navigate") history.pushState(null, "", action.navigation_path);
     if (action.action === "url") window.open(action.url_path, "_blank", "noopener");
     if (action.action === "call-service") {
-      const [domain, service] = action.service.split(".");
-      void this.hass.callService(domain, service, action.service_data, action.target ?? { entity_id: item.entityId });
+      const parts = action.service.split(".");
+      const [domain, service] = parts;
+      if (parts.length !== 2 || !domain || !service) {
+        this.reportError(new Error(`Invalid action service: ${action.service}`));
+        return;
+      }
+      void this.hass.callService(domain, service, action.service_data, action.target ?? { entity_id: item.entityId })
+        .catch((error) => this.reportError(error));
     }
   }
 
@@ -395,7 +402,7 @@ if (!window.customCards.some((card) => card.type === "area-bubble-expander-card"
 }
 
 console.info(
-  `%c AREA-BUBBLE-CARDS %c 0.20.2 ${resolveLanguage(undefined, "auto")}`,
+  `%c AREA-BUBBLE-CARDS %c 0.20.3 ${resolveLanguage(undefined, "auto")}`,
   "color: white; background: #03a9f4; font-weight: 700;",
   "color: #03a9f4; font-weight: 700;",
 );

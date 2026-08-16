@@ -2,6 +2,15 @@
 
 All notable changes to Area Bubble Expander Card will be documented in this file.
 
+## 0.20.3 - 2026-08-16
+
+- Fixed cover control state across expanded rows, quick-action Popups, section actions, and Open-all/Close-all: partially open covers now receive the requested endpoint action, a moving cover can be reversed, and a command already in progress is not resent.
+- Added complete per-cover Open, Stop, and Close controls to the quick-action Popup; unsupported services are omitted and Stop is enabled only while Home Assistant reports movement.
+- Normalized numeric and string cover positions, honored Home Assistant `assumed_state`, and made cover badges/counts position-aware without making open covers affect room or Floor activity.
+- Centralized the Home Assistant cover feature bits so direct and grouped control paths cannot drift apart again.
+- Hardened the existing active-device card: rejected custom/toggle actions now surface a Home Assistant notification, malformed service mappings are rejected, and every grouped mapping is validated before the first service call.
+- Made automatic language/RTL resolution safe outside a browser document and expanded full regression coverage to 289 passing tests.
+
 ## 0.20.2 - 2026-08-16
 
 - Fixed repeated thermostat temperature changes so the next press builds on the immediately displayed target instead of resending a stale Home Assistant state while the entity update is still in flight.

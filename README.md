@@ -299,7 +299,7 @@ The visual editor can move any discovered switch or climate entity into or out o
 
 ### Quick actions
 
-Quick actions are shown beside the Area header only when their category currently has a powered device. Tapping one opens a responsive Home Assistant-style popup for that category without expanding the Area. The popup shows every included device in that active category, including its currently off members, allows individual on/off control, and provides safe **Turn all on** and **Turn all off** actions. Covers use **Open all** and **Close all**; a fully closed cover category is hidden from the collapsed header.
+Quick actions are shown beside the Area header only when their category currently has a powered device. Tapping one opens a responsive Home Assistant-style popup for that category without expanding the Area. The popup shows every included device in that active category, including its currently off members, allows individual on/off control, and provides safe **Turn all on** and **Turn all off** actions. Covers use **Open all** and **Close all**, while every cover row exposes its supported **Open**, **Stop**, and **Close** services. A fully closed cover category is hidden from the collapsed header.
 
 The badge on an action icon is the number currently powered. When a complete category is off it is omitted from the collapsed header; expand the Area and use the section-wide **Turn all on** or **Open all** control to start it. Tapping a device name opens Home Assistant More Info after safely closing the category popup; Escape, the close button, and tapping outside the popup all close it.
 
@@ -337,6 +337,7 @@ section_action_icons:
 Safety behavior:
 
 - Quick-action group controls are directional; covers open or close instead of toggling.
+- Cover controls follow Home Assistant's `current_position` (0 closed, 100 fully open), movement state, feature bits, and `assumed_state`. A partially open cover can still be opened fully or closed, the current movement direction is not resent, and the opposite direction remains available for reversal.
 - Calls are grouped by Domain and target only discovered Entity IDs.
 - Hidden and excluded entities are absent. Unavailable or unsupported members remain visible but disabled.
 - Protected entities are omitted from group actions but retain deliberate individual control in the popup and expanded Area.
