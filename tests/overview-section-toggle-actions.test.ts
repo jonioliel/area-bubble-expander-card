@@ -213,7 +213,7 @@ describe("Overview section-wide directional actions", () => {
 });
 
 describe("Overview quick-action directional actions", () => {
-  it("keeps fans out of climate actions and exposes them through a separate runtime popup", async () => {
+  it("keeps fans out of climate actions and safely toggles the compact fan group in both directions", async () => {
     const callService = vi.fn(async () => undefined);
     const area = overviewArea([
       overviewEntity("climate.parents", "climate", { powered: true }),
@@ -231,6 +231,18 @@ describe("Overview quick-action directional actions", () => {
     await runQuickActionAction(homeAssistant(callService), area, "fans", false);
     expect(callService).toHaveBeenCalledWith("fan", "turn_off", undefined, { entity_id: ["fan.ceiling"] });
     expect(callService).toHaveBeenCalledWith("switch", "turn_off", undefined, { entity_id: ["switch.parents_fan"] });
+
+    callService.mockClear();
+    const offArea = overviewArea([
+      overviewEntity("fan.ceiling", "climate"),
+      overviewEntity("switch.parents_fan", "climate", { group: AUTO_FAN_GROUP }),
+      overviewEntity("switch.protected_fan", "climate", { group: AUTO_FAN_GROUP, protected: true }),
+      overviewEntity("switch.unavailable_fan", "climate", { group: AUTO_FAN_GROUP, available: false }),
+    ]);
+    await runQuickActionAction(homeAssistant(callService), offArea, "fans", true);
+    expect(callService).toHaveBeenCalledWith("fan", "turn_on", undefined, { entity_id: ["fan.ceiling"] });
+    expect(callService).toHaveBeenCalledWith("switch", "turn_on", undefined, { entity_id: ["switch.parents_fan"] });
+    expect(callService).toHaveBeenCalledTimes(2);
   });
 
   it("exposes safe directional services for individual popup rows", () => {

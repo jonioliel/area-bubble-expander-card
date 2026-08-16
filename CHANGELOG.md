@@ -2,6 +2,13 @@
 
 All notable changes to Area Bubble Expander Card will be documented in this file.
 
+## 0.20.4 - 2026-08-16
+
+- Changed the compact oval Fan control from a Popup trigger into a direct group toggle: when every fan is off it turns the safe room fans on, and when any fan is on it turns the powered fans off.
+- Made the compact Fan control expose its live state through its active color, count, `aria-pressed` state, localized action label, loading lock, and direct-service error handling.
+- Preserved protected and unavailable fan safety, multi-domain grouping for `fan.*` and relay-style fan switches, and the existing relay-only Popup behavior for compact Floor-heating controls.
+- Updated focused regression coverage and documentation for the direct compact Fan interaction.
+
 ## 0.20.3 - 2026-08-16
 
 - Fixed cover control state across expanded rows, quick-action Popups, section actions, and Open-all/Close-all: partially open covers now receive the requested endpoint action, a moving cover can be reversed, and a command already in progress is not resent.

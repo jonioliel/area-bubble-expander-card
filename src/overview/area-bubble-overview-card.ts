@@ -640,20 +640,25 @@ export class AreaBubbleOverviewCard extends LitElement {
     const icon = heatingControls ? "mdi:radiator" : "mdi:fan";
     const title = this.subgroupTitle(group, area, true);
     const pending = this.quickActionPending(area.id, action) || entities.some((item) => this.pendingEntities.has(item.entityId));
+    const turnFanOn = activeCount === 0;
+    const fanTargets = heatingControls ? [] : quickActionActionEntities(area, action, turnFanOn);
     const accessibleLabel = `${heatingControls
       ? this.localText("פתיחת בקרת חימום", "Open heating controls")
-      : this.localText("פתיחת בקרת מאווררים", "Open fan controls")}: ${area.name} · ${activeCount}/${entities.length}`;
+      : this.localText(turnFanOn ? "הדלקת מאוורר" : "כיבוי מאוורר", turnFanOn ? "Turn fan on" : "Turn fan off")}: ${area.name} · ${activeCount}/${entities.length}`;
     return html`
       <button
         class="section-compact-subgroup-button ${heatingControls ? "section-heating-controls-button" : "section-fan-button"} ${activeCount ? "active" : "inactive"}"
         type="button"
         title=${accessibleLabel}
         aria-label=${accessibleLabel}
-        aria-haspopup="dialog"
-        aria-expanded=${this.quickPopup?.areaId === area.id && this.quickPopup.action === action}
+        aria-haspopup=${heatingControls ? "dialog" : nothing}
+        aria-expanded=${heatingControls ? this.quickPopup?.areaId === area.id && this.quickPopup.action === action : nothing}
+        aria-pressed=${heatingControls ? nothing : activeCount > 0}
         aria-busy=${pending}
-        ?disabled=${pending}
-        @click=${(event: Event) => this.openQuickActionPopup(event, area, action)}
+        ?disabled=${pending || (!heatingControls && fanTargets.length === 0)}
+        @click=${(event: Event) => heatingControls
+          ? this.openQuickActionPopup(event, area, action)
+          : this.handleCompactFanToggle(event, area)}
       ><ha-icon icon=${pending ? "mdi:loading" : icon}></ha-icon><span>${title}</span><small>${activeCount}/${entities.length}</small></button>
     `;
   }
@@ -768,7 +773,7 @@ export class AreaBubbleOverviewCard extends LitElement {
               aria-label=${`${onVerb}: ${label} (${onTargets.length})`}
               aria-busy=${pendingOn}
               ?disabled=${categoryBusy || onTargets.length === 0}
-              @click=${(event: Event) => this.handleQuickPopupGroupAction(event, area, action, true)}
+              @click=${(event: Event) => this.handleQuickActionGroupAction(event, area, action, true)}
             ><ha-icon icon=${pendingOn ? "mdi:loading" : action === "covers" ? "mdi:arrow-up" : "mdi:power-on"}></ha-icon><span>${onVerb}</span><small>${onTargets.length}</small></button>
             <button
               class="quick-popup-group-button turn-off"
@@ -776,7 +781,7 @@ export class AreaBubbleOverviewCard extends LitElement {
               aria-label=${`${offVerb}: ${label} (${offTargets.length})`}
               aria-busy=${pendingOff}
               ?disabled=${categoryBusy || offTargets.length === 0}
-              @click=${(event: Event) => this.handleQuickPopupGroupAction(event, area, action, false)}
+              @click=${(event: Event) => this.handleQuickActionGroupAction(event, area, action, false)}
             ><ha-icon icon=${pendingOff ? "mdi:loading" : action === "covers" ? "mdi:arrow-down" : "mdi:power-off"}></ha-icon><span>${offVerb}</span><small>${offTargets.length}</small></button>
           </div>
           <div class="quick-popup-list" role="list" aria-label=${label}>
@@ -1775,7 +1780,12 @@ export class AreaBubbleOverviewCard extends LitElement {
     this.closeQuickActionPopup();
   }
 
-  private async handleQuickPopupGroupAction(
+  private handleCompactFanToggle(event: Event, area: OverviewArea): void {
+    const turnOn = !quickActionMembers(area, "fans").some((item) => item.powered);
+    void this.handleQuickActionGroupAction(event, area, "fans", turnOn);
+  }
+
+  private async handleQuickActionGroupAction(
     event: Event,
     area: OverviewArea,
     action: OverviewQuickActionKind,
