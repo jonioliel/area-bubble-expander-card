@@ -640,25 +640,21 @@ export class AreaBubbleOverviewCard extends LitElement {
     const icon = heatingControls ? "mdi:radiator" : "mdi:fan";
     const title = this.subgroupTitle(group, area, true);
     const pending = this.quickActionPending(area.id, action) || entities.some((item) => this.pendingEntities.has(item.entityId));
-    const turnFanOn = activeCount === 0;
-    const fanTargets = heatingControls ? [] : quickActionActionEntities(area, action, turnFanOn);
+    const turnOn = activeCount === 0;
+    const targets = quickActionActionEntities(area, action, turnOn);
     const accessibleLabel = `${heatingControls
-      ? this.localText("פתיחת בקרת חימום", "Open heating controls")
-      : this.localText(turnFanOn ? "הדלקת מאוורר" : "כיבוי מאוורר", turnFanOn ? "Turn fan on" : "Turn fan off")}: ${area.name} · ${activeCount}/${entities.length}`;
+      ? this.localText(turnOn ? "הדלקת מפסק חימום" : "כיבוי מפסק חימום", turnOn ? "Turn heating switch on" : "Turn heating switch off")
+      : this.localText(turnOn ? "הדלקת מאוורר" : "כיבוי מאוורר", turnOn ? "Turn fan on" : "Turn fan off")}: ${area.name} · ${activeCount}/${entities.length}`;
     return html`
       <button
         class="section-compact-subgroup-button ${heatingControls ? "section-heating-controls-button" : "section-fan-button"} ${activeCount ? "active" : "inactive"}"
         type="button"
         title=${accessibleLabel}
         aria-label=${accessibleLabel}
-        aria-haspopup=${heatingControls ? "dialog" : nothing}
-        aria-expanded=${heatingControls ? this.quickPopup?.areaId === area.id && this.quickPopup.action === action : nothing}
-        aria-pressed=${heatingControls ? nothing : activeCount > 0}
+        aria-pressed=${activeCount > 0}
         aria-busy=${pending}
-        ?disabled=${pending || (!heatingControls && fanTargets.length === 0)}
-        @click=${(event: Event) => heatingControls
-          ? this.openQuickActionPopup(event, area, action)
-          : this.handleCompactFanToggle(event, area)}
+        ?disabled=${pending || targets.length === 0}
+        @click=${(event: Event) => this.handleCompactSubgroupToggle(event, area, action)}
       ><ha-icon icon=${pending ? "mdi:loading" : icon}></ha-icon><span>${title}</span><small>${activeCount}/${entities.length}</small></button>
     `;
   }
@@ -1780,9 +1776,9 @@ export class AreaBubbleOverviewCard extends LitElement {
     this.closeQuickActionPopup();
   }
 
-  private handleCompactFanToggle(event: Event, area: OverviewArea): void {
-    const turnOn = !quickActionMembers(area, "fans").some((item) => item.powered);
-    void this.handleQuickActionGroupAction(event, area, "fans", turnOn);
+  private handleCompactSubgroupToggle(event: Event, area: OverviewArea, action: OverviewQuickActionKind): void {
+    const turnOn = !quickActionMembers(area, action).some((item) => item.powered);
+    void this.handleQuickActionGroupAction(event, area, action, turnOn);
   }
 
   private async handleQuickActionGroupAction(

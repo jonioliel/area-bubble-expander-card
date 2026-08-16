@@ -2,6 +2,12 @@
 
 All notable changes to Area Bubble Expander Card will be documented in this file.
 
+## 0.20.5 - 2026-08-16
+
+- Changed the compact oval Floor-heating switch control into the same direct group toggle used by compact Fans: OFF turns every safe relay on, while an active group turns its powered relays off without opening a Popup.
+- Gave both compact Fan and Heating-switch toggles lighter, more distinct OFF and ON surfaces, stronger state borders, and a subtle active-state highlight that remains theme-aware.
+- Added localized direct-action labels, `aria-pressed` state, capability-aware disabling, shared pending locks, and complete ON/OFF regression coverage for `fan`, `switch`, and `input_boolean` members.
+
 ## 0.20.4 - 2026-08-16
 
 - Changed the compact oval Fan control from a Popup trigger into a direct group toggle: when every fan is off it turns the safe room fans on, and when any fan is on it turns the powered fans off.

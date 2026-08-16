@@ -19,10 +19,10 @@ const entity = (entityId: string, state: string, name: string): HassEntity => ({
   last_updated: "2026-08-15T12:00:00Z",
 });
 
-const heatingArea = () => {
+const heatingArea = (relayState = "on") => {
   const states = [
     entity("climate.floor_thermostat", "heat", "Floor heating thermostat"),
-    entity("switch.floor_relay", "on", "Floor heating relay"),
+    entity("switch.floor_relay", relayState, "Floor heating relay"),
     entity("input_boolean.floor_enable", "off", "Underfloor heating enable"),
   ];
   const hass: HomeAssistant = {
@@ -68,7 +68,7 @@ describe("Overview 0.19 adaptive grids and heating-control button", () => {
     expect(cardSource).toContain("forceSingle ? 1");
   });
 
-  it("opens a heating-control-only popup and safely controls its relays", async () => {
+  it("directly toggles only the safe heating-control relays", async () => {
     const { area, hass } = heatingArea();
     const members = quickActionMembers(area, "heating_controls");
     expect(members.map((item) => item.entityId).sort()).toEqual(["input_boolean.floor_enable", "switch.floor_relay"]);
@@ -78,6 +78,14 @@ describe("Overview 0.19 adaptive grids and heating-control button", () => {
     await runQuickActionAction(hass, area, "heating_controls", false);
     expect(hass.callService).toHaveBeenCalledTimes(1);
     expect(hass.callService).toHaveBeenCalledWith("switch", "turn_off", undefined, { entity_id: ["switch.floor_relay"] });
+
+    const off = heatingArea("off");
+    await runQuickActionAction(off.hass, off.area, "heating_controls", true);
+    expect(off.hass.callService).toHaveBeenCalledTimes(2);
+    expect(off.hass.callService).toHaveBeenCalledWith("switch", "turn_on", undefined, { entity_id: ["switch.floor_relay"] });
+    expect(off.hass.callService).toHaveBeenCalledWith("input_boolean", "turn_on", undefined, { entity_id: ["input_boolean.floor_enable"] });
+    expect(cardSource).toContain('this.handleCompactSubgroupToggle(event, area, action)');
+    expect(cardSource).toContain('quickActionMembers(area, action).some((item) => item.powered)');
   });
 
   it("offers the heating-control choice globally and per room in the editor", () => {

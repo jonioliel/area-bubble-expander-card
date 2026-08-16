@@ -1303,15 +1303,23 @@ export const overviewCardStyles = css`
     min-width: 0;
     min-height: 44px;
     padding: 0 10px;
-    border: 1px solid color-mix(in srgb, var(--aboc-accent) 34%, transparent);
+    border: 1px solid color-mix(in srgb, var(--aboc-accent) 48%, var(--divider-color));
     border-radius: 999px;
-    background: color-mix(in srgb, var(--aboc-control-surface) 88%, transparent);
-    color: var(--aboc-light-text);
+    background: color-mix(in srgb, var(--aboc-row-bg) 78%, var(--aboc-accent) 22%);
+    color: var(--aboc-primary-text);
+    box-shadow: inset 0 1px 0 color-mix(in srgb, white 24%, transparent);
     cursor: pointer;
+    transition: background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+  }
+
+  .section-compact-subgroup-button.inactive {
+    background: color-mix(in srgb, var(--aboc-row-bg) 84%, var(--aboc-accent) 16%);
   }
 
   .section-compact-subgroup-button.active {
-    background: color-mix(in srgb, var(--success-color, #4caf50) 30%, var(--aboc-control-surface));
+    border-color: color-mix(in srgb, var(--success-color, #4caf50) 72%, var(--aboc-accent));
+    background: color-mix(in srgb, var(--aboc-entity-active-surface) 62%, var(--success-color, #4caf50) 38%);
+    box-shadow: inset 0 1px 0 color-mix(in srgb, white 34%, transparent), 0 2px 8px color-mix(in srgb, var(--success-color, #4caf50) 22%, transparent);
   }
 
   .section-compact-subgroup-button span {
