@@ -237,6 +237,8 @@ style:
 
 Unavailable climate entities do not produce an active temperature color. When several climate entities are active in different modes, the general active surface is used instead of presenting one mode as authoritative.
 
+Thermostat controls follow the entity capabilities published by Home Assistant. Single target temperatures and Heat/Cool ranges use separate service payloads, entity-provided `target_temp_step`, `min_temp`, and `max_temp` values are respected, and the fallback step is 0.5°C or 1°F. Consecutive presses update the displayed target immediately and continue from that local value while Home Assistant confirms the new state; a rejected action restores the server value. Compatible Floor-heating `climate.*` thermostats use the same range-safe behavior.
+
 ### Occupancy
 
 For a real people count, select a numeric entity for each Area:

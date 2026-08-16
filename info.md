@@ -15,6 +15,8 @@ The Overview editor follows a global-first workflow: room, category, and device 
 
 All professional light and dark palettes now keep active rooms visually quieter than active entity tiles, with independent editor preview swatches and automated room/device separation plus accessible text-contrast checks. The Classic fallback follows the same clear hierarchy.
 
+Thermostat controls use optimistic, server-reconciled targets for reliable repeated adjustments and follow Home Assistant's capability bits, Celsius/Fahrenheit step defaults, bounds, and distinct single/range temperature payloads. HVAC mode, fan mode, Floor-heating ranges, dimmers, covers, media, and rejected service actions are covered by direct runtime regression tests.
+
 Install through HACS as a Lovelace card and add the resource:
 
 ```yaml

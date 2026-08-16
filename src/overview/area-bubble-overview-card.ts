@@ -30,14 +30,19 @@ import { buildOverviewAreaHierarchy, visibleOverviewAreas } from "./hierarchy";
 import { buildOverviewAreaContentLayout } from "./presentation";
 import "./editor";
 import {
+  climateTemperatureSignature,
+  climateTemperatureStep,
+  climateTemperatureTargets,
   climateModes,
   coverControlDisabled,
   countsTowardAreaActivity,
   entityPowerService,
   lightBrightnessPercentage,
+  normalizeClimateTemperature,
   supportsEntityFeature,
   supportsLightBrightness,
 } from "./features";
+import type { ClimateTemperatureTargets } from "./features";
 import { overviewCardStyles } from "./styles";
 import { overviewLanguage, overviewRtl, overviewText, quickActionLabel } from "./translations";
 import type {
@@ -61,6 +66,11 @@ type QuickPopupState = {
   action: OverviewQuickActionKind;
 };
 
+type OptimisticClimateTargets = ClimateTemperatureTargets & {
+  baseline: string;
+  expiresAt: number;
+};
+
 const FLOOR_QUICK_AREA_ID = "__overview_floor__";
 
 @customElement(OVERVIEW_CARD_TAG)
@@ -79,6 +89,7 @@ export class AreaBubbleOverviewCard extends LitElement {
   @state() private floorPopupOpen = false;
   @state() private pendingFloor = false;
   @state() private pendingFloorRooms = new Set<string>();
+  @state() private optimisticClimateTargets: Record<string, OptimisticClimateTargets> = {};
   @state() private error?: string;
   private storageId = "overview";
   private holdTimer?: number;
@@ -96,6 +107,7 @@ export class AreaBubbleOverviewCard extends LitElement {
   private restoreAreaPopupFocus = true;
   private floorPopupTrigger?: HTMLElement;
   private durationTimer?: number;
+  private climateTargetTimers = new Map<string, number>();
 
   public override connectedCallback(): void {
     super.connectedCallback();
@@ -114,6 +126,7 @@ export class AreaBubbleOverviewCard extends LitElement {
     this.resetQuickPopup();
     this.resetFloorPopup();
     this.resetAreaPopup();
+    this.resetClimateTargets();
     try {
       validateOverviewConfig(config);
       this.config = resolveOverviewConfig(config);
@@ -152,6 +165,7 @@ export class AreaBubbleOverviewCard extends LitElement {
     this.resetQuickPopup();
     this.resetFloorPopup();
     this.resetAreaPopup();
+    this.resetClimateTargets();
     if (this.durationTimer !== undefined) window.clearInterval(this.durationTimer);
     this.durationTimer = undefined;
   }
@@ -1050,17 +1064,15 @@ export class AreaBubbleOverviewCard extends LitElement {
 
   private renderClimate(item: OverviewEntity) {
     const current = numberAttribute(item, "current_temperature");
-    const step = numberAttribute(item, "target_temp_step") ?? 0.5;
-    const target = supportsEntityFeature(item.entity, CLIMATE_FEATURES.TARGET_TEMPERATURE)
-      ? numberAttribute(item, "temperature")
-      : undefined;
-    const rangeLow = supportsEntityFeature(item.entity, CLIMATE_FEATURES.TARGET_TEMPERATURE_RANGE)
-      ? numberAttribute(item, "target_temp_low")
-      : undefined;
-    const rangeHigh = supportsEntityFeature(item.entity, CLIMATE_FEATURES.TARGET_TEMPERATURE_RANGE)
-      ? numberAttribute(item, "target_temp_high")
-      : undefined;
-    const hasRange = rangeLow !== undefined && rangeHigh !== undefined;
+    const unit = this.areaTemperatureUnit(item);
+    const step = climateTemperatureStep(item, unit);
+    const targets = this.displayedClimateTargets(item);
+    const target = targets.temperature;
+    const rangeLow = targets.low;
+    const rangeHigh = targets.high;
+    // Match Home Assistant's thermostat control: prefer a valid single target
+    // when an integration exposes both capability bits and attributes.
+    const hasRange = target === undefined && rangeLow !== undefined && rangeHigh !== undefined;
     const modes = climateModes(item);
     const fanModes = supportsEntityFeature(item.entity, CLIMATE_FEATURES.FAN_MODE) && Array.isArray(item.entity.attributes.fan_modes)
       ? item.entity.attributes.fan_modes.map(String)
@@ -1077,12 +1089,12 @@ export class AreaBubbleOverviewCard extends LitElement {
             ? html`
                 <span class="temperature-stepper">
                   <button type="button" ?disabled=${busy || !item.available} @click=${() => this.setClimateTemperature(item, target - step)} aria-label=${`${this.localText("הורדת טמפרטורה", "Decrease temperature")}: ${item.name}`}>−</button>
-                  <span>${this.formatTemperature(target, this.areaTemperatureUnit(item))}</span>
+                  <span>${this.formatTemperature(target, unit)}</span>
                   <button type="button" ?disabled=${busy || !item.available} @click=${() => this.setClimateTemperature(item, target + step)} aria-label=${`${this.localText("העלאת טמפרטורה", "Increase temperature")}: ${item.name}`}>+</button>
                 </span>
               `
             : current !== undefined
-              ? html`<span class="temperature current-temperature">${this.formatTemperature(current, this.areaTemperatureUnit(item))}</span>`
+              ? html`<span class="temperature current-temperature">${this.formatTemperature(current, unit)}</span>`
               : nothing}
         </div>
         ${hasRange ? this.renderClimateRange(item, rangeLow, rangeHigh, step, busy) : nothing}
@@ -1183,10 +1195,15 @@ export class AreaBubbleOverviewCard extends LitElement {
     const targetFeature = item.domain === "water_heater"
       ? WATER_HEATER_FEATURES.TARGET_TEMPERATURE
       : CLIMATE_FEATURES.TARGET_TEMPERATURE;
-    const target = supportsEntityFeature(item.entity, targetFeature) ? numberAttribute(item, "temperature") : undefined;
+    const unit = this.areaTemperatureUnit(item);
+    const climateTargets = item.domain === "climate" ? this.displayedClimateTargets(item) : undefined;
+    const target = climateTargets?.temperature ?? (supportsEntityFeature(item.entity, targetFeature) ? numberAttribute(item, "temperature") : undefined);
+    const rangeLow = climateTargets?.low;
+    const rangeHigh = climateTargets?.high;
+    const hasRange = target === undefined && rangeLow !== undefined && rangeHigh !== undefined;
     const current = numberAttribute(item, "current_temperature");
-    if (target === undefined && current === undefined) return this.renderToggle(item);
-    const step = numberAttribute(item, "target_temp_step") ?? 0.5;
+    if (target === undefined && current === undefined && !hasRange) return this.renderToggle(item);
+    const step = climateTemperatureStep(item, unit);
     const busy = this.entityBusy(item);
     const powerPlan = entityPowerService(item, !item.powered);
     return html`
@@ -1196,11 +1213,14 @@ export class AreaBubbleOverviewCard extends LitElement {
           ${target !== undefined
             ? html`<span class="temperature-stepper">
                 <button type="button" ?disabled=${busy || !item.available} @click=${() => this.setClimateTemperature(item, target - step)} aria-label=${`${this.localText("הורדת טמפרטורה", "Decrease temperature")}: ${item.name}`}>−</button>
-                <span>${this.formatTemperature(target, this.areaTemperatureUnit(item))}</span>
+                <span>${this.formatTemperature(target, unit)}</span>
                 <button type="button" ?disabled=${busy || !item.available} @click=${() => this.setClimateTemperature(item, target + step)} aria-label=${`${this.localText("העלאת טמפרטורה", "Increase temperature")}: ${item.name}`}>+</button>
               </span>`
-            : html`<span class="temperature current-temperature">${this.formatTemperature(current!, this.areaTemperatureUnit(item))}</span>`}
+            : current !== undefined
+              ? html`<span class="temperature current-temperature">${this.formatTemperature(current, unit)}</span>`
+              : nothing}
         </div>
+        ${hasRange ? this.renderClimateRange(item, rangeLow, rangeHigh, step, busy) : nothing}
         <button
           class="thermostat-power ${item.powered ? "active" : ""}"
           type="button"
@@ -1777,10 +1797,63 @@ export class AreaBubbleOverviewCard extends LitElement {
       || this.pendingSections.has(`${item.areaId}:${item.section}:off`);
   }
 
+  private displayedClimateTargets(item: OverviewEntity): ClimateTemperatureTargets {
+    const serverTargets = climateTemperatureTargets(item);
+    const optimistic = this.optimisticClimateTargets[item.entityId];
+    if (!optimistic) return serverTargets;
+    if (optimistic.expiresAt <= Date.now() || optimistic.baseline !== climateTemperatureSignature(serverTargets)) {
+      queueMicrotask(() => {
+        if (this.optimisticClimateTargets[item.entityId] === optimistic) this.clearClimateTarget(item.entityId);
+      });
+      return serverTargets;
+    }
+    return {
+      temperature: optimistic.temperature,
+      low: optimistic.low,
+      high: optimistic.high,
+    };
+  }
+
+  private setOptimisticClimateTargets(item: OverviewEntity, targets: ClimateTemperatureTargets): void {
+    const expiresAt = Date.now() + 8_000;
+    const existingTimer = this.climateTargetTimers.get(item.entityId);
+    if (existingTimer !== undefined) window.clearTimeout(existingTimer);
+    this.optimisticClimateTargets = {
+      ...this.optimisticClimateTargets,
+      [item.entityId]: {
+        ...targets,
+        baseline: climateTemperatureSignature(climateTemperatureTargets(item)),
+        expiresAt,
+      },
+    };
+    const timer = window.setTimeout(() => {
+      const current = this.optimisticClimateTargets[item.entityId];
+      if (current?.expiresAt === expiresAt) this.clearClimateTarget(item.entityId);
+    }, 8_050);
+    this.climateTargetTimers.set(item.entityId, timer);
+  }
+
+  private clearClimateTarget(entityId: string): void {
+    const timer = this.climateTargetTimers.get(entityId);
+    if (timer !== undefined) window.clearTimeout(timer);
+    this.climateTargetTimers.delete(entityId);
+    if (!(entityId in this.optimisticClimateTargets)) return;
+    const next = { ...this.optimisticClimateTargets };
+    delete next[entityId];
+    this.optimisticClimateTargets = next;
+  }
+
+  private resetClimateTargets(): void {
+    for (const timer of this.climateTargetTimers.values()) window.clearTimeout(timer);
+    this.climateTargetTimers.clear();
+    this.optimisticClimateTargets = {};
+  }
+
   private toggleEntity(event: Event, item: OverviewEntity): void {
     event.stopPropagation();
     const plan = entityPowerService(item, !item.powered);
     if (!plan) return;
+    if (item.domain === "climate") this.clearClimateTarget(item.entityId);
     void this.performEntityCall(item, () => callEntityService(this.hass!, item.entityId, plan.service, plan.data));
   }
 
@@ -1790,21 +1863,30 @@ export class AreaBubbleOverviewCard extends LitElement {
   }
 
   private setClimateTemperature(item: OverviewEntity, temperature: number): void {
-    const min = numberAttribute(item, "min_temp") ?? -100;
-    const max = numberAttribute(item, "max_temp") ?? 100;
-    const target = Math.min(max, Math.max(min, temperature));
-    void this.performEntityCall(item, () => callEntityService(this.hass!, item.entityId, "set_temperature", { temperature: target }));
+    const current = this.displayedClimateTargets(item);
+    const step = climateTemperatureStep(item, this.areaTemperatureUnit(item));
+    const target = normalizeClimateTemperature(item, temperature, step);
+    if (current.temperature === target) return;
+    const optimistic = { ...current, temperature: target };
+    this.setOptimisticClimateTargets(item, optimistic);
+    void this.performEntityCall(item, () => callEntityService(this.hass!, item.entityId, "set_temperature", { temperature: target }))
+      .then((success) => { if (!success) this.clearClimateTarget(item.entityId); });
   }
 
   private setClimateRange(item: OverviewEntity, low: number, high: number, changed: "low" | "high"): void {
-    const min = numberAttribute(item, "min_temp") ?? -100;
-    const max = numberAttribute(item, "max_temp") ?? 100;
-    const targetLow = changed === "low" ? Math.min(high, Math.max(min, low)) : low;
-    const targetHigh = changed === "high" ? Math.max(targetLow, Math.min(max, high)) : high;
+    const current = this.displayedClimateTargets(item);
+    const step = climateTemperatureStep(item, this.areaTemperatureUnit(item));
+    let targetLow = normalizeClimateTemperature(item, low, step);
+    let targetHigh = normalizeClimateTemperature(item, high, step);
+    if (changed === "low" && targetLow > targetHigh) targetLow = targetHigh;
+    if (changed === "high" && targetHigh < targetLow) targetHigh = targetLow;
+    if (current.low === targetLow && current.high === targetHigh) return;
+    const optimistic = { ...current, low: targetLow, high: targetHigh };
+    this.setOptimisticClimateTargets(item, optimistic);
     void this.performEntityCall(item, () => callEntityService(this.hass!, item.entityId, "set_temperature", {
       target_temp_low: targetLow,
       target_temp_high: targetHigh,
-    }));
+    })).then((success) => { if (!success) this.clearClimateTarget(item.entityId); });
   }
 
   private menuValue(event: Event): string | undefined {
@@ -1817,6 +1899,7 @@ export class AreaBubbleOverviewCard extends LitElement {
     event.stopPropagation();
     const hvacMode = this.menuValue(event);
     if (!hvacMode || hvacMode === item.entity.state) return;
+    this.clearClimateTarget(item.entityId);
     void this.performEntityCall(item, () => callEntityService(this.hass!, item.entityId, "set_hvac_mode", { hvac_mode: hvacMode }));
   }
 
@@ -1843,13 +1926,15 @@ export class AreaBubbleOverviewCard extends LitElement {
     void this.performEntityCall(item, () => callEntityService(this.hass!, item.entityId, "volume_set", { volume_level: Math.min(1, Math.max(0, volume)) }));
   }
 
-  private async performEntityCall(item: OverviewEntity, call: () => Promise<unknown>): Promise<void> {
-    if (!this.hass || this.entityBusy(item)) return;
+  private async performEntityCall(item: OverviewEntity, call: () => Promise<unknown>): Promise<boolean> {
+    if (!this.hass || this.entityBusy(item)) return false;
     this.pendingEntities = new Set([...this.pendingEntities, item.entityId]);
     try {
       await call();
+      return true;
     } catch (error) {
       this.reportError(error);
+      return false;
     } finally {
       const next = new Set(this.pendingEntities);
       next.delete(item.entityId);

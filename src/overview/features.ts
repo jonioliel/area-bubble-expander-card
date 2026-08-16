@@ -15,6 +15,58 @@ export const supportsEntityFeature = (entity: HassEntity, feature: number): bool
 export const climateModes = (item: OverviewEntity): string[] =>
   Array.isArray(item.entity.attributes.hvac_modes) ? item.entity.attributes.hvac_modes.map(String) : [];
 
+export type ClimateTemperatureTargets = {
+  temperature?: number;
+  low?: number;
+  high?: number;
+};
+
+const finiteAttribute = (item: OverviewEntity, key: string): number | undefined => {
+  const value = item.entity.attributes[key];
+  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+};
+
+/**
+ * Returns only temperature targets that the Climate entity advertises. Home
+ * Assistant validates single targets and target ranges against different
+ * supported-feature bits, so the card must never mix their service payloads.
+ */
+export const climateTemperatureTargets = (item: OverviewEntity): ClimateTemperatureTargets => ({
+  temperature: supportsEntityFeature(item.entity, CLIMATE_FEATURES.TARGET_TEMPERATURE)
+    ? finiteAttribute(item, "temperature")
+    : undefined,
+  low: supportsEntityFeature(item.entity, CLIMATE_FEATURES.TARGET_TEMPERATURE_RANGE)
+    ? finiteAttribute(item, "target_temp_low")
+    : undefined,
+  high: supportsEntityFeature(item.entity, CLIMATE_FEATURES.TARGET_TEMPERATURE_RANGE)
+    ? finiteAttribute(item, "target_temp_high")
+    : undefined,
+});
+
+/** Home Assistant defaults target steps to 1°F and 0.5°C. */
+export const climateTemperatureStep = (item: OverviewEntity, unit: string): number => {
+  const configured = finiteAttribute(item, "target_temp_step");
+  if (configured !== undefined && configured > 0) return configured;
+  return unit.toUpperCase().includes("F") ? 1 : 0.5;
+};
+
+const stepPrecision = (step: number): number => {
+  const text = String(step).toLowerCase();
+  if (text.includes("e-")) return Math.min(6, Number(text.split("e-")[1]) || 0);
+  return Math.min(6, text.split(".")[1]?.length ?? 0);
+};
+
+/** Clamps and removes floating-point drift without moving the target grid. */
+export const normalizeClimateTemperature = (item: OverviewEntity, value: number, step: number): number => {
+  const min = finiteAttribute(item, "min_temp") ?? -100;
+  const max = finiteAttribute(item, "max_temp") ?? 100;
+  const clamped = Math.min(max, Math.max(min, value));
+  return Number(clamped.toFixed(stepPrecision(step)));
+};
+
+export const climateTemperatureSignature = (targets: ClimateTemperatureTargets): string =>
+  `${targets.temperature ?? ""}|${targets.low ?? ""}|${targets.high ?? ""}`;
+
 const NON_DIMMABLE_LIGHT_MODES = new Set(["onoff", "unknown"]);
 
 /**
