@@ -88,7 +88,10 @@ const automaticGroup = (
 ): string | undefined => {
   const searchable = `${entityId} ${name} ${labels.join(" ")}`.toLocaleLowerCase();
   const fanName = /(?:^|[\s._-])(?:fan|blower|מאוורר(?:ים)?)(?:$|[\s._-])/u.test(searchable);
-  if (section === "climate" && (domain === "fan" || fanName)) return AUTO_FAN_GROUP;
+  if (
+    section === "climate"
+    && (domain === "fan" || (["switch", "input_boolean"].includes(domain) && fanName))
+  ) return AUTO_FAN_GROUP;
   if (section === "floor_heating" && ["switch", "input_boolean"].includes(domain)) return AUTO_FLOOR_HEATING_GROUP;
   return undefined;
 };
@@ -110,6 +113,16 @@ export const isOverviewEntityPowered = (entity: HassEntity, domain = domainOf(en
   if (domain === "media_player") return !["off", "standby"].includes(state);
   if (domain === "climate" || domain === "water_heater") return state !== "off";
   return state === "on";
+};
+
+/**
+ * Home Assistant permits directional Cover commands while a command-only or
+ * assumed-state integration reports `unknown`. Other entity domains retain
+ * the conservative unknown-is-unavailable behavior used by the card.
+ */
+export const isOverviewEntityAvailable = (entity: HassEntity, domain = domainOf(entity.entity_id)): boolean => {
+  const state = String(entity.state ?? "").toLowerCase();
+  return state !== "unavailable" && (domain === "cover" || state !== "unknown");
 };
 
 export const overviewTemperatureMode = (entities: OverviewEntity[]): OverviewTemperatureMode => {
@@ -308,7 +321,7 @@ const createArea = (
       areaId,
       section,
       labels,
-      available: !["unavailable", "unknown"].includes(entity.state),
+      available: isOverviewEntityAvailable(entity, domain),
       active: isOverviewEntityActive(entity, domain),
       powered: isOverviewEntityPowered(entity, domain),
       protected:

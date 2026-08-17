@@ -2013,6 +2013,13 @@ export const overviewCardStyles = css`
     --mdc-icon-size: 27px;
   }
 
+  /* Keep Stop callable for integrations that do not expose motion state, as
+     Home Assistant does, while retaining a quieter idle affordance. */
+  .cover-control.idle-stop:not([disabled]),
+  .quick-popup-cover-control.idle-stop:not([disabled]) {
+    opacity: 0.56;
+  }
+
   .media-controls .secondary {
     min-width: 38px;
     text-align: center;

@@ -14,6 +14,7 @@ import {
   runAreaAction,
   runSectionAction,
   sectionActionEntities,
+  sectionToggleTurnOn,
 } from "./actions";
 import { resolveOverviewConfig, validateOverviewConfig } from "./config";
 import {
@@ -46,7 +47,7 @@ import {
   supportsEntityFeature,
   supportsLightBrightness,
 } from "./features";
-import type { ClimateTemperatureTargets } from "./features";
+import type { ClimateTemperatureTargets, CoverControlService } from "./features";
 import { overviewCardStyles } from "./styles";
 import { overviewLanguage, overviewRtl, overviewText, quickActionLabel } from "./translations";
 import type {
@@ -76,6 +77,10 @@ type OptimisticClimateTargets = ClimateTemperatureTargets & {
 };
 
 const FLOOR_QUICK_AREA_ID = "__overview_floor__";
+const COVER_COMMAND_TIMEOUT_MS = 12_000;
+
+const isCoverControlService = (service: string): service is CoverControlService =>
+  service === "open_cover" || service === "stop_cover" || service === "close_cover";
 
 @customElement(OVERVIEW_CARD_TAG)
 export class AreaBubbleOverviewCard extends LitElement {
@@ -88,6 +93,7 @@ export class AreaBubbleOverviewCard extends LitElement {
   @state() private pendingActions = new Set<string>();
   @state() private pendingSections = new Set<string>();
   @state() private pendingEntities = new Set<string>();
+  @state() private pendingCoverCommands = new Set<string>();
   @state() private quickPopup?: QuickPopupState;
   @state() private areaPopupId?: string;
   @state() private floorPopupOpen = false;
@@ -543,7 +549,7 @@ export class AreaBubbleOverviewCard extends LitElement {
       `--aboc-section-columns:${sectionColumns}`,
       `--aboc-section-entity-height:${sectionEntityHeight}px`,
     ].join(";");
-    const toggleTurnOn = offTargets.length === 0;
+    const toggleTurnOn = sectionToggleTurnOn(section, offTargets);
     const toggleTargets = toggleTurnOn ? onTargets : offTargets;
     const togglePending = toggleTurnOn ? pendingOn : pendingOff;
     const toggleLabel = toggleTurnOn ? onLabel : offLabel;
@@ -1003,10 +1009,11 @@ export class AreaBubbleOverviewCard extends LitElement {
     `;
   }
 
-  private renderQuickPopupCoverEntity(item: OverviewEntity, groupPending: boolean) {
-    const busy = this.entityBusy(item);
+  private renderQuickPopupCoverEntity(item: OverviewEntity, _groupPending: boolean) {
+    const busy = this.coverBusy(item);
     const position = coverPosition(item.entity);
     const assumedState = item.entity.attributes.assumed_state === true;
+    const moving = ["opening", "closing"].includes(item.entity.state.toLowerCase());
     const services = [
       { service: "open_cover", icon: "mdi:arrow-up" },
       { service: "stop_cover", icon: "mdi:stop" },
@@ -1034,21 +1041,22 @@ export class AreaBubbleOverviewCard extends LitElement {
         </button>
         <span class="quick-popup-cover-controls" role="group" aria-label=${`${this.localText("שליטה בתריס", "Cover controls")}: ${item.name}`}>
           ${supportedServices.map(({ service, icon }) => {
-            const disabled = !item.available || busy || groupPending || coverControlDisabled(
+            const commandPending = this.coverCommandPending(item.entityId, service);
+            const disabled = !item.available || commandPending || coverControlDisabled(
               service,
               item.entity.state,
               position,
               assumedState,
             );
             return html`<button
-              class="quick-popup-cover-control"
+              class="quick-popup-cover-control ${service === "stop_cover" && !moving ? "idle-stop" : ""}"
               type="button"
-              aria-busy=${busy}
+              aria-busy=${commandPending}
               aria-label=${`${this.coverServiceLabel(service)}: ${item.name}`}
               title=${`${this.coverServiceLabel(service)}: ${item.name}`}
               ?disabled=${disabled}
               @click=${(event: Event) => this.runEntityService(event, item, service)}
-            ><ha-icon icon=${busy ? "mdi:loading" : icon}></ha-icon></button>`;
+            ><ha-icon icon=${commandPending ? "mdi:loading" : icon}></ha-icon></button>`;
           })}
         </span>
       </article>
@@ -1290,10 +1298,11 @@ export class AreaBubbleOverviewCard extends LitElement {
   }
 
   private renderCover(item: OverviewEntity) {
-    const busy = this.entityBusy(item);
+    const busy = this.coverBusy(item);
     const position = coverPosition(item.entity);
     const state = item.entity.state;
     const assumedState = item.entity.attributes.assumed_state === true;
+    const moving = ["opening", "closing"].includes(state.toLowerCase());
     const services = [
       { service: "open_cover", icon: "mdi:arrow-up" },
       { service: "stop_cover", icon: "mdi:stop" },
@@ -1303,15 +1312,19 @@ export class AreaBubbleOverviewCard extends LitElement {
       <article class="cover-card entity-card ${item.active ? "active" : ""} ${item.available ? "" : "unavailable"}" aria-busy=${busy}>
         ${this.renderEntityLead(item)}
         <span class="cover-controls" role="group" aria-label=${`${this.localText("שליטה בתריס", "Cover controls")}: ${item.name}`}>
-          ${services.map(({ service, icon }) => html`
-            <button
-              class="cover-control"
-              type="button"
-              ?disabled=${!item.available || busy || coverControlDisabled(service as "open_cover" | "stop_cover" | "close_cover", state, position, assumedState)}
-              @click=${(event: Event) => this.runEntityService(event, item, service)}
-              aria-label=${`${this.coverServiceLabel(service)}: ${item.name}`}
-            ><ha-icon icon=${icon}></ha-icon></button>
-          `)}
+          ${services.map(({ service, icon }) => {
+            const commandPending = this.coverCommandPending(item.entityId, service as CoverControlService);
+            return html`
+              <button
+                class="cover-control ${service === "stop_cover" && !moving ? "idle-stop" : ""}"
+                type="button"
+                aria-busy=${commandPending}
+                ?disabled=${!item.available || commandPending || coverControlDisabled(service as CoverControlService, state, position, assumedState)}
+                @click=${(event: Event) => this.runEntityService(event, item, service)}
+                aria-label=${`${this.coverServiceLabel(service)}: ${item.name}`}
+              ><ha-icon icon=${commandPending ? "mdi:loading" : icon}></ha-icon></button>
+            `;
+          })}
         </span>
       </article>
     `;
@@ -1815,18 +1828,28 @@ export class AreaBubbleOverviewCard extends LitElement {
     const key = `${area.id}:${action}:${turnOn ? "on" : "off"}`;
     const members = quickActionMembers(area, action);
     const targets = quickActionActionEntities(area, action, turnOn);
-    if (this.quickActionPending(area.id, action) || members.some((item) => this.pendingEntities.has(item.entityId)) || targets.length === 0) return;
+    const coverService: CoverControlService | undefined = action === "covers"
+      ? turnOn ? "open_cover" : "close_cover"
+      : undefined;
+    const targetPending = coverService
+      ? targets.some((item) => this.coverCommandPending(item.entityId, coverService))
+      : members.some((item) => this.pendingEntities.has(item.entityId));
+    if (this.quickActionPending(area.id, action) || targetPending || targets.length === 0) return;
     this.pendingActions = new Set([...this.pendingActions, key]);
-    this.lockPendingEntities(targets);
+    if (coverService) this.lockPendingCoverCommands(targets, coverService);
+    else this.lockPendingEntities(targets);
     try {
-      await runQuickActionAction(this.hass, area, action, turnOn);
+      const call = () => runQuickActionAction(this.hass!, area, action, turnOn);
+      if (coverService) await this.withCoverCommandTimeout(call);
+      else await call();
     } catch (error) {
       this.reportError(error);
     } finally {
       const next = new Set(this.pendingActions);
       next.delete(key);
       this.pendingActions = next;
-      this.unlockPendingEntities(targets);
+      if (coverService) this.unlockPendingCoverCommands(targets, coverService);
+      else this.unlockPendingEntities(targets);
     }
   }
 
@@ -1848,19 +1871,54 @@ export class AreaBubbleOverviewCard extends LitElement {
     const key = `${areaId}:${section.id}:${turnOn ? "on" : "off"}`;
     const oppositeKey = `${areaId}:${section.id}:${turnOn ? "off" : "on"}`;
     const targets = sectionActionEntities(section, turnOn);
-    if (this.pendingSections.has(key) || this.pendingSections.has(oppositeKey) || section.entities.some((item) => this.pendingEntities.has(item.entityId)) || targets.length === 0) return;
+    const coverService: CoverControlService | undefined = section.id === "covers"
+      ? turnOn ? "open_cover" : "close_cover"
+      : undefined;
+    const targetPending = coverService
+      ? targets.some((item) => this.coverCommandPending(item.entityId, coverService))
+      : section.entities.some((item) => this.pendingEntities.has(item.entityId));
+    if (this.pendingSections.has(key) || this.pendingSections.has(oppositeKey) || targetPending || targets.length === 0) return;
     this.pendingSections = new Set([...this.pendingSections, key]);
-    this.lockPendingEntities(targets);
+    if (coverService) this.lockPendingCoverCommands(targets, coverService);
+    else this.lockPendingEntities(targets);
     try {
-      await runSectionAction(this.hass, section, turnOn);
+      const call = () => runSectionAction(this.hass!, section, turnOn);
+      if (coverService) await this.withCoverCommandTimeout(call);
+      else await call();
     } catch (error) {
       this.reportError(error);
     } finally {
       const next = new Set(this.pendingSections);
       next.delete(key);
       this.pendingSections = next;
-      this.unlockPendingEntities(targets);
+      if (coverService) this.unlockPendingCoverCommands(targets, coverService);
+      else this.unlockPendingEntities(targets);
     }
+  }
+
+  private coverCommandKey(entityId: string, service: CoverControlService): string {
+    return `${entityId}:${service}`;
+  }
+
+  private coverCommandPending(entityId: string, service: CoverControlService): boolean {
+    return this.pendingCoverCommands.has(this.coverCommandKey(entityId, service));
+  }
+
+  private coverBusy(item: OverviewEntity): boolean {
+    return (["open_cover", "stop_cover", "close_cover"] as const)
+      .some((service) => this.coverCommandPending(item.entityId, service));
+  }
+
+  private lockPendingCoverCommands(targets: OverviewEntity[], service: CoverControlService): void {
+    const next = new Set(this.pendingCoverCommands);
+    for (const item of targets) next.add(this.coverCommandKey(item.entityId, service));
+    this.pendingCoverCommands = next;
+  }
+
+  private unlockPendingCoverCommands(targets: OverviewEntity[], service: CoverControlService): void {
+    const next = new Set(this.pendingCoverCommands);
+    for (const item of targets) next.delete(this.coverCommandKey(item.entityId, service));
+    this.pendingCoverCommands = next;
   }
 
   private lockPendingEntities(targets: OverviewEntity[]): void {
@@ -1941,7 +1999,12 @@ export class AreaBubbleOverviewCard extends LitElement {
 
   private runEntityService(event: Event, item: OverviewEntity, service: string): void {
     event.stopPropagation();
-    void this.performEntityCall(item, () => callEntityService(this.hass!, item.entityId, service));
+    const call = () => callEntityService(this.hass!, item.entityId, service);
+    if (item.domain === "cover" && isCoverControlService(service)) {
+      void this.performCoverCommand(item, service, call);
+      return;
+    }
+    void this.performEntityCall(item, call);
   }
 
   private setClimateTemperature(item: OverviewEntity, temperature: number): void {
@@ -2021,6 +2084,37 @@ export class AreaBubbleOverviewCard extends LitElement {
       const next = new Set(this.pendingEntities);
       next.delete(item.entityId);
       this.pendingEntities = next;
+    }
+  }
+
+  private async performCoverCommand(
+    item: OverviewEntity,
+    service: CoverControlService,
+    call: () => Promise<unknown>,
+    timeoutMs = COVER_COMMAND_TIMEOUT_MS,
+  ): Promise<boolean> {
+    if (!this.hass || !item.available || this.coverCommandPending(item.entityId, service)) return false;
+    this.lockPendingCoverCommands([item], service);
+    try {
+      await this.withCoverCommandTimeout(call, timeoutMs);
+      return true;
+    } catch (error) {
+      this.reportError(error);
+      return false;
+    } finally {
+      this.unlockPendingCoverCommands([item], service);
+    }
+  }
+
+  private async withCoverCommandTimeout<T>(call: () => Promise<T>, timeoutMs = COVER_COMMAND_TIMEOUT_MS): Promise<T> {
+    let timer: number | undefined;
+    const timeout = new Promise<never>((_resolve, reject) => {
+      timer = window.setTimeout(() => reject(new Error("Cover command timed out.")), timeoutMs);
+    });
+    try {
+      return await Promise.race([Promise.resolve().then(call), timeout]);
+    } finally {
+      if (timer !== undefined) window.clearTimeout(timer);
     }
   }
 

@@ -99,10 +99,10 @@ describe("Home Assistant cover state semantics", () => {
     expect(closed.powered).toBe(false);
   });
 
-  it("keeps both directions available at a partial idle position and Stop only while moving", () => {
+  it("keeps both directions and Stop available at a partial idle position", () => {
     expect(coverControlDisabled("open_cover", "open", 17)).toBe(false);
     expect(coverControlDisabled("close_cover", "open", 17)).toBe(false);
-    expect(coverControlDisabled("stop_cover", "open", 17)).toBe(true);
+    expect(coverControlDisabled("stop_cover", "open", 17)).toBe(false);
     expect(coverControlDisabled("open_cover", "opening", 17)).toBe(true);
     expect(coverControlDisabled("close_cover", "opening", 17)).toBe(false);
     expect(coverControlDisabled("stop_cover", "opening", 17)).toBe(false);
@@ -114,7 +114,14 @@ describe("Home Assistant cover state semantics", () => {
   it("keeps both endpoints available when Home Assistant marks the state as assumed", () => {
     expect(coverControlDisabled("open_cover", "open", undefined, true)).toBe(false);
     expect(coverControlDisabled("close_cover", "closed", undefined, true)).toBe(false);
-    expect(coverControlDisabled("stop_cover", "closed", undefined, true)).toBe(true);
+    expect(coverControlDisabled("stop_cover", "closed", undefined, true)).toBe(false);
+  });
+
+  it("keeps every command available for unknown state and blocks Stop only for unavailable state", () => {
+    expect(coverControlDisabled("open_cover", "unknown")).toBe(false);
+    expect(coverControlDisabled("stop_cover", "unknown")).toBe(false);
+    expect(coverControlDisabled("close_cover", "unknown")).toBe(false);
+    expect(coverControlDisabled("stop_cover", "unavailable")).toBe(true);
   });
 
   it("recognizes completed endpoints without repeating their directional command", () => {

@@ -219,12 +219,20 @@ describe("Overview quick-action directional actions", () => {
     const callService = vi.fn(async () => undefined);
     const area = overviewArea([
       overviewEntity("climate.parents", "climate", { powered: true }),
+      overviewEntity("climate.fan_coil", "climate", { powered: true, group: AUTO_FAN_GROUP }),
       overviewEntity("fan.ceiling", "climate", { powered: true }),
       overviewEntity("switch.parents_fan", "climate", { powered: true, group: AUTO_FAN_GROUP }),
       overviewEntity("switch.unrelated", "climate", { powered: true }),
+      overviewEntity("climate.floor_heating", "floor_heating", { powered: true }),
     ]);
 
-    expect(quickActionMembers(area, "climate").map((item) => item.entityId)).toEqual(["climate.parents"]);
+    expect(quickActionMembers(area, "climate").map((item) => item.entityId)).toEqual([
+      "climate.parents",
+      "climate.fan_coil",
+    ]);
+    expect(quickActionMembers(area, "floor_heating").map((item) => item.entityId)).toEqual([
+      "climate.floor_heating",
+    ]);
     expect(quickActionMembers(area, "fans").map((item) => item.entityId)).toEqual([
       "fan.ceiling",
       "switch.parents_fan",

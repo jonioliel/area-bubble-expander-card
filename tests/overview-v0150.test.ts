@@ -36,12 +36,15 @@ describe("Overview 0.15 auxiliary climate and heating discovery", () => {
       state("switch.vent", "off", "וונטה מקלחת"),
       state("switch.ventilator", "off", "Bathroom ventilator"),
       state("fan.ceiling", "on", "Ceiling fan"),
+      state("climate.fan_coil", "cool", "Fan coil thermostat"),
       state("switch.regular", "off", "Regular switch"),
     ]), resolveOverviewConfig({ type, area: "room", language: "en" }));
     const area = discovery.areas[0];
-    const fans = area.sections.find((section) => section.id === "climate")?.entities ?? [];
+    const climateEntities = area.sections.find((section) => section.id === "climate")?.entities ?? [];
+    const fans = climateEntities.filter((item) => item.group === AUTO_FAN_GROUP);
     expect(fans.map((item) => item.entityId).sort()).toEqual(["fan.ceiling", "switch.room_fan"]);
     expect(fans.every((item) => item.group === AUTO_FAN_GROUP)).toBe(true);
+    expect(area.allEntities.find((item) => item.entityId === "climate.fan_coil")?.group).toBeUndefined();
     expect(area.sections.find((section) => section.id === "lights_switches")?.entities.map((item) => item.entityId).sort()).toEqual([
       "switch.regular",
       "switch.vent",

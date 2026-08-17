@@ -2,6 +2,15 @@
 
 All notable changes to Area Bubble Expander Card will be documented in this file.
 
+## 0.20.7 - 2026-08-17
+
+- Restored reliable Cover control across expanded rows, category Popups, quick actions, and section controls: Stop remains callable when an integration does not publish live movement, `unknown` command-only Covers remain controllable, and only `unavailable` entities are blocked.
+- Corrected single-button Cover category direction for `assumed_state`, while preserving partial-position targeting, reversal during movement, per-service capability bits, and safe grouped Open/Close planning.
+- Hardened pending Cover commands so a delayed Home Assistant service response cannot prevent an emergency Stop or direction reversal, while duplicate identical commands remain locked and automatically recover.
+- Kept Floor-heating thermostats out of the A/C badge, Popup, count, and bulk action; they now remain exclusively in Floor heating.
+- Removed the unsafe raw `area_id` shutdown path from the existing active-device card, so protected, hidden, and excluded entities cannot be pulled back into an Area shutdown by Home Assistant target expansion.
+- Added end-to-end Cover regression coverage for row/Popup parity, position/state races, `assumed_state`, missing and explicit feature bits, `unknown`/`unavailable`, Open/Stop/Close dispatch, grouped actions, and concurrent pending commands; the complete suite now contains 312 passing tests.
+
 ## 0.20.6 - 2026-08-16
 
 - Fixed compact Fan and Floor-heating toggles becoming disabled when their member was protected from bulk shutdown. These expanded-room controls are now treated as deliberate direct actions, matching individual entity controls.

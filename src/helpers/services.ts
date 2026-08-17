@@ -44,7 +44,3 @@ export const turnOffEntitiesByDomain = async (
   await Promise.all(planned.map(({ service, entityIds }) =>
     hass.callService(service.domain, service.service, undefined, { entity_id: entityIds })));
 };
-
-export const turnOffAreaViaHomeAssistant = async (hass: HomeAssistant, areaId: string): Promise<void> => {
-  await hass.callService("homeassistant", "turn_off", undefined, { area_id: areaId });
-};

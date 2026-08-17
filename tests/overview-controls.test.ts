@@ -68,10 +68,10 @@ describe("Overview dimmer controls", () => {
     expect(styles).not.toContain("--aboc-light-card-min-height");
   });
 
-  it("keeps partially open cover directions enabled and dims Stop only while idle", () => {
+  it("keeps partially open cover directions and Stop enabled while idle", () => {
     expect(coverControlDisabled("open_cover", "open", 17)).toBe(false);
     expect(coverControlDisabled("close_cover", "open", 17)).toBe(false);
-    expect(coverControlDisabled("stop_cover", "open", 17)).toBe(true);
+    expect(coverControlDisabled("stop_cover", "open", 17)).toBe(false);
     expect(coverControlDisabled("stop_cover", "opening", 17)).toBe(false);
     expect(coverControlDisabled("open_cover", "opening", 17)).toBe(true);
     expect(coverControlDisabled("close_cover", "opening", 17)).toBe(false);

@@ -337,7 +337,7 @@ section_action_icons:
 Safety behavior:
 
 - Quick-action group controls are directional; covers open or close instead of toggling.
-- Cover controls follow Home Assistant's `current_position` (0 closed, 100 fully open), movement state, feature bits, and `assumed_state`. A partially open cover can still be opened fully or closed, the current movement direction is not resent, and the opposite direction remains available for reversal.
+- Cover controls follow Home Assistant's `current_position` (0 closed, 100 fully open), movement state, feature bits, and `assumed_state`. A partially open cover can still be opened fully or closed, the current movement direction is not resent, and the opposite direction remains available for reversal. **Stop stays callable whenever the Cover is available**, even when an integration does not report `opening`/`closing`; it is merely shown with lower emphasis while idle. Command-only Covers in `unknown` remain controllable, while `unavailable` Covers are disabled.
 - Calls are grouped by Domain and target only discovered Entity IDs.
 - Hidden and excluded entities are absent. Unavailable or unsupported members remain visible but disabled.
 - Protected entities are omitted from room/category bulk actions but retain deliberate individual control in the Popup and expanded Area, including the explicit compact Fan and Heating-switch toggles.

@@ -129,7 +129,13 @@ export const coverControlDisabled = (
   assumedState = false,
 ): boolean => {
   const normalizedState = state.toLowerCase();
-  if (service === "stop_cover") return !["opening", "closing"].includes(normalizedState);
+  if (normalizedState === "unavailable") return true;
+  // Match Home Assistant's native Cover controls: integrations are not
+  // required to publish `opening` / `closing` quickly (or at all), so Stop
+  // must remain callable whenever the entity is available. The UI can still
+  // render an idle Stop action with lower visual emphasis without disabling
+  // the service itself.
+  if (service === "stop_cover") return false;
   // Do not repeat a command in the direction that is already in progress,
   // but keep the opposite direction available so the user can reverse it.
   if (normalizedState === "opening") return service === "open_cover";

@@ -3,7 +3,6 @@ import { describe, expect, it, vi } from "vitest";
 
 import { resolveConfig } from "../src/helpers/config";
 import {
-  turnOffAreaViaHomeAssistant,
   turnOffEntitiesByDomain,
   turnOffEntity,
 } from "../src/helpers/services";
@@ -91,10 +90,11 @@ describe("Existing active-device card services", () => {
     expect(callService).not.toHaveBeenCalled();
   });
 
-  it("uses Home Assistant's area target for the explicit area mode", async () => {
-    const callService = vi.fn(async () => undefined);
-    await turnOffAreaViaHomeAssistant(homeAssistant(callService), "bedroom");
-    expect(callService).toHaveBeenCalledWith("homeassistant", "turn_off", undefined, { area_id: "bedroom" });
+  it("keeps the legacy Home Assistant Area mode on the protected entity-id plan", () => {
+    const source = readFileSync(new URL("../src/area-bubble-expander-card.ts", import.meta.url), "utf8");
+    expect(source).not.toContain("turnOffAreaViaHomeAssistant");
+    expect(source).not.toMatch(/callService\([^)]*["']homeassistant["'][^)]*["']turn_off["'][\s\S]*?area_id/);
+    expect(source).toMatch(/const candidates = safeTurnOffCandidates\(group\.entities, this\.config\)[\s\S]*?turnOffEntitiesByDomain\(this\.hass, candidates, this\.config\)/);
   });
 
   it("reports rejected custom toggle and call-service actions instead of leaking promises", () => {

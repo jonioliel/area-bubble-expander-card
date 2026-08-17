@@ -22,9 +22,12 @@ const isQuickActionMember = (item: OverviewEntity, action: OverviewQuickActionKi
   if (action === "switches") return item.domain === "switch" && item.section === "lights_switches";
   // The climate popup is deliberately limited to real thermostats. Fans are
   // rendered as an automatic subgroup and have their own runtime-only popup.
-  if (action === "climate") return item.domain === "climate";
+  if (action === "climate") return item.domain === "climate" && item.section === "climate";
   if (action === "fans") {
-    return item.section === "climate" && (item.domain === "fan" || item.group === AUTO_FAN_GROUP);
+    return item.section === "climate" && (
+      item.domain === "fan"
+      || (["switch", "input_boolean"].includes(item.domain) && item.group === AUTO_FAN_GROUP)
+    );
   }
   if (action === "heating_controls") {
     return item.section === "floor_heating" && item.group === AUTO_FLOOR_HEATING_GROUP;
@@ -220,6 +223,16 @@ const planSectionAction = (section: OverviewSection, turnOn: boolean): PlannedEn
 /** Entities that a section-wide on/off action can safely control. */
 export const sectionActionEntities = (section: OverviewSection, turnOn = false): OverviewEntity[] =>
   planSectionAction(section, turnOn).map(({ entity }) => entity);
+
+/** Direction used by the optional single category button. */
+export const sectionToggleTurnOn = (
+  section: OverviewSection,
+  offTargets = sectionActionEntities(section, false),
+): boolean => section.id === "covers"
+  // An assumed-state Cover is valid in both directions. Its reported physical
+  // state, rather than the existence of a Close plan, decides the toggle.
+  ? !offTargets.some((item) => item.powered)
+  : offTargets.length === 0;
 
 /** Safely turns every controllable entity in a section on or off. */
 export const runSectionAction = async (

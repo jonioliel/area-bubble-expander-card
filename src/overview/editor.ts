@@ -3,7 +3,7 @@ import { customElement, property, state } from "lit/decorators.js";
 import type { HassAreaRegistryEntry, HassEntity, HomeAssistant } from "../types";
 import { resolveOverviewConfig } from "./config";
 import { AUTO_FAN_GROUP, AUTO_FLOOR_HEATING_GROUP, OVERVIEW_CARD_TYPE, OVERVIEW_DEFAULT_STYLE, OVERVIEW_EDITOR_TAG, OVERVIEW_QUICK_ACTIONS, OVERVIEW_SECTIONS, OVERVIEW_THEME_NAMES, OVERVIEW_THEME_PRESETS, overviewThemePalette, QUICK_ACTION_ICONS, SECTION_ACTION_ICONS, SECTION_ICONS } from "./constants";
-import { discoverOverview, isOverviewEntityPowered, overviewEntityAreaId } from "./discovery";
+import { discoverOverview, isOverviewEntityAvailable, isOverviewEntityPowered, overviewEntityAreaId } from "./discovery";
 import { overviewLanguage } from "./translations";
 import type {
   AreaBubbleOverviewCardConfig,
@@ -1203,7 +1203,7 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
         areaId,
         section: override.section,
         labels: [],
-        available: !["unavailable", "unknown"].includes(entity.state),
+        available: isOverviewEntityAvailable(entity, domain),
         active: !["off", "closed", "idle", "standby", "unavailable", "unknown"].includes(entity.state),
         powered: isOverviewEntityPowered(entity, domain),
         protected: override.protected === true,

@@ -7,7 +7,7 @@ import { resolveConfig, validateConfig } from "./helpers/config";
 import { discoverActiveEntities } from "./helpers/entity";
 import { readExpandedState, writeExpandedState } from "./helpers/storage";
 import { safeTurnOffCandidates } from "./helpers/safety";
-import { turnOffAreaViaHomeAssistant, turnOffEntitiesByDomain, turnOffEntity } from "./helpers/services";
+import { turnOffEntitiesByDomain, turnOffEntity } from "./helpers/services";
 import { displaySecondary } from "./helpers/format";
 import { domainLabel, resolveLanguage, resolveRtl, t } from "./translations";
 import type { AreaBubbleExpanderCardConfig, AreaGroup, DiscoveredEntity, HomeAssistant, LovelaceAction, ResolvedConfig } from "./types";
@@ -294,8 +294,10 @@ export class AreaBubbleExpanderCard extends LitElement {
     )}`;
     if (requireConfirm && !window.confirm(message)) return;
     try {
-      if (this.config.area_turn_off_mode === "homeassistant_area") await turnOffAreaViaHomeAssistant(this.hass, group.id);
-      else await turnOffEntitiesByDomain(this.hass, candidates, this.config);
+      // Even the legacy Home Assistant Area mode must use the already-resolved
+      // safe entity plan. An area_id target would also include protected,
+      // hidden, and otherwise excluded entities that are not in `candidates`.
+      await turnOffEntitiesByDomain(this.hass, candidates, this.config);
     } catch (err) {
       this.reportError(err);
     }
@@ -402,7 +404,7 @@ if (!window.customCards.some((card) => card.type === "area-bubble-expander-card"
 }
 
 console.info(
-  `%c AREA-BUBBLE-CARDS %c 0.20.6 ${resolveLanguage(undefined, "auto")}`,
+  `%c AREA-BUBBLE-CARDS %c 0.20.7 ${resolveLanguage(undefined, "auto")}`,
   "color: white; background: #03a9f4; font-weight: 700;",
   "color: #03a9f4; font-weight: 700;",
 );
