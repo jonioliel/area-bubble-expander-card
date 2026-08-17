@@ -3917,7 +3917,7 @@ window.customCards.some((e) => e.type === "area-bubble-expander-card") || window
   documentationURL: "https://github.com/jonioliel/area-bubble-expander-card"
 });
 console.info(
-  `%c AREA-BUBBLE-CARDS %c 0.20.8 ${Ae(void 0, "auto")}`,
+  `%c AREA-BUBBLE-CARDS %c 0.20.9 ${Ae(void 0, "auto")}`,
   "color: white; background: #03a9f4; font-weight: 700;",
   "color: #03a9f4; font-weight: 700;"
 );
@@ -8192,6 +8192,12 @@ const Ka = De`
     border-radius: 999px;
     background: var(--aboc-control-surface);
     color: var(--aboc-light-text);
+  }
+
+  .climate-card.mode-off .temperature-stepper,
+  .climate-card.mode-off .current-temperature {
+    background: var(--secondary-background-color);
+    color: var(--aboc-primary-text);
   }
 
   .temperature-stepper button {

@@ -175,6 +175,24 @@ describe("overview header presentation contracts", () => {
     expect(cssText).toMatch(/\.brightness-control\s*\{[^}]*direction:\s*ltr/s);
   });
 
+  it("uses a neutral temperature surface only while an air conditioner is off", () => {
+    const baseStepper = declarationBodiesFor(".temperature-stepper", regularWidthCss).join("\n");
+    const offStepper = declarationBodiesFor(".climate-card.mode-off .temperature-stepper", regularWidthCss).join("\n");
+    const offCurrent = declarationBodiesFor(".climate-card.mode-off .current-temperature", regularWidthCss).join("\n");
+
+    expect(baseStepper).toMatch(/background:\s*var\(--aboc-control-surface\)/);
+    expect(baseStepper).toMatch(/color:\s*var\(--aboc-light-text\)/);
+    expect(offStepper).toMatch(/background:\s*var\(--secondary-background-color\)/);
+    expect(offStepper).toMatch(/color:\s*var\(--aboc-primary-text\)/);
+    expect(offCurrent).toMatch(/background:\s*var\(--secondary-background-color\)/);
+    expect(offCurrent).toMatch(/color:\s*var\(--aboc-primary-text\)/);
+
+    // Active HVAC modes keep the regular high-contrast control surface, while
+    // floor-heating thermostats retain their independent visual semantics.
+    expect(cssText).not.toMatch(/\.climate-card\.mode-(?:cool|heat|auto|dry|fan_only)\s+\.temperature-stepper\s*\{/);
+    expect(cssText).not.toMatch(/\.thermostat-card(?:\.mode-off)?\s+\.temperature-stepper\s*\{/);
+  });
+
   it("gives long-press targets touch-safe feedback without blocking vertical scroll", () => {
     expect(cssText).toMatch(/\.hold-target\s*\{[^}]*touch-action:\s*pan-y/s);
     expect(cssText).toMatch(/\.hold-target\.holding\s*\{[^}]*transform:\s*scale\(/s);

@@ -2,6 +2,12 @@
 
 All notable changes to Area Bubble Expander Card will be documented in this file.
 
+## 0.20.9 - 2026-08-17
+
+- Changed A/C target-temperature and range controls to the same neutral gray surface as the HVAC and Fan selectors while the climate entity is `off`.
+- Preserved the configured high-contrast control surface for powered HVAC modes and kept Floor-heating thermostat styling independent.
+- Added a focused theme-aware CSS regression contract; the complete suite now contains 326 passing tests.
+
 ## 0.20.8 - 2026-08-17
 
 - Added an optional `hide_temperature_when_climate_off` summary rule, available globally and as an inherited per-room override in the visual editor.

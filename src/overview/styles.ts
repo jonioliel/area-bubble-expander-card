@@ -1871,6 +1871,12 @@ export const overviewCardStyles = css`
     color: var(--aboc-light-text);
   }
 
+  .climate-card.mode-off .temperature-stepper,
+  .climate-card.mode-off .current-temperature {
+    background: var(--secondary-background-color);
+    color: var(--aboc-primary-text);
+  }
+
   .temperature-stepper button {
     display: grid;
     place-items: center;
