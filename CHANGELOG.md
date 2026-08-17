@@ -2,6 +2,13 @@
 
 All notable changes to Area Bubble Expander Card will be documented in this file.
 
+## 0.20.8 - 2026-08-17
+
+- Added an optional `hide_temperature_when_climate_off` summary rule, available globally and as an inherited per-room override in the visual editor.
+- Kept sensor-only room temperatures visible and excluded Floor-heating, unavailable, hidden, and activity-ignored climate entities from the room A/C decision.
+- Made temperature visibility follow the resolved Home Assistant HVAC action, so a fresh `hvac_action` remains authoritative while an entity state is briefly stale.
+- Added configuration, runtime, override, malformed-YAML, compatibility, and edge-case regression coverage; the complete suite now contains 325 passing tests.
+
 ## 0.20.7 - 2026-08-17
 
 - Restored reliable Cover control across expanded rows, category Popups, quick actions, and section controls: Stop remains callable when an integration does not publish live movement, `unknown` command-only Covers remain controllable, and only `unavailable` entities are blocked.

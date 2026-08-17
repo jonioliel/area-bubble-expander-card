@@ -224,6 +224,15 @@ The displayed temperature is selected in this order:
 
 Select the preferred source directly in the visual editor when automatic discovery is not the desired result.
 
+Enable `hide_temperature_when_climate_off: true` to remove the room-temperature badge while every available room A/C is off. The badge returns automatically as soon as one A/C is turned on. Sensor-only rooms continue to show their temperature, and Floor-heating thermostats or devices marked `ignore_activity` do not control this decision. Each room can inherit or override the global choice:
+
+```yaml
+hide_temperature_when_climate_off: true
+area_overrides:
+  nursery:
+    hide_temperature_when_climate_off: false # Always show in this room
+```
+
 The temperature chip also reflects the state of an available climate entity in the Area. It uses a neutral surface while the climate is off, blue while cooling, warm orange while heating, and a separate active surface for fan, dry, mixed, or otherwise active HVAC operation. These colors can be changed in the Appearance editor or YAML:
 
 ```yaml
@@ -458,6 +467,7 @@ language: he
 rtl: auto
 show_header: true
 show_temperature: true
+hide_temperature_when_climate_off: true
 show_occupancy: true
 show_quick_actions: true
 show_area_expand_button: false
@@ -528,6 +538,7 @@ area_overrides:
     icon: mdi:teddy-bear
     default_expanded: true
     temperature_entity: sensor.kids_temperature
+    hide_temperature_when_climate_off: false
     occupancy_count_entity: sensor.kids_room_people_count
     occupancy_entities:
       - binary_sensor.kids_occupancy
@@ -603,6 +614,7 @@ style:
 | `theme_preset` | `classic` | `classic`, `elegant`, `light`, `dark`, `modern`, `ocean`, `emerald`, `violet`, `coral`, `amber`, or `rose`. The preset is a base; explicit `style.*` values override it. |
 | `theme_mode` | `recommended` | `recommended`, `light`, or `dark`. Every family supplies both explicit brightness variants. |
 | `show_temperature` | `true` | Shows the preferred/automatic current temperature. |
+| `hide_temperature_when_climate_off` | `false` | When enabled, hides a room temperature while every available, activity-participating room A/C is off. Sensor-only rooms remain visible. |
 | `show_occupancy` | `true` | Shows a numeric occupancy/count-sensor badge, including zero and unknown. |
 | `show_quick_actions` | `true` | Shows popup triggers only for categories that currently have a powered member. |
 | `show_floor_expand_button` | `true` | Shows the Floor chevron. Set `false` to keep the whole Floor header as the sole disclosure control. |
@@ -643,6 +655,7 @@ style:
 | `area_overrides.<area>.parent_area` | none | Visually nests one Floor Area under another without combining state, summaries, or actions. |
 | `area_overrides.<area>.show_when_parent_collapsed` | `false` | Keeps this child visible inside its parent while the parent is collapsed. |
 | `area_overrides.<area>.open_mode` | inherit global | Overrides one room with `expander` or `popup`. |
+| `area_overrides.<area>.hide_temperature_when_climate_off` | inherit global | `true` hides or `false` always shows this room's temperature regardless of the global choice. |
 | `area_overrides.<area>.subarea_order` | discovery order | Orders named room sub-areas after the general room categories. |
 | `area_overrides.<area>.entity_card_size` | inherit global | Overrides compact/medium/wide device-card sizing for one room. |
 | `area_overrides.<area>.subgroup_titles` | inherit global | Overrides automatic Fans/Heating-controls titles for one room. |
@@ -740,7 +753,7 @@ The Overview editor provides:
 
 - Area/Floor target selection
 - Collapsible Floor defaults plus independently remembered Floor/Area expansion
-- Summary, temperature, attached climate/fan tags, numeric occupancy, sensor fallback, active quick-action placement, and Area-chevron settings
+- Summary, temperature visibility while A/C is off, attached climate/fan tags, numeric occupancy, sensor fallback, active quick-action placement, and Area-chevron settings
 - Section title/order editing, one-button or paired actions, action icon pickers, spacing, and global category appearance
 - Floor Area order, cycle-safe parent/child nesting, independently collapsible Popup child Areas, and per-Area overrides
 - Floor/Area/entity icon pickers with registry fallbacks and built-in search

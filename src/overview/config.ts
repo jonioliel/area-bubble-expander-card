@@ -140,6 +140,9 @@ const areaOverrides = (value: unknown): Record<string, OverviewAreaOverride> => 
       ...(typeof raw.default_expanded === "boolean" ? { default_expanded: raw.default_expanded } : {}),
       ...(raw.open_mode === "expander" || raw.open_mode === "popup" ? { open_mode: raw.open_mode } : {}),
       ...(typeof raw.temperature_entity === "string" && raw.temperature_entity.trim() ? { temperature_entity: raw.temperature_entity.trim() } : {}),
+      ...(typeof raw.hide_temperature_when_climate_off === "boolean"
+        ? { hide_temperature_when_climate_off: raw.hide_temperature_when_climate_off }
+        : {}),
       ...(typeof raw.occupancy_count_entity === "string" && raw.occupancy_count_entity.trim()
         ? { occupancy_count_entity: raw.occupancy_count_entity.trim() }
         : {}),
@@ -236,6 +239,10 @@ export const resolveOverviewConfig = (config: AreaBubbleOverviewCardConfig): Res
     floor: typeof config.floor === "string" && config.floor ? config.floor : undefined,
     title: typeof config.title === "string" ? config.title : "",
     target_icon: typeof config.target_icon === "string" ? config.target_icon.trim() : "",
+    hide_temperature_when_climate_off:
+      typeof config.hide_temperature_when_climate_off === "boolean"
+        ? config.hide_temperature_when_climate_off
+        : (OVERVIEW_DEFAULT_CONFIG.hide_temperature_when_climate_off ?? false),
     theme_preset: themePreset,
     theme_mode: themeMode,
     show_area_expand_button:

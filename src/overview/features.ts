@@ -1,6 +1,6 @@
 import type { HassEntity } from "../types";
 import { CLIMATE_FEATURES, COVER_FEATURES, MEDIA_FEATURES, WATER_HEATER_FEATURES } from "./constants";
-import type { OverviewEntity } from "./types";
+import type { OverviewArea, OverviewEntity } from "./types";
 
 export type EntityServicePlan = {
   service: string;
@@ -10,6 +10,24 @@ export type EntityServicePlan = {
 export const supportsEntityFeature = (entity: HassEntity, feature: number): boolean => {
   const supported = entity.attributes.supported_features;
   return typeof supported !== "number" || (supported & feature) !== 0;
+};
+
+/**
+ * Decides whether the current room temperature belongs in an Area summary.
+ * Sensor-only rooms keep their temperature because there is no room climate
+ * entity whose power state can govern the badge. Underfloor thermostats and
+ * entities excluded from room activity are deliberately ignored.
+ */
+export const shouldShowAreaTemperature = (area: OverviewArea, hideWhenClimateOff: boolean): boolean => {
+  if (area.temperature === undefined) return false;
+  if (!hideWhenClimateOff) return true;
+  const roomClimates = area.allEntities.filter(
+    (item) => item.domain === "climate"
+      && item.section === "climate"
+      && item.available
+      && item.ignoreActivity !== true,
+  );
+  return roomClimates.length === 0 || area.temperatureMode !== "off";
 };
 
 export const climateModes = (item: OverviewEntity): string[] =>

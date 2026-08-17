@@ -44,6 +44,7 @@ import {
   entityPowerService,
   lightBrightnessPercentage,
   normalizeClimateTemperature,
+  shouldShowAreaTemperature,
   supportsEntityFeature,
   supportsLightBrightness,
 } from "./features";
@@ -306,7 +307,11 @@ export class AreaBubbleOverviewCard extends LitElement {
       ? activeQuickActionSummaries(area, this.config.quick_actions)
       : [];
     const hasOccupancy = this.config.show_occupancy && area.occupancy !== "none";
-    const hasTemperature = this.config.show_temperature && area.temperature !== undefined;
+    const areaOverride = this.config.area_overrides[area.id] ?? this.config.area_overrides[area.name];
+    const hideTemperatureWhenClimateOff =
+      areaOverride?.hide_temperature_when_climate_off ?? this.config.hide_temperature_when_climate_off;
+    const hasTemperature = this.config.show_temperature
+      && shouldShowAreaTemperature(area, hideTemperatureWhenClimateOff);
     const climateTemperatureAction = hasTemperature
       ? activeQuickActions.find(({ action }) => action === "climate")
       : undefined;

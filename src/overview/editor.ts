@@ -189,6 +189,15 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
     const sanitized: AreaBubbleOverviewCardConfig = { ...config, type: OVERVIEW_CARD_TYPE };
     if (typeof config.show_area_expand_button !== "boolean") delete sanitized.show_area_expand_button;
     if (typeof config.show_floor_expand_button !== "boolean") delete sanitized.show_floor_expand_button;
+    if (typeof config.hide_temperature_when_climate_off !== "boolean") delete sanitized.hide_temperature_when_climate_off;
+    if (config.area_overrides) {
+      sanitized.area_overrides = Object.fromEntries(Object.entries(config.area_overrides).map(([areaId, override]) => {
+        const validOverride = override && typeof override === "object" && !Array.isArray(override) ? override : {};
+        const clean = { ...validOverride };
+        if (typeof validOverride.hide_temperature_when_climate_off !== "boolean") delete clean.hide_temperature_when_climate_off;
+        return [areaId, clean];
+      }));
+    }
     if (config.area_open_mode !== "expander" && config.area_open_mode !== "popup") delete sanitized.area_open_mode;
     if (config.fan_display_mode !== "subgroup" && config.fan_display_mode !== "button") delete sanitized.fan_display_mode;
     if (config.heating_controls_display_mode !== "subgroup" && config.heating_controls_display_mode !== "button") delete sanitized.heating_controls_display_mode;
@@ -288,6 +297,7 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
     const rows: Array<[keyof AreaBubbleOverviewCardConfig, string, string, boolean]> = [
       ["show_header", this.l("הצג כותרת", "Show header", language), this.l("כותרת קומה או כותרת מותאמת", "Floor or custom card heading", language), resolved.show_header],
       ["show_temperature", this.l("הצג טמפרטורה", "Show temperature", language), this.l("חיישן מועדף, חיישני טמפרטורה או מזגן", "Preferred sensor, temperature sensors, or climate", language), resolved.show_temperature],
+      ["hide_temperature_when_climate_off", this.l("הסתר טמפרטורה כשהמזגן כבוי", "Hide temperature when climate is off", language), this.l("בחדר עם מזגן זמין, הטמפרטורה תוסתר כשכולם כבויים; חדר עם חיישן בלבד ימשיך להציג", "In a room with an available climate, hides temperature while all are off; sensor-only rooms keep showing it", language), resolved.hide_temperature_when_climate_off],
       ["show_occupancy", this.l("הצג נוכחות", "Show occupancy", language), this.l("מאוכלס, ריק או לא ידוע", "Occupied, vacant, or unknown", language), resolved.show_occupancy],
       ["show_quick_actions", this.l("הצג פעולות מהירות", "Show quick actions", language), this.l("פתח שליטה רק לקטגוריות פעילות", "Open control popups only for active categories", language), resolved.show_quick_actions],
       ["strip_area_name_from_entity_names", this.l("הסר את שם החדר משמות הרכיבים", "Remove room name from device names", language), this.l("לדוגמה: ‘אורי ספוטים’ יוצג כ‘ספוטים’. ניתן לשנות לכל רכיב בנפרד.", "For example, ‘Kids spots’ becomes ‘spots’. Each device can override this.", language), resolved.strip_area_name_from_entity_names],
@@ -619,6 +629,27 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
                   <option value="">${this.l("אוטומטי", "Automatic", language)}</option>
                   ${temperatureOptions.map((entity) => html`<option value=${entity.entity_id}>${this.entityName(entity)}</option>`)}
                 </select>
+              </div>
+              <div class="field">
+                <label>${this.l("טמפרטורה כשהמזגן כבוי בחדר זה", "Temperature while climate is off in this room", language)}</label>
+                <select
+                  .value=${override.hide_temperature_when_climate_off === undefined ? "" : String(override.hide_temperature_when_climate_off)}
+                  @change=${(event: Event) => {
+                    const value = (event.target as HTMLSelectElement).value;
+                    this.updateAreaOverride(area.id, {
+                      hide_temperature_when_climate_off: value === "" ? undefined : value === "true",
+                    });
+                  }}
+                >
+                  <option value="">${this.l(
+                    `לפי ההגדרה הכללית (${resolved.hide_temperature_when_climate_off ? "מוסתרת" : "מוצגת"})`,
+                    `Use global setting (${resolved.hide_temperature_when_climate_off ? "hidden" : "shown"})`,
+                    language,
+                  )}</option>
+                  <option value="false">${this.l("הצג תמיד", "Always show", language)}</option>
+                  <option value="true">${this.l("הסתר כשהמזגן כבוי", "Hide when climate is off", language)}</option>
+                </select>
+                <div class="hint">${this.l("חריגה זו משפיעה רק על החדר הנוכחי.", "This override affects only the current room.", language)}</div>
               </div>
               <div class="field">
                 <label>${this.l("מקור ספירת נוכחים", "Occupancy count source", language)}</label>

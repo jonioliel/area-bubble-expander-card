@@ -378,6 +378,7 @@ export const OVERVIEW_DEFAULT_CONFIG: AreaBubbleOverviewCardConfig = {
   show_header: true,
   show_floor_header: true,
   show_temperature: true,
+  hide_temperature_when_climate_off: false,
   show_occupancy: true,
   show_quick_actions: true,
   show_area_expand_button: true,

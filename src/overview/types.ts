@@ -74,6 +74,7 @@ export type OverviewAreaOverride = {
   default_expanded?: boolean;
   open_mode?: OverviewAreaOpenMode;
   temperature_entity?: string;
+  hide_temperature_when_climate_off?: boolean;
   occupancy_count_entity?: string;
   occupancy_entities?: string[];
   section_order?: OverviewSectionId[];
@@ -143,6 +144,7 @@ export type AreaBubbleOverviewCardConfig = {
   show_header?: boolean;
   show_floor_header?: boolean;
   show_temperature?: boolean;
+  hide_temperature_when_climate_off?: boolean;
   show_occupancy?: boolean;
   show_quick_actions?: boolean;
   show_area_expand_button?: boolean;
