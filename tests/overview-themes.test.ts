@@ -2,14 +2,16 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import { resolveOverviewConfig } from "../src/overview/config";
-import { OVERVIEW_DEFAULT_STYLE, OVERVIEW_THEME_NAMES, OVERVIEW_THEME_PRESETS, OVERVIEW_THEME_VARIANTS, overviewThemePalette } from "../src/overview/constants";
+import { OVERVIEW_DEFAULT_STYLE, OVERVIEW_LEGACY_THEME_NAMES, OVERVIEW_NEW_THEME_NAMES, OVERVIEW_THEME_NAMES, OVERVIEW_THEME_PRESETS, OVERVIEW_THEME_VARIANTS, overviewThemePalette } from "../src/overview/constants";
 import { overviewCardStyles } from "../src/overview/styles";
 import type { OverviewThemeMode, OverviewThemePreset } from "../src/overview/types";
 
 const type = "custom:area-bubble-overview-card" as const;
-const presets: OverviewThemePreset[] = ["classic", "elegant", "light", "dark", "modern", "ocean", "emerald", "violet", "coral", "amber", "rose"];
+const legacyPresets: OverviewThemePreset[] = ["classic", "elegant", "light", "dark", "modern", "ocean", "emerald", "violet", "coral", "amber", "rose"];
+const contemporaryPresets: OverviewThemePreset[] = ["champagne_emerald", "arctic_cobalt", "sage_jade", "violet_indigo", "coral_teal"];
+const presets: OverviewThemePreset[] = [...legacyPresets, ...contemporaryPresets];
 const designedPresets = presets.filter((preset) => preset !== "classic");
-const newPresets: OverviewThemePreset[] = ["ocean", "emerald", "violet", "coral", "amber", "rose"];
+const vividLegacyPresets: OverviewThemePreset[] = ["ocean", "emerald", "violet", "coral", "amber", "rose"];
 const explicitModes: Array<Exclude<OverviewThemeMode, "recommended">> = ["light", "dark"];
 const cardSource = readFileSync(new URL("../src/overview/area-bubble-overview-card.ts", import.meta.url), "utf8");
 const editorSource = readFileSync(new URL("../src/overview/editor.ts", import.meta.url), "utf8");
@@ -60,7 +62,7 @@ describe("Overview professional design themes", () => {
     expect(resolved.style.entity_active_surface).not.toBe(resolved.style.active_surface);
   });
 
-  it("ships ten complete coordinated palettes plus the backwards-compatible classic base", () => {
+  it("ships fifteen complete coordinated palettes plus the backwards-compatible classic base", () => {
     expect(Object.keys(OVERVIEW_THEME_PRESETS)).toEqual(presets);
     expect(OVERVIEW_THEME_NAMES).toEqual(presets);
     for (const preset of designedPresets) {
@@ -75,10 +77,23 @@ describe("Overview professional design themes", () => {
   });
 
   it("adds six vivid professional color families", () => {
-    expect(newPresets).toEqual(["ocean", "emerald", "violet", "coral", "amber", "rose"]);
-    for (const preset of newPresets) {
+    expect(vividLegacyPresets).toEqual(["ocean", "emerald", "violet", "coral", "amber", "rose"]);
+    for (const preset of vividLegacyPresets) {
       expect(OVERVIEW_THEME_PRESETS[preset].card_background).toMatch(/^linear-gradient\(/);
       expect(OVERVIEW_THEME_PRESETS[preset].show_shadows).toBe(true);
+    }
+  });
+
+  it("separates five compact contemporary themes from the backwards-compatible legacy group", () => {
+    expect(OVERVIEW_LEGACY_THEME_NAMES).toEqual(legacyPresets);
+    expect(OVERVIEW_NEW_THEME_NAMES).toEqual(contemporaryPresets);
+    for (const preset of contemporaryPresets) {
+      const palette = OVERVIEW_THEME_PRESETS[preset];
+      expect(palette.row_height).toBe(48);
+      expect(palette.section_gap).toBe(6);
+      expect(palette.quick_action_size).toBe(32);
+      expect(palette.card_background).toMatch(/rgba\([^)]*,0\.(?:7|8)/);
+      expect(palette.border_radius).toBe(22);
     }
   });
 
@@ -181,13 +196,30 @@ describe("Overview professional design themes", () => {
     expect(editorSource).toContain("Terracotta · Coral");
     expect(editorSource).toContain("Golden · Amber");
     expect(editorSource).toContain("Rose · Berry");
+    expect(editorSource).toContain("Champagne Emerald");
+    expect(editorSource).toContain("Arctic Cobalt");
+    expect(editorSource).toContain("Sage Jade");
+    expect(editorSource).toContain("Violet Indigo");
+    expect(editorSource).toContain("Coral Teal");
+    expect(editorSource).toContain('this.l("עיצוב חדש", "New design"');
+    expect(editorSource).toContain('this.l("עיצוב ישן", "Old design"');
     expect(editorSource).toContain('class="theme-mode-switch"');
     expect(editorSource).toContain("--theme-entity:");
     expect(editorSource).toContain('<i></i><i></i><i></i><i></i>');
     expect(editorSource).toContain("this.applyThemeMode(mode)");
     expect(editorSource).toContain("this.applyThemePreset(preset)");
+    expect(editorSource).toContain('OVERVIEW_NEW_THEME_NAMES.includes(preset) ? { quick_actions_position: "opposite" as const }');
     expect(editorSource).toContain("for (const key of themeKeys) delete style[key]");
     expect(editorSource).toContain("Primary text color");
     expect(editorSource).toContain("Text on control pills");
+  });
+
+  it("activates the compact glass layout only for new themes and keeps status tags opposite by default", () => {
+    expect(cardSource).toContain("OVERVIEW_NEW_THEME_NAMES.includes(this.config.theme_preset)");
+    expect(cardSource).toContain('modernDesign ? "design-new" : "design-legacy"');
+    expect(css).toMatch(/\.root\.design-new \.area-summary-pill\s*\{[^}]*min-height:\s*var\(--aboc-row-height\)/s);
+    expect(css).toMatch(/\.root\.design-new \.area-summary-pill::after\s*\{[^}]*linear-gradient/s);
+    expect(css).toMatch(/\.root\.design-new \.area-summary-pill\.quick-actions-opposite \.area-statuses\s*\{[^}]*justify-content:\s*flex-end;[^}]*margin-inline-start:\s*auto/s);
+    expect(resolveOverviewConfig({ type, theme_preset: "champagne_emerald" }).quick_actions_position).toBe("opposite");
   });
 });

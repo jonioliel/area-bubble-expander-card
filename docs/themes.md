@@ -1,12 +1,12 @@
 # Overview design themes
 
-Area Bubble Overview ships with ten coordinated professional color families plus the original classic appearance. Every family has complete light and dark variants. A theme controls the card, inactive and active surfaces, device surfaces, controls, climate and temperature states, frames, presence indicators, typography colors, glass blur, radius, and shadows as one coherent palette.
+Area Bubble Overview ships with five compact contemporary themes under **New design** and keeps all eleven established appearances under **Old design**. Every family has complete light and dark variants. A theme controls the card, inactive and active surfaces, device surfaces, controls, climate and temperature states, frames, presence indicators, typography colors, glass blur, radius, and shadows as one coherent palette.
 
 Themes do not change discovery, device order, room hierarchy, actions, popup/expander behavior, visibility, or safety settings.
 
 ## Choose a theme
 
-In the visual editor, open **Appearance and language** and select a card under **Design theme**. The four preview swatches show the active-room surface, control surface, active-device surface, and accent family.
+In the visual editor, open **Appearance and language** and select a card under **Design theme**. New design is shown first; Old design contains the backwards-compatible presets. The four preview swatches show the active-room surface, control surface, active-device surface, and accent family.
 
 Every palette keeps the room/device hierarchy intentional: an active room uses a calmer coordinated gradient, while a powered entity uses a stronger solid accent. This separation applies to recommended, light, and dark modes, including the backwards-compatible Classic fallback.
 
@@ -16,14 +16,19 @@ YAML uses `theme_preset`:
 type: custom:area-bubble-overview-card
 id: main-floor
 floor: main_floor
-theme_preset: elegant
-theme_mode: dark
+theme_preset: champagne_emerald
+theme_mode: recommended
 ```
 
 Accepted values are:
 
 | Value | Display name | Character |
 | --- | --- | --- |
+| `champagne_emerald` | Champagne Emerald | Warm translucent glass, deep emerald controls, and a compact premium layout. |
+| `arctic_cobalt` | Arctic Cobalt | Cool white glass, precise cobalt accents, and a clean technical finish. |
+| `sage_jade` | Sage Jade | Natural neutral surfaces, quiet jade accents, and contemporary depth. |
+| `violet_indigo` | Violet Indigo | Refined lilac glass, elegant indigo controls, and soft contrast. |
+| `coral_teal` | Coral Teal | Restrained coral warmth balanced by teal state accents. |
 | `classic` | Classic | Original theme-aware appearance; remains the default for existing cards. |
 | `elegant` | Elegant Sapphire | Muted sapphire, cool metal, calm contrast, and a refined frosted surface. |
 | `light` | Luminous Sky | Clean white, soft sky blue, low visual weight, and an airy dashboard feel. |
@@ -36,7 +41,13 @@ Accepted values are:
 | `amber` | Golden Amber | Deep gold and warm mineral tones without visual glare. |
 | `rose` | Rose Berry | Sophisticated rose with a quiet violet secondary tone. |
 
-`theme_mode` accepts `recommended`, `light`, or `dark`. Recommended preserves the established appearance of the original presets, keeps Classic tied to Home Assistant theme variables, and uses the curated light composition for the six new color families. Selecting Light or Dark applies a complete explicit palette for the chosen family.
+`theme_mode` accepts `recommended`, `light`, or `dark`. Recommended uses the hand-tuned translucent composition for each New-design theme, preserves the established appearance of Old-design presets, and keeps Classic tied to Home Assistant variables. Selecting Light or Dark applies a complete explicit palette for the chosen family.
+
+## New compact layout
+
+The five New-design presets use 48px Area summaries, 32px visual quick-action pills with preserved 44px touch reach, smaller room icons, tighter vertical rhythm, subtle inner gloss, and low-opacity layered gradients. Status information stays at the logical edge opposite the room name by default in both LTR and RTL. Choosing a New-design preset in the visual editor resets `quick_actions_position` to `opposite`; the independent placement control remains available if a different layout is preferred.
+
+Old-design presets retain their previous dimensions and rendering. Existing YAML is not migrated or visually changed.
 
 ```yaml
 theme_preset: emerald

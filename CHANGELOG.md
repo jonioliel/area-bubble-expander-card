@@ -2,6 +2,14 @@
 
 All notable changes to Area Bubble Expander Card will be documented in this file.
 
+## 0.21.0 - 2026-08-21
+
+- Added five compact contemporary glass themes: Champagne Emerald, Arctic Cobalt, Sage Jade, Violet Indigo, and Coral Teal.
+- Split the visual theme picker into **New design** and **Old design**, preserving all eleven existing presets and their backwards-compatible rendering.
+- Added an isolated compact presentation for New-design presets with 48px Area summaries, smaller rounded status pills, tighter spacing, subtle gloss, translucent gradients, and preserved 44px quick-action reach.
+- Kept room status information at the logical edge opposite the room name in both RTL and LTR; selecting a New-design preset restores the `opposite` layout while leaving the placement control editable.
+- Added palette completeness, room/device separation, contrast, grouping, compatibility, glass-layout, and opposite-edge regression coverage; the complete suite now contains 348 passing tests.
+
 ## 0.20.9 - 2026-08-17
 
 - Changed A/C target-temperature and range controls to the same neutral gray surface as the HVAC and Fan selectors while the climate entity is `off`.

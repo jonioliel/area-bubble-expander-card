@@ -21,7 +21,12 @@ export type OverviewThemePreset =
   | "violet"
   | "coral"
   | "amber"
-  | "rose";
+  | "rose"
+  | "champagne_emerald"
+  | "arctic_cobalt"
+  | "sage_jade"
+  | "violet_indigo"
+  | "coral_teal";
 export type OverviewThemeMode = "recommended" | "light" | "dark";
 export type OverviewStateLanguage = "auto" | "he" | "en";
 export type OverviewTileShape = "rectangle" | "square";

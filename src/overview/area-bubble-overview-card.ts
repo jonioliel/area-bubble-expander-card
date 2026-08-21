@@ -25,6 +25,7 @@ import {
   OVERVIEW_CARD_TAG,
   OVERVIEW_CARD_TYPE,
   OVERVIEW_EDITOR_TAG,
+  OVERVIEW_NEW_THEME_NAMES,
   OVERVIEW_STORAGE_PREFIX,
   WATER_HEATER_FEATURES,
 } from "./constants";
@@ -190,11 +191,12 @@ export class AreaBubbleOverviewCard extends LitElement {
     this.applyStyleVariables();
 
     const discovery = discoverOverview(this.hass, this.config);
+    const modernDesign = OVERVIEW_NEW_THEME_NAMES.includes(this.config.theme_preset);
     const floorContentId = `overview-floor-${this.storageId.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
     const floorCanCollapse = discovery.targetKind === "floor" && this.config.show_header && this.config.show_floor_header;
     return html`
       <ha-card>
-        <div class="root">
+        <div class="root ${modernDesign ? "design-new" : "design-legacy"}">
           ${this.renderOverallHeader(discovery, floorContentId)}
           ${discovery.targetKind === "none"
             ? this.renderEmpty(overviewText(this.hass, this.config, "choose_target"), "mdi:map-marker-plus-outline")

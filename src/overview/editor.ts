@@ -2,7 +2,7 @@ import { LitElement, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type { HassAreaRegistryEntry, HassEntity, HomeAssistant } from "../types";
 import { resolveOverviewConfig } from "./config";
-import { AUTO_FAN_GROUP, AUTO_FLOOR_HEATING_GROUP, OVERVIEW_CARD_TYPE, OVERVIEW_DEFAULT_STYLE, OVERVIEW_EDITOR_TAG, OVERVIEW_QUICK_ACTIONS, OVERVIEW_SECTIONS, OVERVIEW_THEME_NAMES, OVERVIEW_THEME_PRESETS, overviewThemePalette, QUICK_ACTION_ICONS, SECTION_ACTION_ICONS, SECTION_ICONS } from "./constants";
+import { AUTO_FAN_GROUP, AUTO_FLOOR_HEATING_GROUP, OVERVIEW_CARD_TYPE, OVERVIEW_DEFAULT_STYLE, OVERVIEW_EDITOR_TAG, OVERVIEW_LEGACY_THEME_NAMES, OVERVIEW_NEW_THEME_NAMES, OVERVIEW_QUICK_ACTIONS, OVERVIEW_SECTIONS, OVERVIEW_THEME_NAMES, OVERVIEW_THEME_PRESETS, overviewThemePalette, QUICK_ACTION_ICONS, SECTION_ACTION_ICONS, SECTION_ICONS } from "./constants";
 import { discoverOverview, isOverviewEntityAvailable, isOverviewEntityPowered, overviewEntityAreaId } from "./discovery";
 import { overviewLanguage } from "./translations";
 import type {
@@ -84,6 +84,10 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
     .state-preview-item.on { color: #111827; }
     .state-preview-item.off { color: #f4f3ec; }
     .state-preview-item::before { content: ""; width: 28px; height: 28px; border-radius: 50%; background: color-mix(in srgb, var(--primary-text-color) 12%, transparent); }
+    .theme-category { display: grid; gap: 8px; }
+    .theme-category + .theme-category { margin-top: 6px; padding-top: 12px; border-top: 1px solid color-mix(in srgb, var(--divider-color) 65%, transparent); }
+    .theme-category-title { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px; font-weight: 760; }
+    .theme-category-title span { color: var(--secondary-text-color); font-size: 11px; font-weight: 500; }
     .theme-preset-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
     .theme-preset {
       display: grid;
@@ -941,6 +945,48 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
   }
 
   private renderAppearance(resolved: ResolvedOverviewConfig, language: "he" | "en") {
+    const newThemeOptions: Array<[OverviewThemePreset, string, string]> = [
+      ["champagne_emerald", this.l("שמפניה ואזמרגד", "Champagne Emerald", language), this.l("זכוכית חמה, ירוק עמוק ושורות קומפקטיות", "Warm glass, deep emerald, compact rows", language)],
+      ["arctic_cobalt", this.l("ארקטי וקובלט", "Arctic Cobalt", language), this.l("לבן קריר, כחול מדויק ומראה טכנולוגי נקי", "Cool white, precise cobalt, clean technical finish", language)],
+      ["sage_jade", this.l("מרווה וג׳ייד", "Sage Jade", language), this.l("ניטרלי טבעי, ירוק שקט ועומק עכשווי", "Natural neutral, quiet jade, contemporary depth", language)],
+      ["violet_indigo", this.l("סגול ואינדיגו", "Violet Indigo", language), this.l("לילך מעודן, אינדיגו אלגנטי וניגוד רך", "Refined lilac, elegant indigo, soft contrast", language)],
+      ["coral_teal", this.l("קורל וטורקיז", "Coral Teal", language), this.l("חמימות קורל, איזון טורקיז וגימור זכוכית", "Coral warmth, teal balance, glass finish", language)],
+    ];
+    const legacyThemeDetails: Record<string, [string, string]> = {
+      classic: [this.l("קלאסי", "Classic", language), this.l("המראה המקורי, משתלב עם ערכת Home Assistant", "Original look that follows the Home Assistant theme", language)],
+      elegant: [this.l("אלגנטי · ספיר", "Elegant · Sapphire", language), this.l("כחול מעושן, מתכת עדינה וניגודיות רגועה", "Muted blue, subtle metallic depth, calm contrast", language)],
+      light: [this.l("מואר · שמיים", "Luminous · Sky", language), this.l("לבן נקי, תכלת רך ותחושה אוורירית", "Clean white, soft sky blue, airy finish", language)],
+      dark: [this.l("כהה · חצות", "Dark · Midnight", language), this.l("גרפיט עמוק, טורקיז מרוסן וקריאות גבוהה", "Deep graphite, restrained teal, high readability", language)],
+      modern: [this.l("עכשווי · מרווה", "Modern · Sage", language), this.l("גוונים טבעיים, חמים ומינימליסטיים", "Natural, warm, minimalist tones", language)],
+      ocean: [this.l("אוקיינוס · אזור", "Ocean · Azure", language), this.l("כחול חי, טורקיז נקי ועומק ימי", "Vivid blue, clean turquoise, ocean depth", language)],
+      emerald: [this.l("בוטני · אמרלד", "Botanical · Emerald", language), this.l("ירוק עשיר, איזון טבעי וניגוד רגוע", "Rich green, natural balance, calm contrast", language)],
+      violet: [this.l("אטלייה · אמטיסט", "Atelier · Amethyst", language), this.l("סגול מעודן, עומק יצירתי וגימור אלגנטי", "Refined violet, creative depth, elegant finish", language)],
+      coral: [this.l("טרקוטה · קורל", "Terracotta · Coral", language), this.l("כתום רך, חמימות מרוסנת ואופי מודרני", "Soft coral, restrained warmth, modern character", language)],
+      amber: [this.l("זהוב · ענבר", "Golden · Amber", language), this.l("זהב עמוק, חום מדויק ונוכחות מתונה", "Deep gold, precise warmth, understated presence", language)],
+      rose: [this.l("רוזה · פרי יער", "Rose · Berry", language), this.l("רוזה עשיר, סגול עדין ואלגנטיות רכה", "Rich rose, subtle violet, soft sophistication", language)],
+    };
+    const legacyThemeOptions = OVERVIEW_LEGACY_THEME_NAMES.map((preset) => [preset, ...legacyThemeDetails[preset]] as [OverviewThemePreset, string, string]);
+    const renderThemeGroup = (
+      themes: Array<[OverviewThemePreset, string, string]>,
+      title: string,
+      description: string,
+      group: "new" | "legacy",
+    ) => html`<section class="theme-category theme-category-${group}">
+      <div class="theme-category-title">${title}<span>${description}</span></div>
+      <div class="theme-preset-grid" role="radiogroup" aria-label=${title}>
+        ${themes.map(([preset, themeTitle, themeDescription]) => {
+          const palette = { ...OVERVIEW_DEFAULT_STYLE, ...overviewThemePalette(preset, resolved.theme_mode) };
+          return html`<button
+            class="theme-preset ${resolved.theme_preset === preset ? "selected" : ""}"
+            type="button"
+            role="radio"
+            aria-checked=${resolved.theme_preset === preset}
+            style=${`--theme-card:${palette.card_background};--theme-active:${palette.active_surface};--theme-control:${palette.control_surface};--theme-entity:${palette.entity_active_surface};--theme-accent:${palette.accent_color};--theme-frame:${palette.area_frame_color || "var(--divider-color)"}`}
+            @click=${() => this.applyThemePreset(preset)}
+          ><span class="theme-preset-preview"><span class="theme-preset-swatches"><i></i><i></i><i></i><i></i></span></span><span class="theme-preset-copy"><strong>${themeTitle}</strong><span>${themeDescription}</span></span></button>`;
+        })}
+      </div>
+    </section>`;
     return html`
       <details>
         ${this.summary("mdi:palette-outline", this.l("מראה ושפה", "Appearance and language", language), this.l("צבעים, מרווחים ו-RTL", "Colors, spacing, and RTL", language))}
@@ -959,31 +1005,8 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
                 ? this.l("בהיר", "Light", language)
                 : this.l("כהה", "Dark", language)}</button>`)}
           </div>
-          <div class="theme-preset-grid" role="radiogroup" aria-label=${this.l("בחירת ערכת עיצוב", "Choose design theme", language)}>
-            ${([
-              ["classic", this.l("קלאסי", "Classic", language), this.l("המראה המקורי, משתלב עם ערכת Home Assistant", "Original look that follows the Home Assistant theme", language)],
-              ["elegant", this.l("אלגנטי · ספיר", "Elegant · Sapphire", language), this.l("כחול מעושן, מתכת עדינה וניגודיות רגועה", "Muted blue, subtle metallic depth, calm contrast", language)],
-              ["light", this.l("מואר · שמיים", "Luminous · Sky", language), this.l("לבן נקי, תכלת רך ותחושה אוורירית", "Clean white, soft sky blue, airy finish", language)],
-              ["dark", this.l("כהה · חצות", "Dark · Midnight", language), this.l("גרפיט עמוק, טורקיז מרוסן וקריאות גבוהה", "Deep graphite, restrained teal, high readability", language)],
-              ["modern", this.l("עכשווי · מרווה", "Modern · Sage", language), this.l("גוונים טבעיים, חמים ומינימליסטיים", "Natural, warm, minimalist tones", language)],
-              ["ocean", this.l("אוקיינוס · אזור", "Ocean · Azure", language), this.l("כחול חי, טורקיז נקי ועומק ימי", "Vivid blue, clean turquoise, ocean depth", language)],
-              ["emerald", this.l("בוטני · אמרלד", "Botanical · Emerald", language), this.l("ירוק עשיר, איזון טבעי וניגוד רגוע", "Rich green, natural balance, calm contrast", language)],
-              ["violet", this.l("אטלייה · אמטיסט", "Atelier · Amethyst", language), this.l("סגול מעודן, עומק יצירתי וגימור אלגנטי", "Refined violet, creative depth, elegant finish", language)],
-              ["coral", this.l("טרקוטה · קורל", "Terracotta · Coral", language), this.l("כתום רך, חמימות מרוסנת ואופי מודרני", "Soft coral, restrained warmth, modern character", language)],
-              ["amber", this.l("זהוב · ענבר", "Golden · Amber", language), this.l("זהב עמוק, חום מדויק ונוכחות מתונה", "Deep gold, precise warmth, understated presence", language)],
-              ["rose", this.l("רוזה · פרי יער", "Rose · Berry", language), this.l("רוזה עשיר, סגול עדין ואלגנטיות רכה", "Rich rose, subtle violet, soft sophistication", language)],
-            ] as Array<[OverviewThemePreset, string, string]>).map(([preset, title, description]) => {
-              const palette = { ...OVERVIEW_DEFAULT_STYLE, ...overviewThemePalette(preset, resolved.theme_mode) };
-              return html`<button
-                class="theme-preset ${resolved.theme_preset === preset ? "selected" : ""}"
-                type="button"
-                role="radio"
-                aria-checked=${resolved.theme_preset === preset}
-                style=${`--theme-card:${palette.card_background};--theme-active:${palette.active_surface};--theme-control:${palette.control_surface};--theme-entity:${palette.entity_active_surface};--theme-accent:${palette.accent_color};--theme-frame:${palette.area_frame_color || "var(--divider-color)"}`}
-                @click=${() => this.applyThemePreset(preset)}
-              ><span class="theme-preset-preview"><span class="theme-preset-swatches"><i></i><i></i><i></i><i></i></span></span><span class="theme-preset-copy"><strong>${title}</strong><span>${description}</span></span></button>`;
-            })}
-          </div>
+          ${renderThemeGroup(newThemeOptions, this.l("עיצוב חדש", "New design", language), this.l("קומפקטי · זכוכית · עכשווי", "Compact · glass · contemporary", language), "new")}
+          ${renderThemeGroup(legacyThemeOptions, this.l("עיצוב ישן", "Old design", language), this.l("הערכות הקיימות והתואמות לאחור", "Existing backwards-compatible themes", language), "legacy")}
           <div class="hint">${this.l("בחירת ערכה מחליפה את צבעי הערכה בלבד. לאחר מכן ניתן להתאים כל צבע ידנית.", "Choosing a theme replaces theme colors only; every color can still be fine-tuned below.", language)}</div>
           <div class="inline-fields">
             <div class="field"><label>${this.l("מיקום פעולות מהירות בחדר", "Room quick-actions position", language)}</label><select .value=${resolved.quick_actions_position} @change=${(event: Event) => this.commitKey("quick_actions_position", (event.target as HTMLSelectElement).value)}><option value="opposite">${this.l("בצד הנגדי לשם", "Opposite the room name", language)}</option><option value="near_name">${this.l("צמוד לשם החדר", "Next to the room name", language)}</option></select></div>
@@ -1497,6 +1520,7 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
     this.commit({
       ...this.config,
       theme_preset: preset,
+      ...(OVERVIEW_NEW_THEME_NAMES.includes(preset) ? { quick_actions_position: "opposite" as const } : {}),
       style: (Object.keys(style).length ? style : undefined) as OverviewStyleConfig | undefined,
     });
   }

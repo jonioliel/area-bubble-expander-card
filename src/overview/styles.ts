@@ -2552,6 +2552,175 @@ export const overviewCardStyles = css`
     }
   }
 
+  /* Contemporary presets keep the full control model while reducing visual
+     weight. The legacy presets intentionally retain the original dimensions. */
+  .root.design-new {
+    padding: 8px;
+  }
+
+  .root.design-new .floor-summary-pill {
+    gap: 4px;
+    padding: 3px;
+    border-width: 1px;
+    box-shadow: 0 8px 22px color-mix(in srgb, var(--aboc-control-surface) 10%, transparent);
+  }
+
+  .root.design-new .floor-toggle {
+    grid-template-columns: 38px minmax(0, 1fr) 38px;
+    gap: 7px;
+    min-height: 48px;
+  }
+
+  .root.design-new .floor-toggle.without-floor-expand-button {
+    grid-template-columns: 38px minmax(0, 1fr);
+  }
+
+  .root.design-new .floor-toggle .icon-bubble.small,
+  .root.design-new .floor-chevron {
+    width: 38px;
+    height: 38px;
+  }
+
+  .root.design-new .floor-toggle .icon-bubble ha-icon,
+  .root.design-new .floor-chevron ha-icon {
+    --mdc-icon-size: 21px;
+  }
+
+  .root.design-new .floor-title {
+    font-size: 16px;
+  }
+
+  .root.design-new .floor-active-badge,
+  .root.design-new .floor-climate-badge {
+    min-width: 38px;
+    height: 38px;
+    padding-inline: 7px;
+  }
+
+  .root.design-new .area-summary {
+    gap: 4px;
+  }
+
+  .root.design-new .area-summary-pill {
+    position: relative;
+    isolation: isolate;
+    min-height: var(--aboc-row-height);
+    gap: 4px;
+    padding-block: 2px;
+    padding-inline: 3px 5px;
+    box-shadow:
+      0 8px 20px color-mix(in srgb, var(--aboc-control-surface) 9%, transparent),
+      inset 0 1px 0 rgba(255, 255, 255, 0.58);
+  }
+
+  .root.design-new .area-summary-pill::after {
+    content: "";
+    position: absolute;
+    z-index: 0;
+    inset: 1px 3px auto;
+    height: 45%;
+    border-radius: inherit;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.24), transparent);
+    pointer-events: none;
+  }
+
+  .root.design-new .area-summary-pill > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .root.design-new .area-toggle {
+    min-width: 82px;
+    min-height: 42px;
+    flex-basis: 118px;
+    gap: 6px;
+  }
+
+  .root.design-new .area-summary-pill.has-statuses .area-toggle,
+  .root.design-new .area-summary-pill.has-statuses.compact-statuses .area-toggle {
+    min-width: 82px;
+    max-width: min(43%, 160px);
+  }
+
+  .root.design-new .area-summary-pill .area-icon,
+  .root.design-new .area-summary-pill.compact-statuses .area-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .root.design-new .area-summary-pill .area-icon ha-icon {
+    --mdc-icon-size: 20px;
+  }
+
+  .root.design-new .area-statuses,
+  .root.design-new .quick-actions,
+  .root.design-new .area-summary-pill.compact-statuses .area-statuses,
+  .root.design-new .area-summary-pill.compact-statuses .quick-actions {
+    gap: 3px;
+  }
+
+  .root.design-new .area-summary-pill.quick-actions-opposite .area-statuses {
+    justify-content: flex-end;
+    margin-inline-start: auto;
+  }
+
+  .root.design-new .area-summary-pill.quick-actions-near_name .area-statuses {
+    justify-content: flex-start;
+    margin-inline-start: 0;
+  }
+
+  .root.design-new .area-summary-pill .occupancy,
+  .root.design-new .area-summary-pill.compact-statuses .occupancy {
+    min-width: 34px;
+    width: auto;
+    height: 32px;
+    min-height: 32px;
+    padding-inline: 5px;
+    gap: 2px;
+  }
+
+  .root.design-new .area-summary-pill .occupancy ha-icon {
+    --mdc-icon-size: 17px;
+  }
+
+  .root.design-new .area-summary-pill .occupancy-count {
+    font-size: 11px;
+  }
+
+  .root.design-new .area-temperature,
+  .root.design-new .area-summary-pill.compact-statuses .area-temperature {
+    padding: 7px 9px;
+    font-size: 13px;
+  }
+
+  .root.design-new .temperature-status-tag,
+  .root.design-new .area-summary-pill.compact-statuses .temperature-status-tag {
+    width: 22px;
+    height: 22px;
+  }
+
+  .root.design-new .temperature-status-tag ha-icon,
+  .root.design-new .area-summary-pill.compact-statuses .temperature-status-tag ha-icon {
+    --mdc-icon-size: 13px;
+  }
+
+  .root.design-new .area-name {
+    font-size: var(--aboc-area-name-size);
+    letter-spacing: -0.01em;
+  }
+
+  @container overview-card (max-width: 340px) {
+    .root.design-new .area-summary-pill.has-statuses .area-toggle,
+    .root.design-new .area-summary-pill.has-statuses.compact-statuses .area-toggle {
+      min-width: 76px;
+      max-width: min(46%, 148px);
+    }
+
+    .root.design-new .area-name {
+      font-size: min(var(--aboc-area-name-size), 13px);
+    }
+  }
+
   @media (max-width: 480px) {
     .quick-action-dialog {
       width: calc(100vw - 12px);

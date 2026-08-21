@@ -66,18 +66,18 @@ After replacing the resource, refresh the Home Assistant frontend cache.
 
 ### Professional design themes
 
-Overview includes ten coordinated professional themes in addition to the backwards-compatible `classic` appearance. Every family includes a polished light and dark variant, plus a recommended mode that preserves the established look. Choose both controls under **Appearance and language → Design theme**, or set them in YAML:
+Overview now separates its themes into **New design** and **Old design** in the visual editor. The five New-design themes use compact single-line Area summaries, translucent glass gradients, restrained gloss, smaller rounded status pills, and a clear room/device state hierarchy. All eleven established themes remain unchanged in Old design for complete backwards compatibility. Every family still includes light and dark modes.
 
 ```yaml
 type: custom:area-bubble-overview-card
 floor: upper_floor
-theme_preset: elegant
-theme_mode: dark
+theme_preset: champagne_emerald
+theme_mode: recommended
 ```
 
 Manual `style.*` values remain available after choosing a theme and override only the values you customize. Every palette deliberately uses a calmer active-room gradient and a stronger active-device surface, so a powered device remains visually distinct from the room that contains it in both light and dark modes.
 
-The extended gallery adds Ocean Azure, Botanical Emerald, Atelier Amethyst, Terracotta Coral, Golden Amber, and Rose Berry. Their gradients use nearby tones and semantic temperature colors so the result stays lively without becoming decorative or noisy.
+The New-design collection includes Champagne Emerald, Arctic Cobalt, Sage Jade, Violet Indigo, and Coral Teal. Selecting one in the editor also restores `quick_actions_position: opposite`, keeping room information and quick controls at the logical edge opposite the room name; the placement can still be changed manually afterward.
 
 | Elegant Sapphire | Luminous Sky |
 | --- | --- |
@@ -611,7 +611,7 @@ style:
 | `title` | none | Optional overall title; Floor mode still shows the Floor name by default. |
 | `target_icon` | registry/fallback icon | Overrides the top-level Area or Floor icon. |
 | `language` / `rtl` | `auto` | `he`, `en`; RTL may be `auto`, `true`, or `false`. |
-| `theme_preset` | `classic` | `classic`, `elegant`, `light`, `dark`, `modern`, `ocean`, `emerald`, `violet`, `coral`, `amber`, or `rose`. The preset is a base; explicit `style.*` values override it. |
+| `theme_preset` | `classic` | New design: `champagne_emerald`, `arctic_cobalt`, `sage_jade`, `violet_indigo`, `coral_teal`. Old design: `classic`, `elegant`, `light`, `dark`, `modern`, `ocean`, `emerald`, `violet`, `coral`, `amber`, `rose`. Explicit `style.*` values override the preset. |
 | `theme_mode` | `recommended` | `recommended`, `light`, or `dark`. Every family supplies both explicit brightness variants. |
 | `show_temperature` | `true` | Shows the preferred/automatic current temperature. |
 | `hide_temperature_when_climate_off` | `false` | When enabled, hides a room temperature while every available, activity-participating room A/C is off. Sensor-only rooms remain visible. |

@@ -160,9 +160,14 @@ const THEME_FAMILIES: Record<OverviewThemePreset, ThemeFamilySpec> = {
   coral: { accent: "#df705b", deep: "#9f493d", secondary: "#a85d75" },
   amber: { accent: "#d69b27", deep: "#8f620e", secondary: "#a36e48" },
   rose: { accent: "#d65f89", deep: "#963c61", secondary: "#9365a9" },
+  champagne_emerald: { accent: "#3d806d", deep: "#173d35", secondary: "#b58b4e" },
+  arctic_cobalt: { accent: "#3f79c9", deep: "#183f75", secondary: "#4a91aa" },
+  sage_jade: { accent: "#4d876f", deep: "#244c3d", secondary: "#78906b" },
+  violet_indigo: { accent: "#765fc5", deep: "#3f3479", secondary: "#9b6c9e" },
+  coral_teal: { accent: "#cf6e63", deep: "#723d3a", secondary: "#348b88" },
 };
 
-export const OVERVIEW_THEME_NAMES: OverviewThemePreset[] = [
+export const OVERVIEW_LEGACY_THEME_NAMES: OverviewThemePreset[] = [
   "classic",
   "elegant",
   "light",
@@ -175,6 +180,45 @@ export const OVERVIEW_THEME_NAMES: OverviewThemePreset[] = [
   "amber",
   "rose",
 ];
+
+export const OVERVIEW_NEW_THEME_NAMES: OverviewThemePreset[] = [
+  "champagne_emerald",
+  "arctic_cobalt",
+  "sage_jade",
+  "violet_indigo",
+  "coral_teal",
+];
+
+export const OVERVIEW_THEME_NAMES: OverviewThemePreset[] = [
+  ...OVERVIEW_LEGACY_THEME_NAMES,
+  ...OVERVIEW_NEW_THEME_NAMES,
+];
+
+const COMPACT_THEME_LAYOUT: Partial<OverviewStyleConfig> = {
+  border_radius: 22,
+  blur: 22,
+  section_gap: 6,
+  category_gap: 9,
+  row_height: 48,
+  area_name_size: 15,
+  quick_action_size: 32,
+  quick_action_icon_size: 17,
+  area_frame_width: 1,
+  entity_frame_width: 1,
+  show_shadows: true,
+  shadow_intensity: 0.11,
+};
+
+const compactThemeVariant = (
+  family: ThemeFamilySpec,
+  mode: Exclude<OverviewThemeMode, "recommended">,
+): Partial<OverviewStyleConfig> => ({
+  ...themePalette(family, mode),
+  entity_active_surface: mode === "dark"
+    ? mixHex(family.accent, "#060d18", 0.72)
+    : mixHex(family.accent, "#ffffff", 0.58),
+  ...COMPACT_THEME_LAYOUT,
+});
 
 export const OVERVIEW_THEME_PRESETS: Record<OverviewThemePreset, Partial<OverviewStyleConfig>> = {
   classic: {},
@@ -304,6 +348,116 @@ export const OVERVIEW_THEME_PRESETS: Record<OverviewThemePreset, Partial<Overvie
   coral: themePalette(THEME_FAMILIES.coral, "light"),
   amber: themePalette(THEME_FAMILIES.amber, "light"),
   rose: themePalette(THEME_FAMILIES.rose, "light"),
+  champagne_emerald: {
+    ...compactThemeVariant(THEME_FAMILIES.champagne_emerald, "light"),
+    card_background: "linear-gradient(145deg, rgba(255,255,252,0.82) 0%, rgba(247,242,231,0.76) 56%, rgba(232,240,234,0.72) 100%)",
+    row_background: "rgba(252,250,245,0.82)",
+    active_surface: "linear-gradient(125deg, #edf4ee 0%, #dceadf 100%)",
+    entity_active_surface: "#8fc9b0",
+    area_frame_color: "#607f71",
+    accent_color: "#3d806d",
+    control_surface: "#173d35",
+    climate_surface: "linear-gradient(125deg, #c9e5df 0%, #acd5cb 100%)",
+    climate_color: "#397d80",
+    cover_color: "#4a8580",
+    media_color: "#8a6a91",
+    temperature_off_surface: "linear-gradient(125deg, #e7e9e5 0%, #d8ded9 100%)",
+    temperature_cool_surface: "linear-gradient(125deg, #4e91ad 0%, #6cadc3 100%)",
+    temperature_heat_surface: "linear-gradient(125deg, #bb654f 0%, #d6876e 100%)",
+    temperature_active_surface: "linear-gradient(125deg, #4e796f 0%, #6c988c 100%)",
+    primary_text_color: "#142720",
+    secondary_text_color: "#5b6962",
+    active_text_color: "#142720",
+    control_text_color: "#f8fbf9",
+  },
+  arctic_cobalt: {
+    ...compactThemeVariant(THEME_FAMILIES.arctic_cobalt, "light"),
+    card_background: "linear-gradient(145deg, rgba(252,254,255,0.84) 0%, rgba(239,246,252,0.78) 58%, rgba(224,236,248,0.72) 100%)",
+    row_background: "rgba(247,251,255,0.84)",
+    active_surface: "linear-gradient(125deg, #e7f1fa 0%, #d4e5f5 100%)",
+    entity_active_surface: "#91bce2",
+    area_frame_color: "#55789f",
+    accent_color: "#3f79c9",
+    control_surface: "#183f75",
+    climate_surface: "linear-gradient(125deg, #c8e1fa 0%, #a9d0f2 100%)",
+    climate_color: "#347dc1",
+    cover_color: "#398a9b",
+    media_color: "#6d68a7",
+    temperature_off_surface: "linear-gradient(125deg, #e5eaf0 0%, #d5dde6 100%)",
+    temperature_cool_surface: "linear-gradient(125deg, #397fbe 0%, #5b9fd5 100%)",
+    temperature_heat_surface: "linear-gradient(125deg, #bb604b 0%, #da8265 100%)",
+    temperature_active_surface: "linear-gradient(125deg, #5e6fb1 0%, #7d8dc9 100%)",
+    primary_text_color: "#102640",
+    secondary_text_color: "#52677e",
+    active_text_color: "#102640",
+    control_text_color: "#f8fbff",
+  },
+  sage_jade: {
+    ...compactThemeVariant(THEME_FAMILIES.sage_jade, "light"),
+    card_background: "linear-gradient(145deg, rgba(253,253,248,0.84) 0%, rgba(240,244,236,0.78) 56%, rgba(226,236,228,0.72) 100%)",
+    row_background: "rgba(248,249,243,0.84)",
+    active_surface: "linear-gradient(125deg, #eef3e9 0%, #dce8dd 100%)",
+    entity_active_surface: "#9fcdb5",
+    area_frame_color: "#667f70",
+    accent_color: "#4d876f",
+    control_surface: "#244c3d",
+    climate_surface: "linear-gradient(125deg, #cce5db 0%, #b2d5c7 100%)",
+    climate_color: "#4c8482",
+    cover_color: "#548b86",
+    media_color: "#7d728e",
+    temperature_off_surface: "linear-gradient(125deg, #e8ebe5 0%, #d9dfd8 100%)",
+    temperature_cool_surface: "linear-gradient(125deg, #4e899c 0%, #6ca8b4 100%)",
+    temperature_heat_surface: "linear-gradient(125deg, #ae644e 0%, #cc8268 100%)",
+    temperature_active_surface: "linear-gradient(125deg, #5f806e 0%, #7b9d89 100%)",
+    primary_text_color: "#1b2e25",
+    secondary_text_color: "#5d6d63",
+    active_text_color: "#1b2e25",
+    control_text_color: "#f8fbf9",
+  },
+  violet_indigo: {
+    ...compactThemeVariant(THEME_FAMILIES.violet_indigo, "light"),
+    card_background: "linear-gradient(145deg, rgba(254,252,255,0.84) 0%, rgba(244,240,250,0.78) 56%, rgba(232,228,245,0.72) 100%)",
+    row_background: "rgba(250,248,253,0.84)",
+    active_surface: "linear-gradient(125deg, #f1eef9 0%, #e3def2 100%)",
+    entity_active_surface: "#b8a9e2",
+    area_frame_color: "#6f6498",
+    accent_color: "#765fc5",
+    control_surface: "#3f3479",
+    climate_surface: "linear-gradient(125deg, #d8d0f1 0%, #c1b5e6 100%)",
+    climate_color: "#6571b9",
+    cover_color: "#5c8e9a",
+    media_color: "#8e5d99",
+    temperature_off_surface: "linear-gradient(125deg, #e9e7ed 0%, #dcd8e4 100%)",
+    temperature_cool_surface: "linear-gradient(125deg, #557db7 0%, #7499cb 100%)",
+    temperature_heat_surface: "linear-gradient(125deg, #b45f55 0%, #d07e70 100%)",
+    temperature_active_surface: "linear-gradient(125deg, #725fa8 0%, #9281c0 100%)",
+    primary_text_color: "#251e43",
+    secondary_text_color: "#625b75",
+    active_text_color: "#251e43",
+    control_text_color: "#fbf9ff",
+  },
+  coral_teal: {
+    ...compactThemeVariant(THEME_FAMILIES.coral_teal, "light"),
+    card_background: "linear-gradient(145deg, rgba(255,253,251,0.84) 0%, rgba(253,241,237,0.78) 56%, rgba(235,245,243,0.72) 100%)",
+    row_background: "rgba(253,249,247,0.84)",
+    active_surface: "linear-gradient(125deg, #fff0eb 0%, #f8ded6 100%)",
+    entity_active_surface: "#efad9f",
+    area_frame_color: "#957069",
+    accent_color: "#cf6e63",
+    control_surface: "#254f4e",
+    climate_surface: "linear-gradient(125deg, #cae7e3 0%, #a9d7d2 100%)",
+    climate_color: "#348b88",
+    cover_color: "#3f9291",
+    media_color: "#916178",
+    temperature_off_surface: "linear-gradient(125deg, #ece8e6 0%, #dfd9d6 100%)",
+    temperature_cool_surface: "linear-gradient(125deg, #438c9d 0%, #64aab5 100%)",
+    temperature_heat_surface: "linear-gradient(125deg, #c96859 0%, #e28975 100%)",
+    temperature_active_surface: "linear-gradient(125deg, #4f8582 0%, #6fa29d 100%)",
+    primary_text_color: "#3a211d",
+    secondary_text_color: "#735f5a",
+    active_text_color: "#3a211d",
+    control_text_color: "#fbfafa",
+  },
 };
 
 export const OVERVIEW_THEME_VARIANTS: Record<
@@ -311,8 +465,12 @@ export const OVERVIEW_THEME_VARIANTS: Record<
   Record<Exclude<OverviewThemeMode, "recommended">, Partial<OverviewStyleConfig>>
 > = Object.fromEntries(
   OVERVIEW_THEME_NAMES.map((preset) => [preset, {
-    light: themePalette(THEME_FAMILIES[preset], "light"),
-    dark: themePalette(THEME_FAMILIES[preset], "dark"),
+    light: OVERVIEW_NEW_THEME_NAMES.includes(preset)
+      ? compactThemeVariant(THEME_FAMILIES[preset], "light")
+      : themePalette(THEME_FAMILIES[preset], "light"),
+    dark: OVERVIEW_NEW_THEME_NAMES.includes(preset)
+      ? compactThemeVariant(THEME_FAMILIES[preset], "dark")
+      : themePalette(THEME_FAMILIES[preset], "dark"),
   }]),
 ) as Record<OverviewThemePreset, Record<"light" | "dark", Partial<OverviewStyleConfig>>>;
 
