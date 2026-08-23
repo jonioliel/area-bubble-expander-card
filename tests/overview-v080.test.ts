@@ -170,7 +170,7 @@ describe("Overview 0.8 rendering contracts", () => {
   it("makes the floor header active and opens room-level bulk controls", () => {
     expect(source).toContain('class="overview-heading floor-heading ${activeAreas.length ? "has-active" : "all-off"}"');
     expect(source).toContain('class="floor-active-badge"');
-    expect(source).toContain("this.openFloorPopup(event)");
+    expect(source).toContain("this.openFloorPopup(event, group.id)");
     expect(source).toContain('class="floor-all-off"');
     expect(source).toContain('class="floor-room-off"');
     expect(source).toContain("area.allEntities.some(countsTowardAreaActivity)");

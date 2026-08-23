@@ -5,14 +5,14 @@ A HACS-ready bundle of two Home Assistant Lovelace cards with automatic Area dis
 | Card | Type | Purpose |
 | --- | --- | --- |
 | **What's on now** | `custom:area-bubble-expander-card` | Shows only active devices, grouped by Area, with protected turn-off actions. |
-| **Area overview** | `custom:area-bubble-overview-card` | Shows a complete Area or Floor: temperature, occupancy, climate, floor heating, covers, lights/switches, and music. |
+| **Area overview** | `custom:area-bubble-overview-card` | Combines one or more Areas and Floors: temperature, occupancy, climate, floor heating, covers, lights/switches, and music. |
 
 Both cards are delivered by the same JavaScript resource. Install it once, then add either card—or both—to any dashboard.
 
 ## Highlights
 
 - Automatic Entity → Device → Area → Floor discovery from Home Assistant registries
-- One-room or whole-floor Overview with a collapsible Floor and independently expandable Areas
+- Multi-Floor and multi-Area Overview with independently collapsible Floors and expandable Areas
 - Temperature priority: configured source, HA Area source, median temperature sensors, then climate devices
 - Numeric occupancy from a count entity, with active presence-sensor count as a fallback
 - Active-only quick-action popups on collapsed Areas with live status, individual controls, and safe all-on/all-off actions
@@ -98,14 +98,27 @@ rtl: auto
 theme_preset: modern
 ```
 
-### A complete Floor
+### Multiple Floors and Areas
 
 ```yaml
 type: custom:area-bubble-overview-card
-id: upper-floor-overview
-floor: upper_floor
+id: home-overview
+floors:
+  - basement
+  - ground_floor
+  - upper_floor
+areas:
+  - garden
+  - detached_office
+floor_order:
+  - ground_floor
+  - upper_floor
+  - basement
+area_order:
+  - detached_office
+  - garden
 target_icon: mdi:home-floor-1
-title: קומה עליונה
+title: סקירת הבית
 language: he
 rtl: true
 floor_default_expanded: true
@@ -113,13 +126,11 @@ remember_expanded_state: true
 show_floor_expand_button: false
 show_area_expand_button: false
 area_open_mode: popup
-area_order:
-  - kids_room
-  - library
-  - parents_room
 ```
 
-Choose exactly one of `area` or `floor`. The visual editor exposes Home Assistant's real names while storing stable IDs.
+The visual editor supports multi-selection for both Floors and individual Areas, including a mixed card. It stores stable IDs and provides independent reorder controls. Unless `floor_order` is set, selected Floors follow Home Assistant's numeric Floor `level` from lowest to highest; Floors without a level follow the numbered Floors. `area_order` controls explicitly selected Areas and remains the ordering source for Areas inside a Floor. An Area selected both directly and through a selected Floor is rendered only once.
+
+Legacy single-target `area:` and `floor:` configurations remain fully supported. Use `areas:` and `floors:` for new multi-target cards.
 
 ### Floor collapse and entity interactions
 
@@ -607,7 +618,9 @@ style:
 | Key | Default | Notes |
 | --- | --- | --- |
 | `id` | target-derived | Stable key for remembered expansion; recommended for repeated targets. |
-| `area` / `floor` | none | One target is required. IDs and names are accepted; IDs are recommended. |
+| `area` / `floor` | none | Backwards-compatible single target. IDs and names are accepted. |
+| `areas` / `floors` | `[]` | Multi-select individual Areas and/or complete Floors; both lists may be combined. |
+| `floor_order` | Floor `level` | Priority list for selected Floors; unlisted Floors append by Home Assistant `level`. |
 | `title` | none | Optional overall title; Floor mode still shows the Floor name by default. |
 | `target_icon` | registry/fallback icon | Overrides the top-level Area or Floor icon. |
 | `language` / `rtl` | `auto` | `he`, `en`; RTL may be `auto`, `true`, or `false`. |
@@ -644,7 +657,7 @@ style:
 | `section_action_icons` | built-in semantic icons | Optional icons for `on`, `off`, `open`, and `close`. |
 | `quick_actions` | all six | Enabled actions in display order. |
 | `quick_action_icons` | built-in action icons | Optional icon map for `lights`, `switches`, `climate`, `floor_heating`, `covers`, and `media`. |
-| `area_order` | Area name | Priority list; newly discovered Areas append automatically. |
+| `area_order` | Area name | Priority list for selected Areas and Areas within Floors; newly discovered Areas append automatically. |
 | `floor_heating_labels` | common labels | Labels used for explicit heating classification. |
 | `floor_heating_entities` | `[]` | Explicit floor-heating entities. |
 | `occupancy_device_classes` | occupancy/presence/motion | Automatic presence classes. |
@@ -751,8 +764,8 @@ The Overview editor provides:
 
 - A global-first workflow: common defaults stay in the main sections, while room, category, and device exceptions open only through explicit **Edit this room**, **Room-specific category overrides**, and **Device overrides** disclosures
 
-- Area/Floor target selection
-- Collapsible Floor defaults plus independently remembered Floor/Area expansion
+- Multiple Area/Floor target selection with separate reorder controls and default Floor ordering by Home Assistant `level`
+- Collapsible Floor defaults plus independently remembered expansion for every selected Floor and Area
 - Summary, temperature visibility while A/C is off, attached climate/fan tags, numeric occupancy, sensor fallback, active quick-action placement, and Area-chevron settings
 - Section title/order editing, one-button or paired actions, action icon pickers, spacing, and global category appearance
 - Floor Area order, cycle-safe parent/child nesting, independently collapsible Popup child Areas, and per-Area overrides

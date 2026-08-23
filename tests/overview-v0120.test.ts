@@ -48,8 +48,8 @@ describe("Overview 0.12 floor disclosure and room popup", () => {
 
   it("removes only the visual floor arrow while retaining the full disclosure button", () => {
     expect(source).toMatch(/this\.config\.show_floor_expand_button\s*\?\s*html`<span class="floor-chevron/);
-    expect(source).toContain('@click=${() => this.toggleFloor()}');
-    expect(source).toContain('aria-expanded=${this.floorExpanded}');
+    expect(source).toContain('@click=${() => this.toggleFloor(group.id)}');
+    expect(source).toContain('aria-expanded=${expanded}');
     expect(css).toMatch(/\.floor-toggle\.without-floor-expand-button\s*\{[^}]*grid-template-columns:\s*auto minmax\(0,\s*1fr\)/s);
   });
 

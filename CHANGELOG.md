@@ -2,6 +2,14 @@
 
 All notable changes to Area Bubble Expander Card will be documented in this file.
 
+## 0.22.0 - 2026-08-23
+
+- Added multi-select `floors` and `areas` targets to Overview while keeping legacy scalar `floor` and `area` configurations compatible.
+- Added `floor_order`, with Home Assistant Floor `level` as the default ordering and stable name/ID resolution for YAML and the visual editor.
+- Added HA-style Floor and Area checklists with independent reorder controls, mixed selections, and automatic duplicate removal.
+- Grouped every selected Floor under its own summary, remembered collapse state, climate Popup, and active-room shutdown Popup; individually selected Areas remain available alongside the Floor groups.
+- Added mixed-target, LEVEL ordering, explicit order, missing-registry, duplicate, editor, and independent disclosure regression coverage.
+
 ## 0.21.0 - 2026-08-21
 
 - Added five compact contemporary glass themes: Champagne Emerald, Arctic Cobalt, Sage Jade, Violet Indigo, and Coral Teal.

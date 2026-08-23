@@ -140,6 +140,8 @@ export type AreaBubbleOverviewCardConfig = {
   id?: string;
   area?: string;
   floor?: string;
+  areas?: string[];
+  floors?: string[];
   title?: string;
   target_icon?: string;
   language?: LanguageMode;
@@ -181,6 +183,7 @@ export type AreaBubbleOverviewCardConfig = {
   quick_actions?: OverviewQuickActionId[];
   quick_action_icons?: Partial<Record<OverviewQuickActionId, string>>;
   area_order?: string[];
+  floor_order?: string[];
   floor_heating_labels?: string[];
   floor_heating_entities?: string[];
   occupancy_device_classes?: string[];
@@ -272,8 +275,18 @@ export type OverviewArea = {
 
 export type OverviewDiscovery = {
   areas: OverviewArea[];
+  floorGroups: OverviewFloorGroup[];
+  standaloneAreas: OverviewArea[];
   targetName: string;
   targetIcon: string;
-  targetKind: "area" | "floor" | "none";
+  targetKind: "area" | "floor" | "mixed" | "none";
   warnings: string[];
+};
+
+export type OverviewFloorGroup = {
+  id: string;
+  name: string;
+  icon: string;
+  level?: number;
+  areas: OverviewArea[];
 };

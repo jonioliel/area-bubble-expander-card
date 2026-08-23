@@ -23,7 +23,7 @@ import type { OverviewQuickActionId } from "./types";
 
 const isRecord = (value: unknown): value is Record<string, unknown> => Boolean(value) && typeof value === "object" && !Array.isArray(value);
 const stringArray = (value: unknown): string[] =>
-  Array.isArray(value) ? value.map(String).map((item) => item.trim()).filter(Boolean) : [];
+  Array.isArray(value) ? [...new Set(value.map(String).map((item) => item.trim()).filter(Boolean))] : [];
 
 const sectionArray = (value: unknown): OverviewSectionId[] => {
   const allowed = new Set<OverviewSectionId>(OVERVIEW_SECTIONS);
@@ -237,6 +237,14 @@ export const resolveOverviewConfig = (config: AreaBubbleOverviewCardConfig): Res
     id: typeof config.id === "string" ? config.id : "",
     area: typeof config.area === "string" && config.area ? config.area : undefined,
     floor: typeof config.floor === "string" && config.floor ? config.floor : undefined,
+    areas: (() => {
+      const selected = stringArray(config.areas);
+      return selected.length ? selected : typeof config.area === "string" && config.area.trim() ? [config.area.trim()] : [];
+    })(),
+    floors: (() => {
+      const selected = stringArray(config.floors);
+      return selected.length ? selected : typeof config.floor === "string" && config.floor.trim() ? [config.floor.trim()] : [];
+    })(),
     title: typeof config.title === "string" ? config.title : "",
     target_icon: typeof config.target_icon === "string" ? config.target_icon.trim() : "",
     hide_temperature_when_climate_off:
@@ -294,6 +302,7 @@ export const resolveOverviewConfig = (config: AreaBubbleOverviewCardConfig): Res
     quick_actions: quickActionArray(config.quick_actions ?? merged.quick_actions),
     quick_action_icons: quickActionIcons(config.quick_action_icons),
     area_order: stringArray(config.area_order),
+    floor_order: stringArray(config.floor_order),
     floor_heating_labels: stringArray(merged.floor_heating_labels),
     floor_heating_entities: stringArray(merged.floor_heating_entities),
     occupancy_device_classes: stringArray(merged.occupancy_device_classes),
@@ -347,7 +356,6 @@ export const resolveOverviewConfig = (config: AreaBubbleOverviewCardConfig): Res
 export const validateOverviewConfig = (config: AreaBubbleOverviewCardConfig): void => {
   if (!isRecord(config)) throw new Error("Invalid Area Bubble Overview Card configuration.");
   if (config.type && config.type !== OVERVIEW_CARD_TYPE) throw new Error(`Card type must be ${OVERVIEW_CARD_TYPE}.`);
-  if (config.area && config.floor) throw new Error("Choose either an area or a floor, not both.");
   if (config.section_order && new Set(config.section_order).size !== config.section_order.length) {
     throw new Error("section_order cannot contain duplicates.");
   }

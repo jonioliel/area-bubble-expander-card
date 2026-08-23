@@ -57,6 +57,7 @@ import type {
   OverviewArea,
   OverviewDiscovery,
   OverviewEntity,
+  OverviewFloorGroup,
   OverviewQuickActionId,
   OverviewQuickActionKind,
   OverviewSection,
@@ -79,6 +80,7 @@ type OptimisticClimateTargets = ClimateTemperatureTargets & {
 };
 
 const FLOOR_QUICK_AREA_ID = "__overview_floor__";
+const floorQuickAreaId = (floorId: string): string => `${FLOOR_QUICK_AREA_ID}:${floorId}`;
 const COVER_COMMAND_TIMEOUT_MS = 12_000;
 
 const isCoverControlService = (service: string): service is CoverControlService =>
@@ -92,6 +94,7 @@ export class AreaBubbleOverviewCard extends LitElement {
   @state() private config?: ResolvedOverviewConfig;
   @state() private expanded: Record<string, boolean> = {};
   @state() private floorExpanded = true;
+  @state() private floorExpandedById: Record<string, boolean> = {};
   @state() private pendingActions = new Set<string>();
   @state() private pendingSections = new Set<string>();
   @state() private pendingEntities = new Set<string>();
@@ -99,6 +102,7 @@ export class AreaBubbleOverviewCard extends LitElement {
   @state() private quickPopup?: QuickPopupState;
   @state() private areaPopupId?: string;
   @state() private floorPopupOpen = false;
+  @state() private floorPopupTargetId?: string;
   @state() private pendingFloor = false;
   @state() private pendingFloorRooms = new Set<string>();
   @state() private optimisticClimateTargets: Record<string, OptimisticClimateTargets> = {};
@@ -142,11 +146,17 @@ export class AreaBubbleOverviewCard extends LitElement {
     try {
       validateOverviewConfig(config);
       this.config = resolveOverviewConfig(config);
-      this.storageId = this.config.id || `${this.config.floor ? "floor" : "area"}:${this.config.floor ?? this.config.area ?? "unconfigured"}`;
+      const legacyTargetId = config.floor && !config.floors?.length && !config.areas?.length
+        ? `floor:${config.floor}`
+        : config.area && !config.areas?.length && !config.floors?.length
+          ? `area:${config.area}`
+          : undefined;
+      this.storageId = this.config.id || legacyTargetId || `targets:${[...this.config.floors, ...this.config.areas].join(",") || "unconfigured"}`;
       this.expanded = this.config.remember_expanded_state ? this.readExpanded() : {};
       this.floorExpanded = this.config.remember_expanded_state
         ? this.readFloorExpanded() ?? this.config.floor_default_expanded
         : this.config.floor_default_expanded;
+      this.floorExpandedById = this.config.remember_expanded_state ? this.readFloorExpandedMap() : {};
       this.error = undefined;
     } catch (error) {
       this.error = error instanceof Error ? error.message : String(error);
@@ -156,13 +166,13 @@ export class AreaBubbleOverviewCard extends LitElement {
   public getCardSize(): number {
     if (!this.config) return 3;
     const discovery = discoverOverview(this.hass, this.config);
-    if (discovery.targetKind === "floor" && this.config.show_header && this.config.show_floor_header && !this.floorExpanded) return 2;
-    const visibleAreas = visibleOverviewAreas(discovery.areas, (area) => this.isExpanded(area));
+    const floorAreas = discovery.floorGroups.flatMap((group) => !this.floorCanCollapse() || this.isFloorExpanded(group.id) ? group.areas : []);
+    const visibleAreas = visibleOverviewAreas([...floorAreas, ...discovery.standaloneAreas], (area) => this.isExpanded(area));
     return Math.max(
       2,
       visibleAreas.reduce(
         (size, area) => size + 2 + (this.isExpanded(area) ? area.sections.reduce((sum, section) => sum + section.entities.length, 0) : 0),
-        discovery.targetKind === "floor" ? 1 : 0,
+        discovery.floorGroups.length,
       ),
     );
   }
@@ -192,21 +202,25 @@ export class AreaBubbleOverviewCard extends LitElement {
 
     const discovery = discoverOverview(this.hass, this.config);
     const modernDesign = OVERVIEW_NEW_THEME_NAMES.includes(this.config.theme_preset);
-    const floorContentId = `overview-floor-${this.storageId.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
-    const floorCanCollapse = discovery.targetKind === "floor" && this.config.show_header && this.config.show_floor_header;
+    const singleFloor = discovery.floorGroups.length === 1 && discovery.standaloneAreas.length === 0;
+    const floorContentId = singleFloor ? this.floorContentId(discovery.floorGroups[0].id) : "";
     return html`
       <ha-card>
         <div class="root ${modernDesign ? "design-new" : "design-legacy"}">
           ${this.renderOverallHeader(discovery, floorContentId)}
           ${discovery.targetKind === "none"
             ? this.renderEmpty(overviewText(this.hass, this.config, "choose_target"), "mdi:map-marker-plus-outline")
-            : html`
-                <div id=${floorContentId} ?hidden=${floorCanCollapse && !this.floorExpanded}>
-                  ${discovery.areas.length
-                    ? this.renderAreaHierarchy(discovery.areas)
+            : singleFloor
+              ? html`<div id=${floorContentId} ?hidden=${this.floorCanCollapse() && !this.isFloorExpanded(discovery.floorGroups[0].id)}>
+                  ${discovery.floorGroups[0].areas.length
+                    ? this.renderAreaHierarchy(discovery.floorGroups[0].areas)
                     : this.renderEmpty(overviewText(this.hass, this.config, "no_areas"), "mdi:home-search-outline")}
-                </div>
-              `}
+                </div>`
+              : html`
+                  ${discovery.floorGroups.map((group) => this.renderFloorGroup(group))}
+                  ${discovery.standaloneAreas.length ? this.renderAreaHierarchy(discovery.standaloneAreas) : nothing}
+                  ${!discovery.areas.length ? this.renderEmpty(overviewText(this.hass, this.config, "no_areas"), "mdi:home-search-outline") : nothing}
+                `}
           ${discovery.warnings.length && discovery.targetKind !== "none"
             ? html`<div class="warning">${discovery.warnings.join(" · ")}</div>`
             : nothing}
@@ -221,30 +235,51 @@ export class AreaBubbleOverviewCard extends LitElement {
 
   private renderOverallHeader(discovery: OverviewDiscovery, contentId: string) {
     if (!this.config?.show_header) return nothing;
-    const show = discovery.targetKind === "floor" ? this.config.show_floor_header : Boolean(this.config.title);
+    const singleFloor = discovery.floorGroups.length === 1 && discovery.standaloneAreas.length === 0;
+    const show = singleFloor ? this.config.show_floor_header : Boolean(this.config.title);
     if (!show || !discovery.targetName) return nothing;
-    if (discovery.targetKind === "floor") {
-      const activeAreas = discovery.areas.filter((area) => area.allEntities.some(countsTowardAreaActivity));
-      const floorQuickArea = this.floorQuickArea(discovery);
+    if (singleFloor) return this.renderFloorHeader(discovery.floorGroups[0], contentId);
+    return html`<div class="overview-heading"><span class="icon-bubble small"><ha-icon icon=${discovery.targetIcon}></ha-icon></span><div class="heading-main"><h2>${discovery.targetName}</h2></div></div>`;
+  }
+
+  private renderFloorGroup(group: OverviewFloorGroup) {
+    const contentId = this.floorContentId(group.id);
+    const expanded = this.isFloorExpanded(group.id);
+    return html`
+      ${this.config?.show_header && this.config.show_floor_header ? this.renderFloorHeader(group, contentId) : nothing}
+      <div id=${contentId} ?hidden=${this.floorCanCollapse() && !expanded}>
+        ${group.areas.length
+          ? this.renderAreaHierarchy(group.areas)
+          : this.renderEmpty(overviewText(this.hass, this.config!, "no_areas"), "mdi:home-search-outline")}
+      </div>
+    `;
+  }
+
+  private renderFloorHeader(group: OverviewFloorGroup, contentId: string) {
+      if (!this.config) return nothing;
+      const activeAreas = group.areas.filter((area) => area.allEntities.some(countsTowardAreaActivity));
+      const floorQuickArea = this.floorQuickArea(group);
+      const quickAreaId = floorQuickArea.id;
       const activeClimates = quickActionMembers(floorQuickArea, "climate")
         .filter((item) => item.powered && item.ignoreActivity !== true);
-      const floorClimateBusy = this.quickActionPending(FLOOR_QUICK_AREA_ID, "climate")
+      const floorClimateBusy = this.quickActionPending(quickAreaId, "climate")
         || activeClimates.some((item) => this.pendingEntities.has(item.entityId));
-      const occupiedAreas = discovery.areas.filter((area) => area.occupancy === "occupied").length;
+      const occupiedAreas = group.areas.filter((area) => area.occupancy === "occupied").length;
       const summary = [
-        `${discovery.areas.length} ${this.localText("אזורים", "areas")}`,
+        `${group.areas.length} ${this.localText("אזורים", "areas")}`,
         activeAreas.length ? `${activeAreas.length} ${this.localText("פעילים", "active")}` : "",
         this.config.show_occupancy && occupiedAreas ? `${occupiedAreas} ${this.localText("מאוכלסים", "occupied")}` : "",
       ].filter(Boolean).join(" · ");
-      const label = `${this.floorExpanded ? this.localText("כיווץ קומה", "Collapse floor") : this.localText("פתיחת קומה", "Expand floor")}: ${discovery.targetName}`;
+      const expanded = this.isFloorExpanded(group.id);
+      const label = `${expanded ? this.localText("כיווץ קומה", "Collapse floor") : this.localText("פתיחת קומה", "Expand floor")}: ${group.name}`;
       return html`
         <div class="overview-heading floor-heading ${activeAreas.length ? "has-active" : "all-off"}" data-powered=${activeAreas.length ? "true" : "false"}>
           <div class="floor-summary-pill">
-            <button class="floor-toggle ${this.config.show_floor_expand_button ? "" : "without-floor-expand-button"}" type="button" aria-expanded=${this.floorExpanded} aria-controls=${contentId} aria-label=${label} @click=${() => this.toggleFloor()}>
-              <span class="icon-bubble small"><ha-icon icon=${discovery.targetIcon}></ha-icon></span>
-              <span class="heading-main"><span class="floor-title">${discovery.targetName}</span><span class="subtitle">${summary}</span></span>
+            <button class="floor-toggle ${this.config.show_floor_expand_button ? "" : "without-floor-expand-button"}" type="button" aria-expanded=${expanded} aria-controls=${contentId} aria-label=${label} @click=${() => this.toggleFloor(group.id)}>
+              <span class="icon-bubble small"><ha-icon icon=${group.icon}></ha-icon></span>
+              <span class="heading-main"><span class="floor-title">${group.name}</span><span class="subtitle">${summary}</span></span>
               ${this.config.show_floor_expand_button
-                ? html`<span class="floor-chevron ${this.floorExpanded ? "expanded" : ""}" aria-hidden="true"><ha-icon icon="mdi:chevron-down"></ha-icon></span>`
+                ? html`<span class="floor-chevron ${expanded ? "expanded" : ""}" aria-hidden="true"><ha-icon icon="mdi:chevron-down"></ha-icon></span>`
                 : nothing}
             </button>
             ${activeClimates.length
@@ -252,7 +287,7 @@ export class AreaBubbleOverviewCard extends LitElement {
                   class="floor-climate-badge"
                   type="button"
                   aria-haspopup="dialog"
-                  aria-expanded=${this.quickPopup?.areaId === FLOOR_QUICK_AREA_ID && this.quickPopup.action === "climate"}
+                  aria-expanded=${this.quickPopup?.areaId === quickAreaId && this.quickPopup.action === "climate"}
                   aria-busy=${floorClimateBusy}
                   aria-label=${`${this.localText("פתיחת המזגנים הפעילים בקומה", "Open active floor climate controls")}: ${activeClimates.length}`}
                   ?disabled=${floorClimateBusy}
@@ -264,16 +299,14 @@ export class AreaBubbleOverviewCard extends LitElement {
                   class="floor-active-badge"
                   type="button"
                   aria-haspopup="dialog"
-                  aria-expanded=${this.floorPopupOpen}
+                  aria-expanded=${this.floorPopupOpen && this.floorPopupTargetId === group.id}
                   aria-label=${`${this.localText("פתיחת חדרים פעילים", "Open active rooms")}: ${activeAreas.length}`}
-                  @click=${(event: Event) => this.openFloorPopup(event)}
+                  @click=${(event: Event) => this.openFloorPopup(event, group.id)}
                 ><ha-icon icon="mdi:home-lightning-bolt-outline"></ha-icon><span>${activeAreas.length}</span></button>`
               : nothing}
           </div>
         </div>
       `;
-    }
-    return html`<div class="overview-heading"><span class="icon-bubble small"><ha-icon icon=${discovery.targetIcon}></ha-icon></span><div class="heading-main"><h2>${discovery.targetName}</h2></div></div>`;
   }
 
   private renderAreaHierarchy(areas: OverviewArea[]) {
@@ -725,8 +758,11 @@ export class AreaBubbleOverviewCard extends LitElement {
 
   private renderQuickActionPopup(discovery: OverviewDiscovery) {
     if (!this.config || !this.quickPopup) return nothing;
-    const area = this.quickPopup.areaId === FLOOR_QUICK_AREA_ID && discovery.targetKind === "floor"
-      ? this.floorQuickArea(discovery)
+    const floorGroup = this.quickPopup.areaId.startsWith(`${FLOOR_QUICK_AREA_ID}:`)
+      ? discovery.floorGroups.find((group) => floorQuickAreaId(group.id) === this.quickPopup?.areaId)
+      : undefined;
+    const area = floorGroup
+      ? this.floorQuickArea(floorGroup)
       : discovery.areas.find((candidate) => candidate.id === this.quickPopup?.areaId);
     if (!area) {
       queueMicrotask(() => this.resetQuickPopup());
@@ -804,8 +840,13 @@ export class AreaBubbleOverviewCard extends LitElement {
   }
 
   private renderFloorPopup(discovery: OverviewDiscovery) {
-    if (!this.config || !this.floorPopupOpen || discovery.targetKind !== "floor") return nothing;
-    const activeAreas = discovery.areas.filter((area) => area.allEntities.some(countsTowardAreaActivity));
+    if (!this.config || !this.floorPopupOpen || !this.floorPopupTargetId) return nothing;
+    const group = discovery.floorGroups.find((candidate) => candidate.id === this.floorPopupTargetId);
+    if (!group) {
+      queueMicrotask(() => this.resetFloorPopup());
+      return nothing;
+    }
+    const activeAreas = group.areas.filter((area) => area.allEntities.some(countsTowardAreaActivity));
     if (!activeAreas.length) {
       queueMicrotask(() => this.resetFloorPopup());
       return nothing;
@@ -823,9 +864,9 @@ export class AreaBubbleOverviewCard extends LitElement {
       >
         <section class="quick-popup floor-popup" aria-busy=${this.pendingFloor || this.pendingFloorRooms.size > 0}>
           <header class="quick-popup-header">
-            <span class="icon-bubble popup-icon"><ha-icon icon=${discovery.targetIcon}></ha-icon></span>
+            <span class="icon-bubble popup-icon"><ha-icon icon=${group.icon}></ha-icon></span>
             <span class="quick-popup-heading">
-              <span class="quick-popup-title" id=${titleId}>${this.localText("חדרים פעילים", "Active rooms")} · ${discovery.targetName}</span>
+              <span class="quick-popup-title" id=${titleId}>${this.localText("חדרים פעילים", "Active rooms")} · ${group.name}</span>
               <span class="quick-popup-summary">${activeAreas.length} ${this.localText("חדרים דלוקים", "rooms on")}</span>
             </span>
             <button class="quick-popup-close" type="button" aria-label=${this.localText("סגירת חלון", "Close dialog")} @click=${() => this.closeFloorPopup()}><ha-icon icon="mdi:close"></ha-icon></button>
@@ -952,15 +993,15 @@ export class AreaBubbleOverviewCard extends LitElement {
     return renderChildren(parent);
   }
 
-  private floorQuickArea(discovery: OverviewDiscovery): OverviewArea {
+  private floorQuickArea(group: OverviewFloorGroup): OverviewArea {
     const uniqueEntities = new Map<string, OverviewEntity>();
-    for (const area of discovery.areas) {
+    for (const area of group.areas) {
       for (const item of area.allEntities) uniqueEntities.set(item.entityId, item);
     }
     return {
-      id: FLOOR_QUICK_AREA_ID,
-      name: discovery.targetName,
-      icon: discovery.targetIcon,
+      id: floorQuickAreaId(group.id),
+      name: group.name,
+      icon: group.icon,
       showWhenParentCollapsed: false,
       sections: [],
       allEntities: [...uniqueEntities.values()],
@@ -1526,9 +1567,29 @@ export class AreaBubbleOverviewCard extends LitElement {
     void this.updateComplete.then(() => this.dispatchEvent(new Event("iron-resize", { bubbles: true, composed: true })));
   }
 
-  private toggleFloor(): void {
-    this.floorExpanded = !this.floorExpanded;
-    if (this.config?.remember_expanded_state) this.writeFloorExpanded();
+  private floorCanCollapse(): boolean {
+    return Boolean(this.config?.show_header && this.config.show_floor_header);
+  }
+
+  private floorContentId(floorId: string): string {
+    return `overview-floor-${this.storageId}-${floorId}`.replace(/[^a-zA-Z0-9_-]/g, "-");
+  }
+
+  private isFloorExpanded(floorId: string): boolean {
+    const stored = this.floorExpandedById[floorId];
+    if (typeof stored === "boolean") return stored;
+    if (this.config?.floors.length === 1) return this.floorExpanded;
+    return this.config?.floor_default_expanded ?? true;
+  }
+
+  private toggleFloor(floorId: string): void {
+    const expanded = !this.isFloorExpanded(floorId);
+    this.floorExpandedById = { ...this.floorExpandedById, [floorId]: expanded };
+    if (this.config?.floors.length === 1) this.floorExpanded = expanded;
+    if (this.config?.remember_expanded_state) {
+      this.writeFloorExpanded();
+      this.writeFloorExpandedMap();
+    }
     void this.updateComplete.then(() => this.dispatchEvent(new Event("iron-resize", { bubbles: true, composed: true })));
   }
 
@@ -1608,11 +1669,12 @@ export class AreaBubbleOverviewCard extends LitElement {
     return this.pendingActions.has(`${areaId}:${action}:on`) || this.pendingActions.has(`${areaId}:${action}:off`);
   }
 
-  private openFloorPopup(event: Event): void {
+  private openFloorPopup(event: Event, floorId: string): void {
     event.stopPropagation();
     this.resetQuickPopup();
     this.resetAreaPopup();
     this.floorPopupTrigger = event.currentTarget as HTMLElement;
+    this.floorPopupTargetId = floorId;
     this.floorPopupOpen = true;
     void this.updateComplete.then(() => {
       const dialog = this.renderRoot.querySelector<HTMLDialogElement>(".floor-action-dialog");
@@ -1630,6 +1692,7 @@ export class AreaBubbleOverviewCard extends LitElement {
 
   private handleFloorPopupClosed(): void {
     this.floorPopupOpen = false;
+    this.floorPopupTargetId = undefined;
     const trigger = this.floorPopupTrigger;
     this.floorPopupTrigger = undefined;
     void this.updateComplete.then(() => {
@@ -1641,6 +1704,7 @@ export class AreaBubbleOverviewCard extends LitElement {
     const dialog = this.renderRoot?.querySelector<HTMLDialogElement>(".floor-action-dialog");
     if (dialog?.open && typeof dialog.close === "function") dialog.close();
     this.floorPopupOpen = false;
+    this.floorPopupTargetId = undefined;
     this.floorPopupTrigger = undefined;
   }
 
@@ -2143,6 +2207,10 @@ export class AreaBubbleOverviewCard extends LitElement {
     return `${OVERVIEW_STORAGE_PREFIX}:${this.storageId}:floor-expanded`;
   }
 
+  private floorMapStorageKey(): string {
+    return `${OVERVIEW_STORAGE_PREFIX}:${this.storageId}:floors-expanded`;
+  }
+
   private readExpanded(): Record<string, boolean> {
     try {
       const value = localStorage.getItem(this.storageKey());
@@ -2172,6 +2240,23 @@ export class AreaBubbleOverviewCard extends LitElement {
   private writeFloorExpanded(): void {
     try {
       localStorage.setItem(this.floorStorageKey(), String(this.floorExpanded));
+    } catch {
+      // localStorage can be disabled in kiosk and hardened browser modes.
+    }
+  }
+
+  private readFloorExpandedMap(): Record<string, boolean> {
+    try {
+      const value = localStorage.getItem(this.floorMapStorageKey());
+      return value ? JSON.parse(value) as Record<string, boolean> : {};
+    } catch {
+      return {};
+    }
+  }
+
+  private writeFloorExpandedMap(): void {
+    try {
+      localStorage.setItem(this.floorMapStorageKey(), JSON.stringify(this.floorExpandedById));
     } catch {
       // localStorage can be disabled in kiosk and hardened browser modes.
     }

@@ -6,6 +6,7 @@ import type {
   OverviewArea,
   OverviewDiscovery,
   OverviewEntity,
+  OverviewFloorGroup,
   OccupancyCountSource,
   OverviewSectionId,
   OverviewTemperatureMode,
@@ -374,49 +375,111 @@ const createArea = (
   };
 };
 
+type OverviewTarget = {
+  ids: string[];
+  floors: Array<{ id: string; name: string; icon: string; level?: number }>;
+  targetName: string;
+  targetIcon: string;
+  kind: OverviewDiscovery["targetKind"];
+  warnings: string[];
+};
+
 const targetAreaIds = (
   hass: HomeAssistant | undefined,
   config: ResolvedOverviewConfig,
   registry: Map<string, HassAreaRegistryEntry>,
-): { ids: string[]; targetName: string; targetIcon: string; kind: OverviewDiscovery["targetKind"]; warnings: string[] } => {
-  if (config.area) {
-    const match = [...registry.entries()].find(([id, area]) => id === config.area || area.name === config.area);
-    if (!match) return { ids: [], targetName: config.area, targetIcon: "mdi:map-marker-alert", kind: "area", warnings: [`Area not found: ${config.area}`] };
-    const override = config.area_overrides[match[0]] ?? config.area_overrides[match[1].name];
-    // A card targeted at one Area also owns every configured descendant. This
-    // keeps a child Area available beneath its parent in both Expander and
-    // Popup modes, even when Home Assistant assigned it to another floor.
-    const ids = [match[0]];
-    const included = new Set(ids);
-    let added = true;
-    while (added) {
-      added = false;
-      for (const [candidateId, candidate] of registry) {
-        if (included.has(candidateId)) continue;
-        const candidateOverride = config.area_overrides[candidateId] ?? config.area_overrides[candidate.name];
-        const parentReference = candidateOverride?.parent_area;
-        if (!parentReference) continue;
-        const belongsToIncludedParent = ids.some((parentId) => {
-          const parent = registry.get(parentId);
-          if (!parent) return false;
-          const parentOverride = config.area_overrides[parentId] ?? config.area_overrides[parent.name];
-          return parentReference === parentId || parentReference === parent.name || parentReference === parentOverride?.name;
-        });
-        if (!belongsToIncludedParent) continue;
-        included.add(candidateId);
-        ids.push(candidateId);
-        added = true;
-      }
+): OverviewTarget => {
+  const warnings: string[] = [];
+  const allFloors = floorEntries(hass);
+  const floorOrderIndex = (id: string, name: string): number => {
+    const index = config.floor_order.findIndex((item) => item === id || item === name);
+    return index < 0 ? Number.MAX_SAFE_INTEGER : index;
+  };
+  const selectedFloors = config.floors.flatMap((reference) => {
+    const floor = allFloors.find((item) => item.id === reference || item.name === reference);
+    if (!floor) {
+      warnings.push(`Floor not found: ${reference}`);
+      return [];
     }
-    return { ids, targetName: match[1].name, targetIcon: config.target_icon || override?.icon || match[1].icon || "mdi:floor-plan", kind: "area", warnings: [] };
-  }
-  if (config.floor) {
-    const floor = floorEntries(hass).find((item) => item.id === config.floor || item.name === config.floor);
-    if (!floor) return { ids: [], targetName: config.floor, targetIcon: "mdi:home-floor-0", kind: "floor", warnings: [`Floor not found: ${config.floor}`] };
+    return [{
+      id: floor.id,
+      name: floor.name,
+      icon: floor.icon || "mdi:home-floor-0",
+      ...(typeof floor.level === "number" && Number.isFinite(floor.level) ? { level: floor.level } : {}),
+    }];
+  }).filter((floor, index, items) => items.findIndex((candidate) => candidate.id === floor.id) === index)
+    .sort((a, b) => {
+      const ai = floorOrderIndex(a.id, a.name);
+      const bi = floorOrderIndex(b.id, b.name);
+      return ai - bi || (a.level ?? Number.MAX_SAFE_INTEGER) - (b.level ?? Number.MAX_SAFE_INTEGER) || a.name.localeCompare(b.name);
+    });
+
+  const floorAreaIds = selectedFloors.flatMap((floor) => {
     const ids = [...registry.entries()].filter(([, area]) => area.floor_id === floor.id).map(([id]) => id);
-    return { ids, targetName: floor.name, targetIcon: config.target_icon || floor.icon || "mdi:home-floor-0", kind: "floor", warnings: ids.length ? [] : [`Floor has no areas: ${floor.name}`] };
+    if (!ids.length) warnings.push(`Floor has no areas: ${floor.name}`);
+    return ids;
+  });
+  const explicitAreaIds = config.areas.flatMap((reference) => {
+    const match = [...registry.entries()].find(([id, area]) => id === reference || area.name === reference);
+    if (!match) {
+      warnings.push(`Area not found: ${reference}`);
+      return [];
+    }
+    return [match[0]];
+  }).filter((id, index, ids) => ids.indexOf(id) === index);
+
+  // Every selected Area and Floor also owns configured descendants, including
+  // descendants Home Assistant assigned to a different Floor.
+  const ids = [...new Set([...floorAreaIds, ...explicitAreaIds])];
+  const included = new Set(ids);
+  let added = true;
+  while (added) {
+    added = false;
+    for (const [candidateId, candidate] of registry) {
+      if (included.has(candidateId)) continue;
+      const parentReference = (config.area_overrides[candidateId] ?? config.area_overrides[candidate.name])?.parent_area;
+      if (!parentReference) continue;
+      const belongsToIncludedParent = ids.some((parentId) => {
+        const parent = registry.get(parentId);
+        if (!parent) return false;
+        const parentOverride = config.area_overrides[parentId] ?? config.area_overrides[parent.name];
+        return parentReference === parentId || parentReference === parent.name || parentReference === parentOverride?.name;
+      });
+      if (!belongsToIncludedParent) continue;
+      included.add(candidateId);
+      ids.push(candidateId);
+      added = true;
+    }
   }
-  return { ids: [], targetName: "", targetIcon: "mdi:floor-plan", kind: "none", warnings: ["No area or floor configured"] };
+
+  const targetNames = [
+    ...selectedFloors.map((floor) => floor.name),
+    ...explicitAreaIds.filter((id) => !floorAreaIds.includes(id)).map((id) => registry.get(id)?.name ?? id),
+  ];
+  const requestedFloors = config.floors.length > 0;
+  const requestedAreas = config.areas.length > 0;
+  const kind: OverviewDiscovery["targetKind"] = requestedFloors && requestedAreas
+    ? "mixed"
+    : requestedFloors
+      ? "floor"
+      : requestedAreas
+        ? "area"
+        : "none";
+  const singleArea = kind === "area" && explicitAreaIds.length === 1 ? registry.get(explicitAreaIds[0]) : undefined;
+  const singleAreaOverride = singleArea ? config.area_overrides[explicitAreaIds[0]] ?? config.area_overrides[singleArea.name] : undefined;
+  const automaticIcon = selectedFloors.length === 1 && !explicitAreaIds.length
+    ? selectedFloors[0].icon
+    : singleArea
+      ? singleAreaOverride?.icon || singleArea.icon || "mdi:floor-plan"
+      : "mdi:home-group";
+  return {
+    ids,
+    floors: selectedFloors,
+    targetName: config.title || targetNames.join(" · ") || [...config.floors, ...config.areas].join(" · "),
+    targetIcon: config.target_icon || automaticIcon,
+    kind,
+    warnings: kind === "none" && !warnings.length ? ["No area or floor configured"] : warnings,
+  };
 };
 
 export const discoverOverview = (hass: HomeAssistant | undefined, config: ResolvedOverviewConfig): OverviewDiscovery => {
@@ -478,9 +541,28 @@ export const discoverOverview = (hass: HomeAssistant | undefined, config: Resolv
   }
   const areas = normalizedAreas.map((area) => cyclic.has(area.id) ? { ...area, parentAreaId: undefined } : area);
   const hierarchyWarnings = cyclic.size ? [`Area parent cycle ignored: ${[...cyclic].join(", ")}`] : [];
+  const assigned = new Set<string>();
+  const floorGroups: OverviewFloorGroup[] = target.floors.map((floor) => {
+    const groupIds = new Set(areas.filter((area) => area.floorId === floor.id && !assigned.has(area.id)).map((area) => area.id));
+    let added = true;
+    while (added) {
+      added = false;
+      for (const area of areas) {
+        if (assigned.has(area.id) || groupIds.has(area.id) || !area.parentAreaId || !groupIds.has(area.parentAreaId)) continue;
+        groupIds.add(area.id);
+        added = true;
+      }
+    }
+    const groupedAreas = areas.filter((area) => groupIds.has(area.id));
+    groupedAreas.forEach((area) => assigned.add(area.id));
+    return { ...floor, areas: groupedAreas };
+  });
+  const standaloneAreas = areas.filter((area) => !assigned.has(area.id));
   return {
     areas,
-    targetName: config.title || target.targetName,
+    floorGroups,
+    standaloneAreas,
+    targetName: target.targetName,
     targetIcon: target.targetIcon,
     targetKind: target.kind,
     warnings: [...target.warnings, ...hierarchyWarnings],

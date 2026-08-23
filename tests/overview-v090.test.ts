@@ -146,7 +146,7 @@ describe("Overview 0.9 rendering and editor contracts", () => {
     expect(source).toContain('const FLOOR_QUICK_AREA_ID = "__overview_floor__"');
     expect(source).toContain('class="floor-climate-badge"');
     expect(source).toContain('this.openQuickActionPopup(event, floorQuickArea, "climate")');
-    expect(source).toContain('this.quickPopup.areaId === FLOOR_QUICK_AREA_ID');
+    expect(source).toContain('this.quickPopup?.areaId === quickAreaId');
   });
 
   it("applies frame width/style, top separation, and occupancy color variables", () => {

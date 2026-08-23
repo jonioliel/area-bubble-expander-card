@@ -60,7 +60,7 @@ const sectionEntities = (area: OverviewArea, section: OverviewSectionId): string
   area.sections.find((item) => item.id === section)?.entities.map((item) => item.entityId) ?? [];
 
 describe("overview configuration", () => {
-  it("validates the card type, exclusive target, and duplicate section IDs", () => {
+  it("validates the card type, mixed targets, and duplicate section IDs", () => {
     expect(() => validateOverviewConfig({ type: CARD_TYPE, area: "kids" })).not.toThrow();
 
     expect(() => validateOverviewConfig(null as unknown as AreaBubbleOverviewCardConfig)).toThrow(
@@ -69,9 +69,7 @@ describe("overview configuration", () => {
     expect(() =>
       validateOverviewConfig({ type: "custom:wrong-card" } as unknown as AreaBubbleOverviewCardConfig),
     ).toThrow(`Card type must be ${CARD_TYPE}.`);
-    expect(() => validateOverviewConfig({ type: CARD_TYPE, area: "kids", floor: "upstairs" })).toThrow(
-      "Choose either an area or a floor, not both.",
-    );
+    expect(() => validateOverviewConfig({ type: CARD_TYPE, area: "kids", floor: "upstairs" })).not.toThrow();
     expect(() =>
       validateOverviewConfig({
         type: CARD_TYPE,

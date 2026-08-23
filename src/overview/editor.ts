@@ -24,7 +24,7 @@ import type {
 } from "./types";
 import { css } from "lit";
 
-type AreaOption = { id: string; name: string; icon: string; floorId?: string };
+type AreaOption = { id: string; name: string; icon: string; floorId?: string; level?: number };
 
 @customElement(OVERVIEW_EDITOR_TAG)
 export class AreaBubbleOverviewCardEditor extends LitElement {
@@ -140,6 +140,24 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
     .order-controls { display: flex; gap: 4px; }
     .icon-button { display: grid; place-items: center; width: 34px; min-height: 34px; border-color: var(--divider-color); }
     .icon-button[disabled], .small-button[disabled] { cursor: not-allowed; opacity: .4; }
+    .target-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .target-picker { display: grid; align-content: start; gap: 9px; min-width: 0; padding: 10px; border: 1px solid color-mix(in srgb, var(--divider-color) 75%, transparent); border-radius: 12px; background: color-mix(in srgb, var(--secondary-background-color) 70%, transparent); }
+    .target-picker-title { display: flex; align-items: center; gap: 8px; min-height: 42px; }
+    .target-picker-title > ha-icon { color: var(--primary-color); }
+    .target-picker-title span, .target-picker-title strong, .target-picker-title small { display: block; min-width: 0; }
+    .target-picker-title strong { font-size: 13px; }
+    .target-picker-title small { margin-top: 2px; color: var(--secondary-text-color); font-size: 10px; line-height: 1.3; }
+    .target-options { display: grid; gap: 6px; max-height: 310px; overflow: auto; }
+    .target-option { display: grid; grid-template-columns: auto auto minmax(0, 1fr) auto; align-items: center; gap: 7px; min-height: 46px; padding: 6px 7px; border: 1px solid transparent; border-radius: 10px; background: var(--card-background-color); }
+    .target-option.selected { border-color: color-mix(in srgb, var(--primary-color) 48%, var(--divider-color)); background: color-mix(in srgb, var(--primary-color) 8%, var(--card-background-color)); }
+    .target-option-check { display: contents; cursor: pointer; }
+    .target-option-icon { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: color-mix(in srgb, var(--primary-color) 11%, transparent); color: var(--primary-color); cursor: pointer; }
+    .target-option-name { min-width: 0; cursor: pointer; }
+    .target-option-name strong, .target-option-name small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .target-option-name strong { font-size: 12px; }
+    .target-option-name small { color: var(--secondary-text-color); font-size: 9px; }
+    .target-option .order-controls { gap: 2px; }
+    .target-option .icon-button { width: 28px; min-height: 28px; }
     .inline-fields { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
     .area-card { display: grid; gap: 10px; padding: 10px; border: 1px solid var(--divider-color); border-radius: 12px; }
     .area-card.child { margin-inline-start: 18px; border-inline-start: 3px solid color-mix(in srgb, var(--primary-color) 44%, var(--divider-color)); }
@@ -171,7 +189,7 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
     .empty { padding: 18px; color: var(--secondary-text-color); text-align: center; }
     .status { display: inline-flex; align-items: center; gap: 5px; min-height: 24px; padding: 0 8px; border-radius: 999px; background: color-mix(in srgb, var(--success-color, #4caf50) 14%, transparent); color: var(--success-color, #4caf50); font-size: 11px; font-weight: 700; }
     @media (max-width: 560px) {
-      .inline-fields, .entity-toolbar, .entity-fields, .state-preview, .theme-preset-grid { grid-template-columns: 1fr; }
+      .inline-fields, .entity-toolbar, .entity-fields, .state-preview, .theme-preset-grid, .target-grid { grid-template-columns: 1fr; }
       .icon-picker-row, .color-control { grid-template-columns: auto minmax(0, 1fr); }
       .icon-picker-row .reset-button, .color-control .reset-button { grid-column: 1 / -1; }
       .order-item { grid-template-columns: auto minmax(0, 1fr); }
@@ -183,7 +201,6 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
 
   @property({ attribute: false }) public hass?: HomeAssistant;
   @state() private config: AreaBubbleOverviewCardConfig = { type: OVERVIEW_CARD_TYPE };
-  @state() private targetMode: "area" | "floor" = "area";
   @state() private activeAreaId = "";
   @state() private entitySearch = "";
   @state() private candidateEntityId = "";
@@ -208,8 +225,8 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
     if (!OVERVIEW_THEME_NAMES.includes(config.theme_preset as OverviewThemePreset)) delete sanitized.theme_preset;
     if (!["recommended", "light", "dark"].includes(String(config.theme_mode))) delete sanitized.theme_mode;
     this.config = sanitized;
-    this.targetMode = config.floor ? "floor" : "area";
-    if (config.area) this.activeAreaId = config.area;
+    const firstArea = config.areas?.[0] ?? config.area;
+    if (firstArea) this.activeAreaId = firstArea;
   }
 
   protected override shouldUpdate(changedProperties: Map<PropertyKey, unknown>): boolean {
@@ -262,23 +279,37 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
   private renderTarget(resolved: ResolvedOverviewConfig, language: "he" | "en") {
     const areas = this.areaOptions();
     const floors = this.floorOptions();
-    const selectedTarget = this.targetMode === "area" ? this.areaIdFor(resolved.area) : this.floorIdFor(resolved.floor);
-    const targetOptions = this.targetMode === "area" ? areas : floors;
-    const automaticIcon = targetOptions.find((item) => item.id === selectedTarget)?.icon ?? (this.targetMode === "floor" ? "mdi:home-floor-0" : "mdi:floor-plan");
+    const selectedFloorIds = this.selectedFloorOptions(resolved).map((item) => item.id);
+    const selectedAreaIds = this.selectedAreaOptions(resolved).map((item) => item.id);
+    const selectedTargets = [
+      ...floors.filter((item) => selectedFloorIds.includes(item.id)),
+      ...areas.filter((item) => selectedAreaIds.includes(item.id)),
+    ];
+    const automaticIcon = selectedTargets.length === 1 ? selectedTargets[0].icon : "mdi:home-group";
     return html`
       <details open>
-        ${this.summary("mdi:map-marker-radius", this.l("יעד", "Target", language), this.l("בחרו חדר יחיד או קומה שלמה", "Choose one room or a complete floor", language))}
+        ${this.summary("mdi:map-marker-radius", this.l("יעדים", "Targets", language), this.l("בחרו כמה קומות ואזורים וסדרו אותם", "Choose and order multiple floors and areas", language))}
         <div class="panel">
-          <div class="segmented">
-            <button type="button" class="segment ${this.targetMode === "area" ? "active" : ""}" @click=${() => (this.targetMode = "area")}>${this.l("אזור", "Area", language)}</button>
-            <button type="button" class="segment ${this.targetMode === "floor" ? "active" : ""}" @click=${() => (this.targetMode = "floor")}>${this.l("קומה", "Floor", language)}</button>
-          </div>
-          <div class="field">
-            <label>${this.targetMode === "area" ? this.l("אזור להצגה", "Area to show", language) : this.l("קומה להצגה", "Floor to show", language)}</label>
-            <select .value=${selectedTarget} @change=${(event: Event) => this.setTarget((event.target as HTMLSelectElement).value)}>
-              <option value="" ?selected=${!selectedTarget}>${this.l("בחרו...", "Choose...", language)}</option>
-              ${(this.targetMode === "area" ? areas : floors).map((item) => html`<option value=${item.id} ?selected=${item.id === selectedTarget}>${item.name}</option>`)}
-            </select>
+          <div class="target-grid">
+            <section class="target-picker">
+              <div class="target-picker-title"><ha-icon icon="mdi:layers-triple-outline"></ha-icon><span><strong>${this.l("קומות", "Floors", language)}</strong><small>${this.l("ברירת המחדל מסודרת לפי LEVEL", "Default order follows LEVEL", language)}</small></span></div>
+              ${this.renderTargetOptions(
+                this.orderedTargetOptions(floors, selectedFloorIds),
+                selectedFloorIds,
+                "floor",
+                language,
+              )}
+              ${!floors.length ? html`<div class="hint">${this.l("לא נמצאו קומות. צרו קומה בהגדרות Home Assistant ושייכו אליה אזורים.", "No floors were found. Create a floor in Home Assistant and assign areas to it.", language)}</div>` : nothing}
+            </section>
+            <section class="target-picker">
+              <div class="target-picker-title"><ha-icon icon="mdi:floor-plan"></ha-icon><span><strong>${this.l("אזורים בודדים", "Individual areas", language)}</strong><small>${this.l("אפשר לשלב אותם עם הקומות שנבחרו", "They can be combined with selected floors", language)}</small></span></div>
+              ${this.renderTargetOptions(
+                this.orderedTargetOptions(areas, selectedAreaIds),
+                selectedAreaIds,
+                "area",
+                language,
+              )}
+            </section>
           </div>
           <div class="field">
             <label>${this.l("כותרת מותאמת (רשות)", "Custom title (optional)", language)}</label>
@@ -291,10 +322,29 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
             language,
             (value) => this.commitKey("target_icon", value),
           )}
-          ${this.targetMode === "floor" && !floors.length ? html`<div class="hint">${this.l("לא נמצאו קומות. צרו קומה בהגדרות Home Assistant ושייכו אליה אזורים.", "No floors were found. Create a floor in Home Assistant and assign areas to it.", language)}</div>` : nothing}
         </div>
       </details>
     `;
+  }
+
+  private renderTargetOptions(
+    options: Array<{ id: string; name: string; icon: string; level?: number }>,
+    selectedIds: string[],
+    kind: "area" | "floor",
+    language: "he" | "en",
+  ) {
+    return html`<div class="target-options">${options.map((item) => {
+      const selected = selectedIds.includes(item.id);
+      const index = selectedIds.indexOf(item.id);
+      return html`
+        <div class="target-option ${selected ? "selected" : ""}">
+          <label class="target-option-check"><input id=${`overview-target-${kind}-${item.id}`.replace(/[^a-zA-Z0-9_-]/g, "-")} type="checkbox" .checked=${selected} @change=${(event: Event) => this.toggleTarget(kind, item.id, (event.target as HTMLInputElement).checked)} /></label>
+          <label class="target-option-icon" for=${`overview-target-${kind}-${item.id}`.replace(/[^a-zA-Z0-9_-]/g, "-")}><ha-icon icon=${item.icon}></ha-icon></label>
+          <label class="target-option-name" for=${`overview-target-${kind}-${item.id}`.replace(/[^a-zA-Z0-9_-]/g, "-")}><strong>${item.name}</strong>${kind === "floor" && item.level !== undefined ? html`<small>LEVEL ${item.level}</small>` : nothing}</label>
+          ${selected ? this.orderButtons(index, selectedIds.length, () => this.moveTarget(kind, item.id, -1), () => this.moveTarget(kind, item.id, 1)) : nothing}
+        </div>
+      `;
+    })}</div>`;
   }
 
   private renderSummarySettings(resolved: ResolvedOverviewConfig, language: "he" | "en") {
@@ -1202,24 +1252,51 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
       .sort((a, b) => a.name.localeCompare(b.name));
   }
 
-  private floorOptions(): Array<{ id: string; name: string; icon: string }> {
+  private floorOptions(): AreaOption[] {
     return Object.entries(this.hass?.floors ?? {})
-      .map(([key, floor]) => ({ id: floor.floor_id ?? floor.id ?? key, name: floor.name, icon: floor.icon ?? "mdi:home-floor-0", level: floor.level ?? Number.MAX_SAFE_INTEGER }))
-      .sort((a, b) => a.level - b.level || a.name.localeCompare(b.name));
+      .map(([key, floor]) => ({
+        id: floor.floor_id ?? floor.id ?? key,
+        name: floor.name,
+        icon: floor.icon ?? "mdi:home-floor-0",
+        ...(typeof floor.level === "number" && Number.isFinite(floor.level) ? { level: floor.level } : {}),
+      }))
+      .sort((a, b) => (a.level ?? Number.MAX_SAFE_INTEGER) - (b.level ?? Number.MAX_SAFE_INTEGER) || a.name.localeCompare(b.name));
   }
 
   private targetAreas(resolved: ResolvedOverviewConfig): AreaOption[] {
+    const discovered = discoverOverview(this.hass, resolved).areas;
+    return discovered.map((area) => ({ id: area.id, name: area.name, icon: area.icon, floorId: area.floorId }));
+  }
+
+  private selectedFloorOptions(resolved: ResolvedOverviewConfig): AreaOption[] {
+    const options = this.floorOptions();
+    const references = new Set(resolved.floors.map((reference) => this.floorIdFor(reference)));
+    const selected = options.filter((item) => references.has(item.id));
+    const order = resolved.floor_order.map((reference) => this.floorIdFor(reference));
+    return order.length ? this.orderedTargetOptions(selected, selected.map((item) => item.id), order) : selected;
+  }
+
+  private selectedAreaOptions(resolved: ResolvedOverviewConfig): AreaOption[] {
     const options = this.areaOptions();
-    let selected = options;
-    if (resolved.area) selected = options.filter((area) => area.id === resolved.area || area.name === resolved.area);
-    if (resolved.floor) {
-      const floorId = this.floorIdFor(resolved.floor);
-      selected = options.filter((area) => area.floorId === floorId);
-    }
-    return selected.sort((a, b) => {
-      const ai = resolved.area_order.findIndex((item) => item === a.id || item === a.name);
-      const bi = resolved.area_order.findIndex((item) => item === b.id || item === b.name);
-      return (ai < 0 ? Number.MAX_SAFE_INTEGER : ai) - (bi < 0 ? Number.MAX_SAFE_INTEGER : bi) || a.name.localeCompare(b.name);
+    const selected = resolved.areas.flatMap((reference) => {
+      const match = options.find((item) => item.id === reference || item.name === reference);
+      return match ? [match] : [];
+    });
+    const order = resolved.area_order.map((reference) => this.areaIdFor(reference));
+    return this.orderedTargetOptions(selected, selected.map((item) => item.id), order);
+  }
+
+  private orderedTargetOptions<T extends { id: string }>(options: T[], selectedIds: string[], order = selectedIds): T[] {
+    const selected = new Set(selectedIds);
+    const orderIndex = (id: string): number => {
+      const index = order.indexOf(id);
+      return index < 0 ? Number.MAX_SAFE_INTEGER : index;
+    };
+    return [...options].sort((a, b) => {
+      const aSelected = selected.has(a.id);
+      const bSelected = selected.has(b.id);
+      if (aSelected !== bSelected) return aSelected ? -1 : 1;
+      return aSelected ? orderIndex(a.id) - orderIndex(b.id) : 0;
     });
   }
 
@@ -1292,18 +1369,40 @@ export class AreaBubbleOverviewCardEditor extends LitElement {
     return this.hass?.formatEntityName?.(entity) ?? String(entity.attributes.friendly_name ?? entity.entity_id);
   }
 
-  private setTarget(value: string): void {
-    const next = { ...this.config };
-    if (this.targetMode === "area") {
-      next.area = value || undefined;
-      delete next.floor;
-      this.activeAreaId = value;
-    } else {
-      next.floor = value || undefined;
+  private toggleTarget(kind: "area" | "floor", id: string, enabled: boolean): void {
+    const resolved = resolveOverviewConfig(this.config);
+    const key = kind === "area" ? "areas" : "floors";
+    const current = kind === "area"
+      ? this.selectedAreaOptions(resolved).map((item) => item.id)
+      : this.selectedFloorOptions(resolved).map((item) => item.id);
+    const selected = current.filter((item) => item !== id);
+    if (enabled) selected.push(id);
+    const next = { ...this.config, [key]: selected } as AreaBubbleOverviewCardConfig;
+    if (kind === "floor" && this.config.floor_order?.length) next.floor_order = selected;
+    if (kind === "area") {
       delete next.area;
-      this.activeAreaId = "";
+      if (enabled) this.activeAreaId = id;
+    } else {
+      delete next.floor;
     }
     this.commit(next);
+  }
+
+  private moveTarget(kind: "area" | "floor", id: string, direction: -1 | 1): void {
+    const resolved = resolveOverviewConfig(this.config);
+    const selected = kind === "area"
+      ? this.selectedAreaOptions(resolved).map((item) => item.id)
+      : this.selectedFloorOptions(resolved).map((item) => item.id);
+    this.moveValue(selected, id, direction);
+    const key = kind === "area" ? "areas" : "floors";
+    const orderKey = kind === "area" ? "area_order" : "floor_order";
+    const order = kind === "area"
+      ? [
+          ...selected,
+          ...resolved.area_order.map((reference) => this.areaIdFor(reference)).filter((areaId) => !selected.includes(areaId)),
+        ]
+      : selected;
+    this.commit({ ...this.config, [key]: selected, [orderKey]: order });
   }
 
   private setSectionTitle(section: OverviewSectionId, value: string): void {
